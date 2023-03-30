@@ -373,7 +373,7 @@
 // -- width/height utilities --
 
 #let cell_width(x, colspan: 1, columns: (), inset: 5pt) = {
-    let width = columns.at(x) + 2*inset
+    let width = 2*inset
     for col_width in columns.slice(x, x + colspan) {
         width += col_width
     }
@@ -381,7 +381,7 @@
 }
 
 #let cell_height(y, rowspan: 1, rows: (), inset: 5pt) = {
-    let height = rows.at(y) + 2*inset
+    let height = 2*inset
     for row_height in rows.slice(y, y + rowspan) {
         height += row_height
     }
@@ -624,10 +624,6 @@
                         
                         let first_row = true
                         for row in rows {
-                            if not first_row {
-                                [\ ]  // line separator between rows
-                            } 
-
                             for cell_box in row {
                                 first_x = default_if_none(first_x, cell_box.cell.x)
                                 first_y = default_if_none(first_y, cell_box.cell.y)
