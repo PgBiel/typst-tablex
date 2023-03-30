@@ -707,23 +707,25 @@
                         let first_row = true
                         for row in rows {
                             for cell_box in row {
-                                first_x = default_if_none(first_x, cell_box.cell.x)
-                                first_y = default_if_none(first_y, cell_box.cell.y)
+                                let x = cell_box.cell.x
+                                let y = cell_box.cell.y
+                                first_x = default_if_none(first_x, x)
+                                first_y = default_if_none(first_y, y)
 
-                                cell_box.box
+                                place(top + left, dx: width_between(end: x), dy: height_between(end: y), cell_box.box)
                             }
                             first_row = false
                         }
 
                         for hline in hlines {
                             if drawn_hlines.at(loc).filter(is_same_hline.with(hline)).len() == 0 {
-                                draw_hline(hline, initial_x: first_x, initial_y: first_y)
+                                draw_hline(hline, initial_x: 0, initial_y: 0)
                                 drawn_hlines.update(l => l + (hline,))
                             }
                         }
 
                         for vline in vlines {
-                            draw_vline(vline, initial_x: first_x, initial_y: first_y)
+                            draw_vline(vline, initial_x: 0, initial_y: 0)
                         }
                     })
                 })
