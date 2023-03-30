@@ -80,17 +80,33 @@
         panic("Rows must be either 'auto' or an array of sizes (or 'auto's).")
     }
 
+    let grid_len() = {
+        let len = 0
+
+        for item in items {
+            // cell occupies (colspan * rowspan) spaces
+            if is_tabular_cell(item) {
+                len += item.colspan * item.rowspan
+            } else if type(item) == "content" {
+                len += 1
+            }
+        }
+
+        len
+    }
+
     if columns == auto {
         if rows == auto {
             columns = (auto,)  // assume 1 column and many rows
-            rows = (auto,) * items.len()
+
+            rows = (auto,) * grid_len()
         } else {
             // ceil to allow incomplete columns
-            columns = (auto,) * calc.ceil(items.len() / rows.len())
+            columns = (auto,) * calc.ceil(grid_len() / rows.len())
         }
     } else if rows == auto {
         // ceil to allow incomplete rows
-        rows = (auto,) * calc.ceil(items.len() / columns.len())
+        rows = (auto,) * calc.ceil(grid_len() / columns.len())
     }
 
     (columns: columns, rows: rows)
@@ -276,7 +292,7 @@
 
         let cell = item
         if x == none or y == none {
-            panic("Attempted to add cells with no space available! Maybe there are too many cells? Failing cell's position:", (prev_x, prev_y))
+            panic("Attempted to add cells with no space available! Maybe there are too many cells? Failing cell's position:", (prev_x, prev_y), " Rows/columns available:", (y_limit, x_limit))
         }
 
         let cell_positions = positions_spanned_by(cell, x: x, y: y, x_limit: x_limit, y_limit: y_limit)
@@ -470,6 +486,12 @@
 }
 
 // restrict hlines and vlines to the cells' borders.
+// i.e.
+//                | (vline)
+//                |
+// (hline) ----====---      (= and || indicate intersection)
+//             |  ||
+//             ----   <--- sample cell
 #let v_and_hline_spans_for_cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
     let parent_cell = get_parent_cell(cell, grid: grid)
 
@@ -602,7 +624,11 @@
     // In general, they're just one row. However, they can be multiple rows
     // if one of their cells spans multiple rows.
     let first_row_group = none
-    let latest_page = state("tablex_tabular_latest_page", -1)  // page in the latest row group
+
+    // page in the latest row group
+    let latest_page = state("tablex_tabular_latest_page", -1)
+
+    // don't draw hlines twice
     let drawn_hlines = state("tablex_tabular_drawn_hlines", ())
     let this_row_group = (rows: ((),), hlines: (), vlines: ())
 
@@ -646,6 +672,8 @@
             current_row += 1
             row_group_add_counter -= 1
 
+            // added all pertaining rows to the group
+            // now we can draw it
             if row_group_add_counter <= 0 {
                 row_group_add_counter = 1
 
