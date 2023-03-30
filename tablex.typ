@@ -423,21 +423,17 @@
 }
 
 #let width_between(start: 0, end: none, columns: (), inset: 5pt) = {
-    let i = start
     let sum = 0pt
-    while i != columns.len() and i != end {
+    for i in range(start, calc.min(columns.len() + 1, end)) {
         sum += columns.at(i) + 2 * inset
-        i += 1
     }
     sum
 }
 
 #let height_between(start: 0, end: none, rows: (), inset: 5pt) = {
-    let i = start
     let sum = 0pt
-    while i < rows.len() and i != end {
+    for i in range(start, calc.min(rows.len() + 1, end))  {
         sum += rows.at(i) + 2*inset
-        i += 1
     }
     sum
 }
@@ -485,8 +481,9 @@
         .filter(h => {
             let y = h.y
 
-            ((y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
-                and (y != cell.y + 1 or parent_cell.y + parent_cell.rowspan - 1 <= cell.y))
+            ((y in (cell.y, cell.y + 1, y_limit)
+                and (y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
+                and (y != cell.y + 1 or ((parent_cell.y + parent_cell.rowspan - 1 <= cell.y) and (parent_cell.rowspan < 2)))))
         })  // only show bottom line if end of rowspan isn't below
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
@@ -498,8 +495,9 @@
         .filter(v => {
             let x = v.x
 
-            ((x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
-                and (x != cell.x + 1 or parent_cell.x + parent_cell.colspan - 1 <= cell.x))
+            ((x in (cell.x, cell.x + 1, x_limit))
+                and (x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
+                and (x != cell.x + 1 or ((parent_cell.x + parent_cell.colspan - 1 <= cell.x) and (parent_cell.colspan < 2))))
         })  // only show right line if end of colspan isn't to the right
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
@@ -621,6 +619,7 @@
 
 
                 if is_tabular_cell(cell) and cell.rowspan > 1 {
+                    // ensure row-spanned rows are in the same group
                     row_group_add_counter += cell.rowspan - 1
                 }
 
@@ -707,18 +706,11 @@
                 }
                 
                 (content,)
+            } else {
+                this_row_group.rows.push(())
             }
         }
     }
 
     grid(columns: (auto,), rows: auto, ..row_groups)
 })
-
-eee
-#tabular(
-    columns: (auto, auto, auto),
-    hline(), vline(), vline(), vline(), vline(),
-    [a], colspan(length: 2)[b], (), hline(),
-    [d], [e], [f],
-    hline(),
-)
