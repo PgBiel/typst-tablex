@@ -422,22 +422,6 @@
 
 // -- width/height utilities --
 
-#let cell_width(x, colspan: 1, columns: (), inset: 5pt) = {
-    let width = 2*inset
-    for col_width in columns.slice(x, x + colspan) {
-        width += col_width
-    }
-    width
-}
-
-#let cell_height(y, rowspan: 1, rows: (), inset: 5pt) = {
-    let height = 2*inset
-    for row_height in rows.slice(y, y + rowspan) {
-        height += row_height
-    }
-    height
-}
-
 #let width_between(start: 0, end: none, columns: (), inset: 5pt) = {
     let sum = 0pt
     for i in range(start, calc.min(columns.len() + 1, end)) {
@@ -452,6 +436,24 @@
         sum += rows.at(i) + 2*inset
     }
     sum
+}
+
+#let cell_width(x, colspan: 1, columns: (), inset: 5pt) = {
+    // let width = 2*inset
+    // for col_width in columns.slice(x, x + colspan) {
+    //     width += col_width
+    // }
+    // width
+    width_between(start: x, end: x + colspan, columns: columns, inset: inset)
+}
+
+#let cell_height(y, rowspan: 1, rows: (), inset: 5pt) = {
+    // let height = 2*inset
+    // for row_height in rows.slice(y, y + rowspan) {
+    //     height += row_height
+    // }
+    // height
+    height_between(start: y, end: y + rowspan, rows: rows, inset: inset)
 }
 
 // overide start and end for vlines and hlines (keep styling options and stuff)
