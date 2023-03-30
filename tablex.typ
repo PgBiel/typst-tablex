@@ -522,7 +522,7 @@
     inset: 5pt,
     ..items
 ) = style(styles => {
-    let items = items.pos().map(table_item_convert)
+    let items = items.pos().filter(x => x != ()).map(table_item_convert)
 
     let validated_cols_rows = validate_cols_rows(
         columns, rows, items: items.filter(is_tabular_cell))
