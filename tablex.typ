@@ -59,9 +59,11 @@
 #let is_some_tabular_line(x) = is_tabular_dict_type(x, "hline", "vline")
 #let is_tabular_occupied(x) = is_tabular_dict_type(x, "occupied")
 
-#let table_item_convert(item) = {
+#let table_item_convert(item, keep_empty: true) = {
     if type(item) == "function" {  // dynamic cell content
         tcell(item)
+    } else if keep_empty and item == () {
+        item
     } else if type(item) != "dictionary" or "tabular_dict_type" not in item {
         tcell[#item]
     } else {
@@ -176,10 +178,16 @@
 }
 
 // Return the next position available on the grid
-#let next_available_position(grid, x: 0, y: 0, x_limit: 0, y_limit: 0) = {
+#let next_available_position(
+    grid, x: 0, y: 0, x_limit: 0, y_limit: 0
+) = {
     let cell = (x, y)
+    let there_is_next(cell_pos) = {
+        let grid_cell = grid_at(grid, ..cell_pos)
+        grid_cell != none
+    }
 
-    while grid_at(grid, ..cell) != none {
+    while there_is_next(cell) {
         x += 1
 
         if x >= x_limit {
@@ -215,21 +223,47 @@
 
     let row_wrapped = false  // if true, a vline should be added to the end of a row
 
+    // go through all input
     for i in range(items.len()) {
         let item = items.at(i)
+
+        if type(item) == "array" and item.len() == 0 {
+            if x == 0 and y == 0 {  // increment vline's secondary counter
+                prev_x += 1
+
+                if prev_x > x_limit {
+                    panic("Error: Specified way too many empty cells before the first row of the table. Please specify at most " + str(x_limit) + " empty cells or vlines
+                    on the first row.")
+                }
+            }
+
+            continue
+        }
+
         let item = table_item_convert(item)
+
 
         if is_some_tabular_line(item) {  // detect lines' x, y
             if is_tabular_hline(item) {
-                item.y = default_if_none(y, y_limit)
+                item.y = default_if_none(item.y, default_if_none(y, y_limit), forbidden: auto)
 
                 hlines.push(item)
             } else if is_tabular_vline(item) {
-                if row_wrapped {
-                    item.x = prev_x + 1  // allow v_line at the last column
-                    row_wrapped = false
-                } else {
-                    item.x = x
+                if item.x == auto {
+                    if x == 0 and y == 0 {  // placed before any elements
+                        item.x = prev_x
+                        prev_x += 1  // use this as a 'secondary counter'
+                                     // in the meantime
+
+                        if prev_x > x_limit + 1 {
+                            panic("Error: Specified way too many empty cells before the first row of the table. Please specify at most " + str(x_limit + 1) + " empty cells or vlines on the first row.")
+                        }
+                    } else if row_wrapped {
+                        item.x = x_limit  // allow v_line at the last column
+                        row_wrapped = false
+                    } else {
+                        item.x = x
+                    }
                 }
 
                 vlines.push(item)
@@ -265,7 +299,7 @@
             
             // other secondary position (from colspan / rowspan)
             } else {
-                grid.at(py).at(px) = occupied(x: x, y: y, parent_x: x, parent_y: y)  // signal parent cell
+                grid.at(py).at(px) = occupied(x: px, y: py, parent_x: x, parent_y: y)  // signal parent cell
             }
         }
 
@@ -360,7 +394,7 @@
 // if a cell => return it, untouched.
 #let get_parent_cell(cell, grid: none) = {
     if is_tabular_occupied(cell) {
-        grid_at(grid, cell.x, cell.y)
+        grid_at(grid, cell.parent_x, cell.parent_y)
     } else if is_tabular_cell(cell) {
         cell
     } else {
@@ -522,7 +556,9 @@
     inset: 5pt,
     ..items
 ) = style(styles => {
-    let items = items.pos().filter(x => x != ()).map(table_item_convert)
+    let initial_items = items.pos().map(table_item_convert)
+    let items = initial_items.filter(x => x != ())
+
 
     let validated_cols_rows = validate_cols_rows(
         columns, rows, items: items.filter(is_tabular_cell))
@@ -534,11 +570,12 @@
     let items_len = items.len()
     if items_len < col_len * row_len {
         items += ([],) * (col_len * row_len - items_len)
+        items += ([],) * (col_len * row_len - items_len)
     }
     let items_len = items.len()
 
     // generate cell matrix and other things
-    let grid_info = generate_grid(items, x_limit: col_len, y_limit: row_len)
+    let grid_info = generate_grid(initial_items, x_limit: col_len, y_limit: row_len)
 
     let table_grid = grid_info.grid
     let hlines = grid_info.hlines
@@ -570,7 +607,6 @@
     let latest_page = state("tablex_tabular_latest_page", -1)  // page in the latest row group
     let drawn_hlines = state("tablex_tabular_drawn_hlines", ())
     let this_row_group = (rows: ((),), hlines: (), vlines: ())
-
 
     let row_groups = {
         let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
@@ -677,3 +713,12 @@
 
     grid(columns: (auto,), rows: auto, ..row_groups)
 })
+
+eee
+#tabular(
+    columns: (auto, auto, auto),
+    hline(), vline(), vline(), vline(), vline(),
+    [a], colspan(length: 2)[b], (), hline(),
+    [d], [e], [f],
+    hline(),
+)
