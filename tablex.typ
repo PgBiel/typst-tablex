@@ -451,8 +451,8 @@
         .filter(h => {
             let y = h.y
 
-            return ((y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
-                and (y != cell.y + 1 or parent_cell.y + parent_cell.rowspan <= cell.y))
+            ((y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
+                and (y != cell.y + 1 or parent_cell.y + parent_cell.rowspan - 1 <= cell.y))
         })  // only show bottom line if end of rowspan isn't below
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
@@ -464,8 +464,8 @@
         .filter(v => {
             let x = v.x
 
-            return ((x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
-                and (x != cell.x + 1 or parent_cell.x + parent_cell.colspan <= cell.x))
+            ((x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
+                and (x != cell.x + 1 or parent_cell.x + parent_cell.colspan - 1 <= cell.x))
         })  // only show right line if end of colspan isn't to the right
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
@@ -478,6 +478,16 @@
         vlines: vlines
     )
 }
+
+// Are two hlines the same?
+// (Check to avoid double drawing)
+#let is_same_hline(a, b) = (
+    is_tabular_hline(a)
+        and is_tabular_hline(b)
+        and a.y == b.y
+        and a.start == b.start
+        and a.end == b.end
+)
 
 // -- end: width/height utilities --
 
@@ -558,6 +568,7 @@
     // if one of their cells spans multiple rows.
     let first_row_group = none
     let latest_page = state("tablex_tabular_latest_page", -1)  // page in the latest row group
+    let drawn_hlines = state("tablex_tabular_drawn_hlines", ())
     let this_row_group = (rows: ((),), hlines: (), vlines: ())
 
 
@@ -583,10 +594,15 @@
 
                     this_row_group.rows.last().push(
                         (cell: cell,
-                        box: box(width: width, height: height, inset: inset)[
-                            #cell.content
-                        ]))
+                        box: box(width: width, height: height, inset: inset)[#cell.content]))
                 }
+
+                let hlines = hlines.filter(h =>
+                    this_row_group.hlines.filter(is_same_hline.with(h))
+                        .len() == 0)
+
+                let vlines = vlines.filter(v =>
+                    v not in this_row_group.vlines)
 
                 this_row_group.hlines += hlines
                 this_row_group.vlines += vlines
@@ -605,6 +621,7 @@
                 let vlines = row_group.vlines
                 
                 this_row_group = (rows: ((),), hlines: (), vlines: ())
+
 
                 let row_group_content(is_first: false) = locate(loc => {
                     let old_page = latest_page.at(loc)
@@ -634,7 +651,10 @@
                         }
 
                         for hline in hlines {
-                            draw_hline(hline, initial_x: first_x, initial_y: first_y)
+                            if drawn_hlines.at(loc).filter(is_same_hline.with(hline)).len() == 0 {
+                                draw_hline(hline, initial_x: first_x, initial_y: first_y)
+                                drawn_hlines.update(l => l + (hline,))
+                            }
                         }
 
                         for vline in vlines {
