@@ -572,7 +572,7 @@
     let this_row_group = (rows: ((),), hlines: (), vlines: ())
 
 
-    block({
+    let row_groups = {
         let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
         let current_row = 0
         for row in table_grid {
@@ -636,8 +636,8 @@
 
                     block(breakable: false, {
                         show line: place.with(top + left)
-                        let first_x = 0
-                        let first_y = 0
+                        let first_x = none
+                        let first_y = none
                         
                         let first_row = true
                         for row in rows {
@@ -670,8 +670,10 @@
                     first_row_group = content
                 }
                 
-                content
+                (content,)
             }
         }
-    })
+    }
+
+    grid(columns: (auto,), rows: auto, ..row_groups)
 })
