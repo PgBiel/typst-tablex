@@ -423,6 +423,8 @@
 // -- width/height utilities --
 
 #let width_between(start: 0, end: none, columns: (), inset: 5pt) = {
+    end = default_if_none(end, columns.len())
+
     let sum = 0pt
     for i in range(start, calc.min(columns.len() + 1, end)) {
         sum += columns.at(i) + 2 * inset
@@ -431,6 +433,8 @@
 }
 
 #let height_between(start: 0, end: none, rows: (), inset: 5pt) = {
+    end = default_if_none(end, rows.len())
+
     let sum = 0pt
     for i in range(start, calc.min(rows.len() + 1, end))  {
         sum += rows.at(i) + 2*inset
@@ -634,6 +638,8 @@
     let drawn_hlines = state("tablex_tabular_drawn_hlines", ())
     let this_row_group = (rows: ((),), hlines: (), vlines: ())
 
+    let total_width = width_between(end: none)
+
     let row_groups = {
         let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
         let current_row = 0
@@ -704,6 +710,9 @@
                         let first_x = none
                         let first_y = none
                         
+                        let tallest_box_h = 0pt;
+                        let tallest_box = [];
+
                         let first_row = true
                         for row in rows {
                             for cell_box in row {
@@ -712,20 +721,27 @@
                                 first_x = default_if_none(first_x, x)
                                 first_y = default_if_none(first_y, y)
 
-                                place(top + left, dx: width_between(end: x), dy: height_between(end: y), cell_box.box)
+                                place(top+left, dx: width_between(start: first_x, end: x), dy: height_between(start: first_y, end: y), cell_box.box)
+
+                                let box_h = measure(cell_box.box, styles).height
+                                if box_h > tallest_box_h {
+                                    tallest_box_h = box_h
+                                    tallest_box = cell_box.box
+                                }
                             }
                             first_row = false
                         }
 
+                        hide(rect(width: total_width, height: tallest_box_h))
                         for hline in hlines {
                             if drawn_hlines.at(loc).filter(is_same_hline.with(hline)).len() == 0 {
-                                draw_hline(hline, initial_x: 0, initial_y: 0)
+                                draw_hline(hline, initial_x: first_x, initial_y: first_y)
                                 drawn_hlines.update(l => l + (hline,))
                             }
                         }
 
                         for vline in vlines {
-                            draw_vline(vline, initial_x: 0, initial_y: 0)
+                            draw_vline(vline, initial_x: first_x, initial_y: first_y)
                         }
                     })
                 })
