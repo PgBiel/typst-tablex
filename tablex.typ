@@ -707,23 +707,22 @@
 
                 let row_group_content(is_first: false) = locate(loc => {
                     let old_page = latest_page.at(loc)
-                    let pos = loc.position()
-
-                    latest_page.update(calc.max.with(pos.page))  // don't change the page if it is already larger than ours
+                    let this_page = loc.page()
 
 
-                    let page_turned = not is_first and old_page != pos.page
+
+                    let page_turned = not is_first and old_page != this_page
 
                     block(breakable: false, {
                         let added_header_height = 0pt  // if we added a header, move down
 
-                        if page_turned and pos.page not in pages_with_header.at(loc) {
+                        if page_turned and this_page not in pages_with_header.at(loc) {
                             let measures = measure(first_row_group.content, styles)
                             place(top+left, first_row_group.content)  // add header
                             added_header_height = measures.height
 
                             // do not place the header again on this page
-                            pages_with_header.update(l => l + (pos.page,))
+                            pages_with_header.update(l => l + (this_page,))
                         }
 
                         // move lines down by the height of the header
@@ -761,13 +760,13 @@
 
                         for hline in hlines {
                             let drawn_hlines_at = drawn_hlines.at(loc)
-                            if (page_turned and drawn_hlines_at.len() <= pos.page - 1) or drawn_hlines_at.at(pos.page - 1).filter(is_same_hline.with(hline)).len() == 0 {
+                            if (page_turned and drawn_hlines_at.len() <= this_page - 1) or drawn_hlines_at.at(this_page - 1).filter(is_same_hline.with(hline)).len() == 0 {
                                 draw_hline(hline, initial_x: first_x, initial_y: first_y)
                                 drawn_hlines.update(l => {
-                                    while l.len() <= pos.page - 1 {
+                                    while l.len() <= this_page - 1 {
                                         l.push(())
                                     }
-                                    l.at(pos.page - 1).push(hline)
+                                    l.at(this_page - 1).push(hline)
                                     l
                                 })
                             }
@@ -777,6 +776,8 @@
                             draw_vline(vline, initial_x: first_x, initial_y: first_y)
                         }
                     })
+
+                    latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
                 })
 
                 let is_first = first_row_group == none
