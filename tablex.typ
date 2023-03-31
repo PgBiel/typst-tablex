@@ -635,8 +635,9 @@
     let latest_page = state("tablex_tabular_latest_page", -1)
 
     // don't draw hlines twice
-    let drawn_hlines = state("tablex_tabular_drawn_hlines", ())
-    let this_row_group = (rows: ((),), hlines: (), vlines: ())
+    let drawn_hlines = state("tablex_tabular_drawn_hlines", ((), (), (), (), (), ()))
+    let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
+    let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
     let total_width = width_between(end: none)
 
@@ -660,6 +661,10 @@
                 if is_tabular_cell(cell) {
                     let width = cell_width(cell.x, colspan: cell.colspan)
                     let height = cell_height(cell.y, rowspan: cell.rowspan)
+
+                    if cell.rowspan > 1 {
+                        // panic(height, cell, table_grid)
+                    }
 
                     this_row_group.rows.last().push(
                         (cell: cell,
@@ -690,8 +695,14 @@
                 let rows = row_group.rows
                 let hlines = row_group.hlines
                 let vlines = row_group.vlines
+
+                // get where the row starts and where it ends
+                let start_y = row_group.y_span.at(0)
+                let end_y = row_group.y_span.at(1)
+
+                let next_y = end_y + 1
                 
-                this_row_group = (rows: ((),), hlines: (), vlines: ())
+                this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
 
 
                 let row_group_content(is_first: false) = locate(loc => {
@@ -700,13 +711,24 @@
 
                     latest_page.update(calc.max.with(pos.page))  // don't change the page if it is already larger than ours
 
-                    if not is_first and old_page < pos.page {
-                        first_row_group  // add header
-                        [\ ]
-                    }
+
+                    let page_turned = not is_first and old_page != pos.page
 
                     block(breakable: false, {
-                        show line: place.with(top + left)
+                        let added_header_height = 0pt  // if we added a header, move down
+
+                        if page_turned and pos.page not in pages_with_header.at(loc) {
+                            let measures = measure(first_row_group.content, styles)
+                            place(top+left, first_row_group.content)  // add header
+                            added_header_height = measures.height
+
+                            // do not place the header again on this page
+                            pages_with_header.update(l => l + (pos.page,))
+                        }
+
+                        // move lines down by the height of the header
+                        show line: place.with(top + left, dy: added_header_height)
+
                         let first_x = none
                         let first_y = none
                         
@@ -721,7 +743,10 @@
                                 first_x = default_if_none(first_x, x)
                                 first_y = default_if_none(first_y, y)
 
-                                place(top+left, dx: width_between(start: first_x, end: x), dy: height_between(start: first_y, end: y), cell_box.box)
+                                place(top+left,
+                                    dx: width_between(start: first_x, end: x),
+                                    dy: height_between(start: first_y, end: y) + added_header_height,
+                                    cell_box.box)
 
                                 let box_h = measure(cell_box.box, styles).height
                                 if box_h > tallest_box_h {
@@ -732,11 +757,19 @@
                             first_row = false
                         }
 
-                        hide(rect(width: total_width, height: tallest_box_h))
+                        hide(rect(width: total_width, height: tallest_box_h + added_header_height))
+
                         for hline in hlines {
-                            if drawn_hlines.at(loc).filter(is_same_hline.with(hline)).len() == 0 {
+                            let drawn_hlines_at = drawn_hlines.at(loc)
+                            if (page_turned and drawn_hlines_at.len() <= pos.page - 1) or drawn_hlines_at.at(pos.page - 1).filter(is_same_hline.with(hline)).len() == 0 {
                                 draw_hline(hline, initial_x: first_x, initial_y: first_y)
-                                drawn_hlines.update(l => l + (hline,))
+                                drawn_hlines.update(l => {
+                                    while l.len() <= pos.page - 1 {
+                                        l.push(())
+                                    }
+                                    l.at(pos.page - 1).push(hline)
+                                    l
+                                })
                             }
                         }
 
@@ -750,12 +783,13 @@
                 let content = row_group_content(is_first: is_first)
 
                 if is_first {
-                    first_row_group = content
+                    first_row_group = (row_group: row_group, content: content)
                 }
                 
                 (content,)
             } else {
                 this_row_group.rows.push(())
+                this_row_group.y_span.at(1) += 1
             }
         }
     }
