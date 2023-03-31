@@ -600,19 +600,13 @@
         fill_default: none) = {
 
     let align_default = if type(align_default) == "function" {
-        align_default(cell.y, cell.x)  // row, column
+        align_default(cell.x, cell.y)  // column, row
     } else {
         align_default
-    }
-
-    let align_default = if type(align_default) in ("alignment", "2d alignment") {
-        align_default
-    } else {
-        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, or an alignment value, such as 'left' or 'center + top').")
     }
 
     let fill_default = if type(fill_default) == "function" {
-        fill_default(cell.y, cell.x)  // row, column
+        fill_default(cell.x, cell.y)  // row, column
     } else {
         fill_default
     }
@@ -625,8 +619,18 @@
     // same here for fill
     let cell_fill = default_if_none(cell.fill, fill_default, forbidden: auto)
 
+    if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
+        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
+    }
+
+    let aligned_cell_content = if cell_align == auto {
+        [#cell.content]
+    } else {
+        align(cell_align)[#cell.content]
+    }
+
     box(width: width, height: height, inset: inset, fill: cell_fill,
-        align(cell_align)[#cell.content])
+        aligned_cell_content)
 }
 
 // -- end: drawing
@@ -634,7 +638,7 @@
 #let tabular(
     columns: auto, rows: auto,
     inset: 5pt,
-    align: left,
+    align: auto,
     fill: none,
     ..items
 ) = style(styles => {
