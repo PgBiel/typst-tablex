@@ -9,7 +9,7 @@ test
     vline(), vline(), vline(), vline(),
     hline(),
     [*My*], colspan(length: 2)[*Header*],  //
-    hline(),
+    hline(start: 0, end: 1),
     tcell(colspan: 2, rowspan: 2)[a], [b\ c],
     hline(),
     () , (), [c],
