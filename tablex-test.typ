@@ -2,11 +2,21 @@
 
 *Test*
 
-eee
+test
+
 #tabular(
-    columns: (auto, auto, auto),
+    columns: (auto, auto, auto), // rows: (1em, 1em, 1em),
+    vline(), vline(), vline(), vline(),
     hline(),
-    [a], [b], [c],
+    [*My*], colspan(length: 2)[*Header*],  //
     hline(),
-    [d], [ee], [f],
+    tcell(colspan: 2, rowspan: 2)[a], [b\ c],
+    hline(),
+    () , (), [c],
+    hline(),
+    [a], [b], [xyz],
+    hline(),
+    ..range(0, 35).map(i => ([d], [#{i + 3}], [a],
+    hline())).flatten(),
 )
+eeee
