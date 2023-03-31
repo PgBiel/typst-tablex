@@ -511,8 +511,10 @@
 
             ((y in (cell.y, cell.y + 1, y_limit)
                 and (y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
-                and (y != cell.y + 1 or ((parent_cell.y + parent_cell.rowspan - 1 <= cell.y) and (parent_cell.rowspan < 2)))))
-        })  // only show bottom line if end of rowspan isn't below
+                and (y != cell.y + 1 or ((parent_cell.y + parent_cell.rowspan - 1 <= cell.y) and (parent_cell.rowspan < 2)))) // only show bottom line if end of rowspan isn't below
+                and (h.end in (auto, none) or h.end >= cell.x + 1))
+                // ^ don't go beyond the hline's end
+        })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
             let span = get_included_span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
@@ -525,7 +527,9 @@
 
             ((x in (cell.x, cell.x + 1, x_limit))
                 and (x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
-                and (x != cell.x + 1 or ((parent_cell.x + parent_cell.colspan - 1 <= cell.x) and (parent_cell.colspan < 2))))
+                and (x != cell.x + 1 or ((parent_cell.x + parent_cell.colspan - 1 <= cell.x) and (parent_cell.colspan < 2)))
+                and (v.end in (auto, none) or v.end >= cell.y + 1))
+                // ^ don't go beyond the vline's end
         })  // only show right line if end of colspan isn't to the right
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
