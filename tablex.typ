@@ -17,11 +17,13 @@
     x: x
 )
 
-#let tcell(content, rowspan: 1, colspan: 1) = (
+#let tcell(content, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
     tabular_dict_type: "cell",
     content: content,
     rowspan: rowspan,
     colspan: colspan,
+    align: align,
+    fill: fill,
     x: auto,
     y: auto,
 )
@@ -34,9 +36,15 @@
     parent_y: parent_y
 )
 
-#let rowspan(content, length: 1) = tcell(content, rowspan: length)
+#let rowspan(content, length: 1, ..cell_options) = tcell(
+    content,
+    rowspan: length,
+    ..cell_options)
 
-#let colspan(content, length: 1) = tcell(content, colspan: length)
+#let colspan(content, length: 1, ..cell_options) = tcell(
+    content,
+    colspan: length,
+    ..cell_options)
 
 // -- end: types --
 
@@ -579,11 +587,55 @@
     line(start: start, end: end)
 }
 
+// Makes a cell's box, using the given options
+// cell - The cell data (including content)
+// width, height - The cell's dimensions
+// inset - The table's inset
+// align_default - The default alignment if the cell doesn't specify one
+// fill_default - The default fill color / etc if the cell doesn't specify one
+#let make_cell_box(
+        cell,
+        width: 0pt, height: 0pt, inset: 5pt,
+        align_default: left,
+        fill_default: none) = {
+
+    let align_default = if type(align_default) == "function" {
+        align_default(cell.y, cell.x)  // row, column
+    } else {
+        align_default
+    }
+
+    let align_default = if type(align_default) in ("alignment", "2d alignment") {
+        align_default
+    } else {
+        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, or an alignment value, such as 'left' or 'center + top').")
+    }
+
+    let fill_default = if type(fill_default) == "function" {
+        fill_default(cell.y, cell.x)  // row, column
+    } else {
+        fill_default
+    }
+
+    // use default align (specified in
+    // table 'align:')
+    // when the cell align is 'auto'
+    let cell_align = default_if_none(cell.align, align_default, forbidden: auto)
+
+    // same here for fill
+    let cell_fill = default_if_none(cell.fill, fill_default, forbidden: auto)
+
+    box(width: width, height: height, inset: inset, fill: cell_fill,
+        align(cell_align)[#cell.content])
+}
+
 // -- end: drawing
 
 #let tabular(
     columns: auto, rows: auto,
     inset: 5pt,
+    align: left,
+    fill: none,
     ..items
 ) = style(styles => {
     let initial_items = items.pos().map(table_item_convert)
@@ -670,9 +722,13 @@
                         // panic(height, cell, table_grid)
                     }
 
-                    this_row_group.rows.last().push(
-                        (cell: cell,
-                        box: box(width: width, height: height, inset: inset)[#cell.content]))
+                    let cell_box = make_cell_box(
+                        cell,
+                        width: width, height: height, inset: inset,
+                        align_default: align,
+                        fill_default: fill)
+
+                    this_row_group.rows.last().push((cell: cell, box: cell_box))
                 }
 
                 let hlines = hlines.filter(h =>
