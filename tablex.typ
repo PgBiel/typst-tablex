@@ -127,7 +127,7 @@
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
-#let positions_spanned_by(cell, x: 0, y: 0, x_limit: 0, y_limit: 0) = {
+#let positions_spanned_by(cell, x: 0, y: 0, x_limit: 0, y_limit: none) = {
     let result = ()
     let rowspan = if "rowspan" in cell { cell.rowspan } else { 1 }
     let colspan = if "colspan" in cell { cell.colspan } else { 1 }
@@ -138,8 +138,16 @@
         panic("Cell colspan must be 1 or greater (bad cell: ", (x, y), ")")
     }
 
-    let max_x = calc.min(x_limit, x + colspan)
-    let max_y = calc.min(y_limit, y + rowspan)
+    let max_x = x + colspan
+    let max_y = y + rowspan
+
+    if x_limit != none {
+        max_x = calc.min(x_limit, max_x)
+    }
+
+    if y_limit != none {
+        max_y = calc.min(y_limit, max_y)
+    }
 
     for x in range(x, max_x) {
         for y in range(y, max_y) {
@@ -300,6 +308,35 @@
     calc.floor(grid.items.len() / grid.width)
 )
 
+// Converts a grid array index to (x, y)
+#let grid_index_to_pos(grid, index) = (
+    (calc.mod(index, grid.width), calc.floor(index / grid.width))   
+)
+
+// // Adds empty rows to a grid, and returns the new grid object
+// #let grid_add_rows(grid, row_amount, fill_with: (grid) => none) = {
+//     for i in range(row_amount) {
+//         grid.items.push(fill_with(grid))
+//         while calc.mod(grid.items.len(), grid.width) != 0 {
+//             grid.items.push(fill_with(grid))
+//         }
+//     }
+
+//     grid
+// }
+
+// Expand grid to the given coords
+#let grid_expand_to(grid, x, y, fill_with: (grid) => none) = {
+    let changed_rows = false
+
+    while not grid_has_pos(grid, x, y) {
+        grid.items.push(fill_with(grid))
+        changed_rows = calc.mod(grid.items.len(), grid.width) == 0
+    }
+
+    (changed_rows: changed_rows, grid: grid)
+}
+
 // Return the next position available on the grid
 #let next_available_position(
     grid, x: 0, y: 0, x_limit: 0, y_limit: 0
@@ -318,11 +355,11 @@
             y += 1
         }
 
-        if y >= y_limit {  // last row reached - stop
-            return none
-        }
-
         cell = (x, y)
+
+        if y >= y_limit {  // last row reached - stop
+            break
+        }
     }
 
     cell
@@ -337,7 +374,6 @@
 
     let grid_at = grid_at.with(grid)
     let grid_index_at = grid_index_at.with(width: x_limit)
-    let grid_has_pos = grid_has_pos.with(grid)
 
     let hlines = ()
     let vlines = ()
@@ -351,6 +387,16 @@
     let row_wrapped = false  // if true, a vline should be added to the end of a row
 
     let range_of_items = range(items.len())
+
+    let new_empty_cell(grid) = {
+        let empty_cell = tcell(hide[a])
+        let new_cell_i = grid.items.len()
+        let new_cell_pos = grid_index_to_pos(grid, new_cell_i)
+        empty_cell.x = new_cell_pos.at(0)
+        empty_cell.y = new_cell_pos.at(1)
+
+        empty_cell
+    }
 
     // go through all input
     for i in range_of_items {
@@ -410,29 +456,10 @@
         let this_x = default_if_none(cell.x, x, forbidden: auto)
         let this_y = default_if_none(cell.y, y, forbidden: auto)
 
-        // no space available => we can ignore that, as...
-        if this_x == none or this_y == none {
-            x = prev_x + 1
-            y = prev_y
+        // up to which 'y' does this cell go
+        let max_y = if is_tabular_cell(cell) { this_y + cell.rowspan - 1 } else { this_y }
 
-            if x >= x_limit {
-                x = 0
-                y += 1
-            }
-
-            this_x = x
-            this_y = y
-        }
-
-        // ...we will create more space
-        while not grid_has_pos(x, y) {
-            let empty_cell = tcell[]
-            grid.items.push(empty_cell)
-            items.push(empty_cell)
-            range_of_items.push(range_of_items.last() + 1)
-        }
-
-        let cell_positions = positions_spanned_by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: y_limit)
+        let cell_positions = positions_spanned_by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
 
         for position in cell_positions {
             let px = position.at(0)
@@ -447,7 +474,16 @@
             if position == (this_x, this_y) {
                 cell.x = this_x
                 cell.y = this_y
-                grid.items.at(grid_index_at(x, y)) = cell
+
+                // expand grid to allow placing this cell (including colspan / rowspan)
+                let grid_expand_res = grid_expand_to(grid, grid.width - 1, max_y)
+
+                grid = grid_expand_res.grid
+                if grid_expand_res.changed_rows {  // update row limit count lazily
+                    y_limit = grid_count_rows(grid)
+                }
+
+                grid.items.at(grid_index_at(this_x, this_y)) = cell
                 items.at(i) = cell
 
             // other secondary position (from colspan / rowspan)
@@ -476,12 +512,17 @@
         }
     }
 
+    // while there are incomplete rows
+    while calc.mod(grid.items.len(), grid.width) != 0 {
+        grid.items.push(new_empty_cell(grid))
+    }
+
     (
         grid: grid,
-        items: items,
+        items: grid.items,
         hlines: hlines,
         vlines: vlines,
-        new_row_count: grid_count_rows(grid) - y_limit
+        new_row_count: grid_count_rows(grid)
     )
 }
 
@@ -498,6 +539,7 @@
 
         for cell in grid.items {
             if cell == none {
+                panic(grid.items)
                 panic("Not enough cells specified for the given amount of rows and columns.")
             }
 
@@ -510,6 +552,7 @@
 
             let affected_auto_columns = range(cell.x, cell.x + cell.colspan).filter(c => columns.at(c) == auto)
 
+            // panic("GCR: ", grid_count_rows(grid), grid.items.len(), grid.width, rows, rows.len())
             let affected_auto_rows = range(cell.y, cell.y + cell.rowspan).filter(r => rows.at(r) == auto)
 
             let auto_col_amount = affected_auto_columns.len()  // auto columns spanned by this cell (up to 1 if colspan is 1)
@@ -824,7 +867,7 @@
         let vlines = grid_info.vlines
         let items = grid_info.items
 
-        for _ in range(grid_info.new_row_count) {
+        for _ in range(grid_info.new_row_count - row_len) {
             rows.push(auto)  // add new rows (due to extra cells)
         }
 
@@ -834,7 +877,7 @@
         // convert auto to actual size
         let updated_cols_rows = determine_auto_column_row_sizes(
             grid: table_grid, styles: styles,
-            columns: validated_cols_rows.columns, rows: validated_cols_rows.rows)
+            columns: columns, rows: rows)
 
         let columns = updated_cols_rows.columns
         let rows = updated_cols_rows.rows
