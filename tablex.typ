@@ -181,9 +181,80 @@
 }
 
 // Convert a certain (non-relative) length to pt
-#let convert_length_to_pt(len, styles) = {
-    let line = line(length: len)
-    measure(line, styles).width
+//
+// styles: from style()
+// page_size: equivalent to 100%
+// frac_amount: amount of 'fr' specified
+// frac_total: total space shared by fractions
+#let convert_length_to_pt(
+    len,
+    styles: none, page_size: none, frac_amount: none, frac_total: none
+) = {
+    page_size = 0pt + page_size
+
+    if type(len) == "length" {
+        if "em" in repr(len) {
+            if styles == none {
+                panic("Cannot convert length to pt ('styles' not specified).")
+            }
+
+            measure(line(length: len), styles).width + 0pt
+        } else {
+            len + 0pt  // mm, in, pt
+        }
+    } else if type(len) == "ratio" {
+        if page_size == none {
+            panic("Cannot convert ratio to pt ('page_size' not specified).")
+        }
+
+        ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
+    } else if type(len) == "fraction" {
+        if frac_amount == none {
+            panic("Cannot convert fraction to pt ('frac_amount' not specified).")
+        }
+
+        if frac_total == none {
+            panic("Cannot convert fraction to pt ('frac_total' not specified).")
+        }
+
+        let len_per_frac = frac_total / frac_amount
+
+        (len_per_frac * (len / 1fr)) + 0pt
+    } else if type(len) == "relative length" {
+        if styles == none {
+            panic("Cannot convert relative length to pt ('styles' not specified).")
+        }
+
+        let ratio_regex = regex("^\\d+%")
+        let ratio = repr(len).find(ratio_regex)
+
+        if ratio == none {  // 2em + 5pt  (doesn't contain 100% or something)
+            measure(line(length: len), styles).width
+        } else {  // 100% + 2em + 5pt  --> extract the "100%" part
+            if page_size == none {
+                panic("Cannot convert relative length to pt ('page_size' not specified).")
+            }
+
+            // SAFETY: guaranteed to be a ratio by regex
+            let ratio_part = eval(ratio)
+            assert(type(ratio_part) == "ratio", message: "Eval didn't return a ratio")
+
+            let other_part = len - ratio_part  // get the (2em + 5pt) part
+
+            let ratio_part_pt = ((ratio_part / 1%) / 100) * page_size
+            let other_part_pt = 0pt
+
+            if other_part < 0pt {
+                other_part_pt = -measure(line(length: -other_part), styles).width
+            } else {
+                other_part_pt = measure(line(length: other_part), styles).width
+            }
+
+            ratio_part_pt + other_part_pt + 0pt
+        }
+    } else {
+        panic("Cannot convert '" + type(len) + "' to length.")
+    }
 }
 
 // --- end: utility functions ---
