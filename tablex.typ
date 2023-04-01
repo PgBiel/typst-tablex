@@ -528,7 +528,7 @@
             let span = get_included_span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
             v_or_hline_with_span(h, start: span.at(0), end: span.at(1))
         })
-    
+
     let vlines = vlines
         .filter(v => {
             let x = v.x
@@ -641,223 +641,240 @@
     align: auto,
     fill: none,
     ..items
-) = style(styles => {
-    let initial_items = items.pos().map(table_item_convert)
-    let items = initial_items.filter(x => x != ())
+) = {
+    let page_dimensions = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
+
+    // A little hack to get the page max width and max height
+    place(bottom+right, locate(loc => {
+        let pos = loc.position()
+        let width = pos.x
+        let height = pos.y
+        page_dimensions.update(p => (width: width, height: height))
+    }))
+
+    locate(t_loc => style(styles => {
+        let page_dim_at = page_dimensions.at(t_loc)
+        let t_pos = t_loc.position()
+
+        // Subtract the max width/height from current width/height to disregard margin/etc.
+        let page_width = page_dim_at.width - t_pos.x
+        let page_height = page_dim_at.height - t_pos.y
+
+        let initial_items = items.pos().map(table_item_convert)
+        let items = initial_items.filter(x => x != ())
+
+        let validated_cols_rows = validate_cols_rows(
+            columns, rows, items: items.filter(is_tabular_cell))
+
+        let col_len = validated_cols_rows.columns.len()
+        let row_len = validated_cols_rows.rows.len()
+
+        // fill in the blanks
+        let items_len = items.len()
+        if items_len < col_len * row_len {
+            items += ([],) * (col_len * row_len - items_len)
+            items += ([],) * (col_len * row_len - items_len)
+        }
+        let items_len = items.len()
+
+        // generate cell matrix and other things
+        let grid_info = generate_grid(initial_items, x_limit: col_len, y_limit: row_len)
+
+        let table_grid = grid_info.grid
+        let hlines = grid_info.hlines
+        let vlines = grid_info.vlines
+        let items = grid_info.items
+
+        // convert auto to actual size
+        let updated_cols_rows = determine_auto_column_row_sizes(
+            grid: table_grid, styles: styles,
+            columns: validated_cols_rows.columns, rows: validated_cols_rows.rows)
+
+        let columns = updated_cols_rows.columns
+        let rows = updated_cols_rows.rows
+
+        // specialize some functions for the given grid, columns and rows
+        let get_parent_cell = get_parent_cell.with(grid: grid)
+        let v_and_hline_spans_for_cell = v_and_hline_spans_for_cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
+        let cell_width = cell_width.with(columns: columns, inset: inset)
+        let cell_height = cell_height.with(rows: rows, inset: inset)
+        let width_between = width_between.with(columns: columns, inset: inset)
+        let height_between = height_between.with(rows: rows, inset: inset)
+        let draw_hline = draw_hline.with(columns: columns, rows: rows)
+        let draw_vline = draw_vline.with(columns: columns, rows: rows)
+
+        // each row group is an unbreakable unit of rows.
+        // In general, they're just one row. However, they can be multiple rows
+        // if one of their cells spans multiple rows.
+        let first_row_group = none
+
+        // page in the latest row group
+        let latest_page = state("tablex_tabular_latest_page", -1)
+
+        // don't draw hlines twice
+        let drawn_hlines = state("tablex_tabular_drawn_hlines", ((), (), (), (), (), ()))
+        let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
+        let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
+
+        let total_width = width_between(end: none)
+
+        let row_groups = {
+            let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
+            let current_row = 0
+            for row in table_grid {
+                let hlines = hlines.filter(h => h.y in (current_row, current_row + 1))  // hlines between this row and the next
+
+                for cell in row {
+                    let lines_dict = v_and_hline_spans_for_cell(cell, hlines: hlines)
+                    let hlines = lines_dict.hlines
+                    let vlines = lines_dict.vlines
 
 
-    let validated_cols_rows = validate_cols_rows(
-        columns, rows, items: items.filter(is_tabular_cell))
-
-    let col_len = validated_cols_rows.columns.len()
-    let row_len = validated_cols_rows.rows.len()
-
-    // fill in the blanks
-    let items_len = items.len()
-    if items_len < col_len * row_len {
-        items += ([],) * (col_len * row_len - items_len)
-        items += ([],) * (col_len * row_len - items_len)
-    }
-    let items_len = items.len()
-
-    // generate cell matrix and other things
-    let grid_info = generate_grid(initial_items, x_limit: col_len, y_limit: row_len)
-
-    let table_grid = grid_info.grid
-    let hlines = grid_info.hlines
-    let vlines = grid_info.vlines
-    let items = grid_info.items
-
-    // convert auto to actual size
-    let updated_cols_rows = determine_auto_column_row_sizes(
-        grid: table_grid, styles: styles,
-        columns: validated_cols_rows.columns, rows: validated_cols_rows.rows)
-
-    let columns = updated_cols_rows.columns
-    let rows = updated_cols_rows.rows
-
-    // specialize some functions for the given grid, columns and rows
-    let get_parent_cell = get_parent_cell.with(grid: grid)
-    let v_and_hline_spans_for_cell = v_and_hline_spans_for_cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
-    let cell_width = cell_width.with(columns: columns, inset: inset)
-    let cell_height = cell_height.with(rows: rows, inset: inset)
-    let width_between = width_between.with(columns: columns, inset: inset)
-    let height_between = height_between.with(rows: rows, inset: inset)
-    let draw_hline = draw_hline.with(columns: columns, rows: rows)
-    let draw_vline = draw_vline.with(columns: columns, rows: rows)
-
-    // each row group is an unbreakable unit of rows.
-    // In general, they're just one row. However, they can be multiple rows
-    // if one of their cells spans multiple rows.
-    let first_row_group = none
-
-    // page in the latest row group
-    let latest_page = state("tablex_tabular_latest_page", -1)
-
-    // don't draw hlines twice
-    let drawn_hlines = state("tablex_tabular_drawn_hlines", ((), (), (), (), (), ()))
-    let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
-    let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
-
-    let total_width = width_between(end: none)
-
-    let row_groups = {
-        let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
-        let current_row = 0
-        for row in table_grid {
-            let hlines = hlines.filter(h => h.y in (current_row, current_row + 1))  // hlines between this row and the next
-
-            for cell in row {
-                let lines_dict = v_and_hline_spans_for_cell(cell, hlines: hlines)
-                let hlines = lines_dict.hlines
-                let vlines = lines_dict.vlines
-
-
-                if is_tabular_cell(cell) and cell.rowspan > 1 {
-                    // ensure row-spanned rows are in the same group
-                    row_group_add_counter += cell.rowspan - 1
-                }
-
-                if is_tabular_cell(cell) {
-                    let width = cell_width(cell.x, colspan: cell.colspan)
-                    let height = cell_height(cell.y, rowspan: cell.rowspan)
-
-                    if cell.rowspan > 1 {
-                        // panic(height, cell, table_grid)
+                    if is_tabular_cell(cell) and cell.rowspan > 1 {
+                        // ensure row-spanned rows are in the same group
+                        row_group_add_counter += cell.rowspan - 1
                     }
 
-                    let cell_box = make_cell_box(
-                        cell,
-                        width: width, height: height, inset: inset,
-                        align_default: align,
-                        fill_default: fill)
+                    if is_tabular_cell(cell) {
+                        let width = cell_width(cell.x, colspan: cell.colspan)
+                        let height = cell_height(cell.y, rowspan: cell.rowspan)
 
-                    this_row_group.rows.last().push((cell: cell, box: cell_box))
-                }
-
-                let hlines = hlines.filter(h =>
-                    this_row_group.hlines.filter(is_same_hline.with(h))
-                        .len() == 0)
-
-                let vlines = vlines.filter(v =>
-                    v not in this_row_group.vlines)
-
-                this_row_group.hlines += hlines
-                this_row_group.vlines += vlines
-            }
-
-            current_row += 1
-            row_group_add_counter -= 1
-
-            // added all pertaining rows to the group
-            // now we can draw it
-            if row_group_add_counter <= 0 {
-                row_group_add_counter = 1
-
-                let row_group = this_row_group
-                
-                let rows = row_group.rows
-                let hlines = row_group.hlines
-                let vlines = row_group.vlines
-
-                // get where the row starts and where it ends
-                let start_y = row_group.y_span.at(0)
-                let end_y = row_group.y_span.at(1)
-
-                let next_y = end_y + 1
-                
-                this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
-
-
-                let row_group_content(is_first: false) = locate(loc => {
-                    let old_page = latest_page.at(loc)
-                    let this_page = loc.page()
-
-
-
-                    let page_turned = not is_first and old_page != this_page
-
-                    block(breakable: false, {
-                        let added_header_height = 0pt  // if we added a header, move down
-
-                        if page_turned and this_page not in pages_with_header.at(loc) {
-                            let measures = measure(first_row_group.content, styles)
-                            place(top+left, first_row_group.content)  // add header
-                            added_header_height = measures.height
-
-                            // do not place the header again on this page
-                            pages_with_header.update(l => l + (this_page,))
+                        if cell.rowspan > 1 {
+                            // panic(height, cell, table_grid)
                         }
 
-                        // move lines down by the height of the header
-                        show line: place.with(top + left, dy: added_header_height)
+                        let cell_box = make_cell_box(
+                            cell,
+                            width: width, height: height, inset: inset,
+                            align_default: align,
+                            fill_default: fill)
 
-                        let first_x = none
-                        let first_y = none
-                        
-                        let tallest_box_h = 0pt;
-                        let tallest_box = [];
+                        this_row_group.rows.last().push((cell: cell, box: cell_box))
+                    }
 
-                        let first_row = true
-                        for row in rows {
-                            for cell_box in row {
-                                let x = cell_box.cell.x
-                                let y = cell_box.cell.y
-                                first_x = default_if_none(first_x, x)
-                                first_y = default_if_none(first_y, y)
+                    let hlines = hlines.filter(h =>
+                        this_row_group.hlines.filter(is_same_hline.with(h))
+                            .len() == 0)
 
-                                place(top+left,
-                                    dx: width_between(start: first_x, end: x),
-                                    dy: height_between(start: first_y, end: y) + added_header_height,
-                                    cell_box.box)
+                    let vlines = vlines.filter(v =>
+                        v not in this_row_group.vlines)
 
-                                let box_h = measure(cell_box.box, styles).height
-                                if box_h > tallest_box_h {
-                                    tallest_box_h = box_h
-                                    tallest_box = cell_box.box
+                    this_row_group.hlines += hlines
+                    this_row_group.vlines += vlines
+                }
+
+                current_row += 1
+                row_group_add_counter -= 1
+
+                // added all pertaining rows to the group
+                // now we can draw it
+                if row_group_add_counter <= 0 {
+                    row_group_add_counter = 1
+
+                    let row_group = this_row_group
+
+                    let rows = row_group.rows
+                    let hlines = row_group.hlines
+                    let vlines = row_group.vlines
+
+                    // get where the row starts and where it ends
+                    let start_y = row_group.y_span.at(0)
+                    let end_y = row_group.y_span.at(1)
+
+                    let next_y = end_y + 1
+
+                    this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
+
+
+                    let row_group_content(is_first: false) = locate(loc => {
+                        let old_page = latest_page.at(loc)
+                        let this_page = loc.page()
+
+
+
+                        let page_turned = not is_first and old_page != this_page
+
+                        block(breakable: false, {
+                            let added_header_height = 0pt  // if we added a header, move down
+
+                            if page_turned and this_page not in pages_with_header.at(loc) {
+                                let measures = measure(first_row_group.content, styles)
+                                place(top+left, first_row_group.content)  // add header
+                                added_header_height = measures.height
+
+                                // do not place the header again on this page
+                                pages_with_header.update(l => l + (this_page,))
+                            }
+
+                            // move lines down by the height of the header
+                            show line: place.with(top + left, dy: added_header_height)
+
+                            let first_x = none
+                            let first_y = none
+
+                            let tallest_box_h = 0pt;
+                            let tallest_box = [];
+
+                            let first_row = true
+                            for row in rows {
+                                for cell_box in row {
+                                    let x = cell_box.cell.x
+                                    let y = cell_box.cell.y
+                                    first_x = default_if_none(first_x, x)
+                                    first_y = default_if_none(first_y, y)
+
+                                    place(top+left,
+                                        dx: width_between(start: first_x, end: x),
+                                        dy: height_between(start: first_y, end: y) + added_header_height,
+                                        cell_box.box)
+
+                                    let box_h = measure(cell_box.box, styles).height
+                                    if box_h > tallest_box_h {
+                                        tallest_box_h = box_h
+                                        tallest_box = cell_box.box
+                                    }
+                                }
+                                first_row = false
+                            }
+
+                            hide(rect(width: total_width, height: tallest_box_h + added_header_height))
+
+                            for hline in hlines {
+                                let drawn_hlines_at = drawn_hlines.at(loc)
+                                if (page_turned and drawn_hlines_at.len() <= this_page - 1) or drawn_hlines_at.at(this_page - 1).filter(is_same_hline.with(hline)).len() == 0 {
+                                    draw_hline(hline, initial_x: first_x, initial_y: first_y)
+                                    drawn_hlines.update(l => {
+                                        while l.len() <= this_page - 1 {
+                                            l.push(())
+                                        }
+                                        l.at(this_page - 1).push(hline)
+                                        l
+                                    })
                                 }
                             }
-                            first_row = false
-                        }
 
-                        hide(rect(width: total_width, height: tallest_box_h + added_header_height))
-
-                        for hline in hlines {
-                            let drawn_hlines_at = drawn_hlines.at(loc)
-                            if (page_turned and drawn_hlines_at.len() <= this_page - 1) or drawn_hlines_at.at(this_page - 1).filter(is_same_hline.with(hline)).len() == 0 {
-                                draw_hline(hline, initial_x: first_x, initial_y: first_y)
-                                drawn_hlines.update(l => {
-                                    while l.len() <= this_page - 1 {
-                                        l.push(())
-                                    }
-                                    l.at(this_page - 1).push(hline)
-                                    l
-                                })
+                            for vline in vlines {
+                                draw_vline(vline, initial_x: first_x, initial_y: first_y)
                             }
-                        }
+                        })
 
-                        for vline in vlines {
-                            draw_vline(vline, initial_x: first_x, initial_y: first_y)
-                        }
+                        latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
                     })
 
-                    latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
-                })
+                    let is_first = first_row_group == none
+                    let content = row_group_content(is_first: is_first)
 
-                let is_first = first_row_group == none
-                let content = row_group_content(is_first: is_first)
+                    if is_first {
+                        first_row_group = (row_group: row_group, content: content)
+                    }
 
-                if is_first {
-                    first_row_group = (row_group: row_group, content: content)
+                    (content,)
+                } else {
+                    this_row_group.rows.push(())
+                    this_row_group.y_span.at(1) += 1
                 }
-                
-                (content,)
-            } else {
-                this_row_group.rows.push(())
-                this_row_group.y_span.at(1) += 1
             }
         }
-    }
 
-    grid(columns: (auto,), rows: auto, ..row_groups)
-})
+        grid(columns: (auto,), rows: auto, ..row_groups)
+}))}
