@@ -712,19 +712,21 @@
 // considering the left and top margins.
 // Also returns a 'content'-returning function which must be run and placed for this to work
 // (it updates the state).
-#let get_page_dim_state() = {
-    let page_dimensions = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
+#let get_page_dim_state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
 
-    // A little trick to get the page max width and max height
-    let page_dim_writer(page_dimensions) = place(bottom+right, locate(loc => {
-        let pos = loc.position()
-        let width = pos.x
-        let height = pos.y
-        page_dimensions.update(p => (width: width, height: height))
-    }))
-
-    (page_dimensions, page_dim_writer)
-}
+// A little trick to get the page max width and max height.
+// Places a component on the page (or outer container)'s bottom right, and saves its
+// coordinates.
+//
+// Must be fed a state variable, which is updated with (width: max x, height: max y).
+// The content it returns must be placed in the document for the page state to be
+// written to.
+#let get_page_dim_writer(page_dim_state) = place(bottom+right, locate(loc => {
+    let pos = loc.position()
+    let width = pos.x
+    let height = pos.y
+    page_dim_state.update(p => (width: width, height: height))
+}))
 
 // -- end: main functions
 
@@ -735,12 +737,9 @@
     fill: none,
     ..items
 ) = {
-    let page_dimensions_pair = get_page_dim_state()
+    let page_dimensions = get_page_dim_state()
 
-    let page_dimensions = page_dimensions_pair.at(0)
-    let page_dimensions_writer = page_dimensions_pair.at(1)
-
-    page_dimensions_writer(page_dimensions)  // place it so it does its job
+    get_page_dim_writer(page_dimensions)  // place it so it does its job
 
     locate(t_loc => style(styles => {
         let page_dim_at = page_dimensions.at(t_loc)
