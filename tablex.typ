@@ -79,45 +79,66 @@
     }
 }
 
+// Get expected amount of cell positions
+// in the table (considering colspan and rowspan)
+#let get_expected_grid_len(items) = {
+    let len = 0
+
+    for item in items {
+        // cell occupies (colspan * rowspan) spaces
+        if is_tabular_cell(item) {
+            len += item.colspan * item.rowspan
+        } else if type(item) == "content" {
+            len += 1
+        }
+    }
+
+    len
+}
+
 #let validate_cols_rows(columns, rows, items: ()) = {
-    if columns != auto and type(columns) != "array" {
-        panic("Columns must be either 'auto' or an array of sizes (or 'auto's).")
+    if type(columns) != "array" {
+        columns = (columns,)
     }
     
-    if rows != auto and type(rows) != "array" {
-        panic("Rows must be either 'auto' or an array of sizes (or 'auto's).")
+    if type(rows) != "array" {
+        rows = (rows,)
     }
 
-    let grid_len() = {
-        let len = 0
+    let col_row_is_valid(col_row) = (
+        col_row == auto or type(col_row) in (
+            "fraction", "length", "relative length", "ratio"
+            )
+    )
 
-        for item in items {
-            // cell occupies (colspan * rowspan) spaces
-            if is_tabular_cell(item) {
-                len += item.colspan * item.rowspan
-            } else if type(item) == "content" {
-                len += 1
-            }
-        }
-
-        len
+    if not columns.all(col_row_is_valid) {
+        panic("Invalid column sizes (must all be 'auto' or a valid length specifier).")
     }
 
-    if columns == auto {
-        if rows == auto {
-            columns = (auto,)  // assume 1 column and many rows
-
-            rows = (auto,) * grid_len()
-        } else {
-            // ceil to allow incomplete columns
-            columns = (auto,) * calc.ceil(grid_len() / rows.len())
-        }
-    } else if rows == auto {
-        // ceil to allow incomplete rows
-        rows = (auto,) * calc.ceil(grid_len() / columns.len())
+    if not rows.all(col_row_is_valid) {
+        panic("Invalid row sizes (must all be 'auto' or a valid length specifier).")
     }
 
-    (columns: columns, rows: rows)
+    let grid_len = get_expected_grid_len(items)
+
+    let col_len = columns.len()
+
+    let expected_rows = calc.ceil(grid_len / col_len)
+
+    if rows.len() < expected_rows {
+        let missing_rows = expected_rows - rows.len()
+
+        rows += (rows.last(),) * missing_rows
+    }
+
+    let new_items = ()
+
+    while calc.mod(get_expected_grid_len(items), col_len) != 0 {  // fix incomplete rows
+        new_items.push(tcell[])
+    }
+    // note that this doesn't consider cells with arbitrary x / y (generate_grid takes care of that)
+
+    (columns: columns, rows: rows, items: new_items)
 }
 
 // -- end: type checks and validators --
@@ -839,14 +860,14 @@
         let page_width = page_dim_at.width - t_pos.x
         let page_height = page_dim_at.height - t_pos.y
 
-        let initial_items = items.pos().map(table_item_convert)
-        let items = initial_items.filter(x => x != ())
+        let items = items.pos().map(table_item_convert)
 
         let validated_cols_rows = validate_cols_rows(
             columns, rows, items: items.filter(is_tabular_cell))
 
         let columns = validated_cols_rows.columns
         let rows = validated_cols_rows.rows
+        items += validated_cols_rows.items
 
         let col_len = columns.len()
         let row_len = rows.len()
@@ -860,7 +881,7 @@
         // let items_len = items.len()
 
         // generate cell matrix and other things
-        let grid_info = generate_grid(initial_items, x_limit: col_len, y_limit: row_len)
+        let grid_info = generate_grid(items, x_limit: col_len, y_limit: row_len)
 
         let table_grid = grid_info.grid
         let hlines = grid_info.hlines
