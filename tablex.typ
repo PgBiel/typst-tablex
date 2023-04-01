@@ -706,6 +706,28 @@
 
 // -- end: drawing
 
+// main functions
+
+// Gets a state variable that holds the page's max x ("width") and max y ("height"),
+// considering the left and top margins.
+// Also returns a 'content'-returning function which must be run and placed for this to work
+// (it updates the state).
+#let get_page_dim_state() = {
+    let page_dimensions = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
+
+    // A little trick to get the page max width and max height
+    let page_dim_writer(page_dimensions) = place(bottom+right, locate(loc => {
+        let pos = loc.position()
+        let width = pos.x
+        let height = pos.y
+        page_dimensions.update(p => (width: width, height: height))
+    }))
+
+    (page_dimensions, page_dim_writer)
+}
+
+// -- end: main functions
+
 #let tabular(
     columns: auto, rows: auto,
     inset: 5pt,
@@ -713,15 +735,12 @@
     fill: none,
     ..items
 ) = {
-    let page_dimensions = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
+    let page_dimensions_pair = get_page_dim_state()
 
-    // A little hack to get the page max width and max height
-    place(bottom+right, locate(loc => {
-        let pos = loc.position()
-        let width = pos.x
-        let height = pos.y
-        page_dimensions.update(p => (width: width, height: height))
-    }))
+    let page_dimensions = page_dimensions_pair.at(0)
+    let page_dimensions_writer = page_dimensions_pair.at(1)
+
+    page_dimensions_writer(page_dimensions)  // place it so it does its job
 
     locate(t_loc => style(styles => {
         let page_dim_at = page_dimensions.at(t_loc)
