@@ -355,18 +355,6 @@
     (calc.mod(index, grid.width), calc.floor(index / grid.width))   
 )
 
-// // Adds empty rows to a grid, and returns the new grid object
-// #let grid_add_rows(grid, row_amount, fill_with: (grid) => none) = {
-//     for i in range(row_amount) {
-//         grid.items.push(fill_with(grid))
-//         while calc.mod(grid.items.len(), grid.width) != 0 {
-//             grid.items.push(fill_with(grid))
-//         }
-//     }
-
-//     grid
-// }
-
 // Expand grid to the given coords
 #let grid_expand_to(grid, x, y, fill_with: (grid) => none) = {
     let rows = grid_count_rows(grid)
@@ -561,7 +549,7 @@
             } else {
                 let index = grid_index_at(px, py)
 
-                grid.items.at(index) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell
+                grid.items.at(index) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell (to join them later)
             }
         }
 
@@ -570,18 +558,11 @@
         prev_x = this_x
         prev_y = this_y
 
-        if next_pos == none {
-            x = none
-            y = none
+        x = next_pos.at(0)
+        y = next_pos.at(1)
 
-            row_wrapped = true  // reached the end of the grid
-        } else {
-            x = next_pos.at(0)
-            y = next_pos.at(1)
-
-            if prev_y != y {
-                row_wrapped = true  // we changed rows!
-            }
+        if prev_y != y {
+            row_wrapped = true  // we changed rows!
         }
     }
 
@@ -928,14 +909,6 @@
 
         let col_len = columns.len()
         let row_len = rows.len()
-
-        // fill in the blanks
-        // let items_len = items.len()
-        // if items_len < col_len * row_len {
-        //     items += ([],) * (col_len * row_len - items_len)
-        //     items += ([],) * (col_len * row_len - items_len)
-        // }
-        // let items_len = items.len()
 
         // generate cell matrix and other things
         let grid_info = generate_grid(items, x_limit: col_len, y_limit: row_len)
