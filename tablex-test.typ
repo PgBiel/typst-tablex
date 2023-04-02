@@ -55,34 +55,34 @@ e
 
 // #{calc.floor(autrrtttrro)}rrereeee
 deeteeeeeeeet
-#tabular(
+#tablex(
     columns: (auto, auto, auto), // rows: ((1em, 1em, 1em),) eeee
     rows: (auto,),
     align: (column, row) => {(top, center).at(calc.mod(row + column, 2))},
     // fill: (column, row) => {(blue, red).at(calc.mod(row + column, 2))},
     vline(), vline(), vline(), vline(),
     hline(),
-    [*My*], colspan(length: 2)[*Headedr*],  //
+    [*My*], colspan(2)[*Headedr*],  //
     hline(start: 0, end: 1),
-    tcell(colspan: 2, rowspan: 2)[a], [b\ c],
+    cellx(colspan: 2, rowspan: 2)[a], [b\ c],
     hline(),
     () , (), [cefdseerd],
     hline(),
     [a], [b], [xyz],
     hline(end: 1),
-    tcell(x: 0, y: 0)[eeeeeeeeeeeeee], [b],
+    cellx(x: 0, y: 0)[eeeeeeeeeeeeeee], [b],
     hline(),
     ..range(0, 25).map(i => ([d], [#{i + 3}], [a],
     hline())).flatten(),
 )
 
-#tabular(
+#tablex(
     columns: (49%, auto, auto, auto, auto),
     rows: (auto,),
     debug: true,
     vline(), vline(), vline(), vline(), vline(), vline(),
     hline(),
-    [abcdef], tcell(colspan: 3, rowspan: 2)[ee], (), (), [c],
+    [abcdef], colspan(3, rowspan(2, [ee], fill: red), align: horizon), (), (), [c],
     hline(),
     [abcdef], (), (), (), [c],
     hline(),

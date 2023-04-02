@@ -17,7 +17,7 @@
     x: x
 )
 
-#let tcell(content, x: auto, y: auto, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
+#let cellx(content, x: auto, y: auto, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
     tabular_dict_type: "cell",
     content: content,
     rowspan: rowspan,
@@ -36,19 +36,9 @@
     parent_y: parent_y
 )
 
-#let rowspan(content, length: 1, ..cell_options) = tcell(
-    content,
-    rowspan: length,
-    ..cell_options)
-
-#let colspan(content, length: 1, ..cell_options) = tcell(
-    content,
-    colspan: length,
-    ..cell_options)
-
 // -- end: types --
 
-// -- type checks and validators --
+// -- type checks, transformers and validators --
 
 // Is this a valid dict created by this library?
 #let is_tabular_dict(x) = (
@@ -69,13 +59,35 @@
 
 #let table_item_convert(item, keep_empty: true) = {
     if type(item) == "function" {  // dynamic cell content
-        tcell(item)
+        cellx(item)
     } else if keep_empty and item == () {
         item
     } else if type(item) != "dictionary" or "tabular_dict_type" not in item {
-        tcell[#item]
+        cellx[#item]
     } else {
         item
+    }
+}
+
+#let rowspan(length, content, ..cell_options) = {
+    if is_tabular_cell(content) {
+        (..content, rowspan: length, ..cell_options.named())
+    } else {
+        cellx(
+            content,
+            rowspan: length,
+            ..cell_options.named())
+    }
+}
+
+#let colspan(length, content, ..cell_options) = {
+    if is_tabular_cell(content) {
+        (..content, colspan: length, ..cell_options.named())
+    } else {
+        cellx(
+            content,
+            colspan: length,
+            ..cell_options.named())
     }
 }
 
@@ -156,7 +168,7 @@
     let is_at_first_column(grid_len) = calc.mod(grid_len, col_len) == 0
 
     while not is_at_first_column(get_expected_grid_len(items + new_items, col_len: col_len)) {  // fix incomplete rows
-        new_items.push(tcell[])
+        new_items.push(cellx[])
     }
 
     (columns: columns, rows: rows, items: new_items)
@@ -429,7 +441,7 @@
     let range_of_items = range(items.len())
 
     let new_empty_cell(grid, index: auto) = {
-        let empty_cell = tcell[]
+        let empty_cell = cellx[]
         let index = default_if_none(index, grid.items.len(), forbidden: auto)
         let new_cell_pos = grid_index_to_pos(grid, index)
         empty_cell.x = new_cell_pos.at(0)
@@ -955,7 +967,7 @@
 
 // -- end: main functions
 
-#let tabular(
+#let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
     align: auto,
