@@ -79,10 +79,11 @@ deeteeeeeeeet
 #tablex(
     columns: 5,
     rows: 1,
+    stroke: red + 2pt,
     vline(), vline(), vline(), vline(), vline(), vline(),
     hline(),
     [abcdef], colspan(3, rowspan(2, [ee], fill: red), align: horizon), (), (), [c],
-    hline(),
+    hline(stroke: blue),
     [abcdef], (), (), (), [c],
     hline(),
     [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeetec],
