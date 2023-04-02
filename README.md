@@ -41,6 +41,17 @@ More powerful and customizable tables in Typst
         - [X] Support nesting colspan/rowspan (`colspan(rowspan())`)
         - [X] Support cell attributes (e.g. `colspan(2, align: left)[a]`)
         - [X] Reliably detect conflicts
+    - [ ] Repeating headers
+        - [X] Basic support (first row group repeats on every page)
+        - [ ] `repeat-header`: Control header repetition
+            - [ ] `true`: Repeat on all pages
+            - [ ] integer: Repeat for the next 'n' pages
+            - [ ] array of integers: Repeat on those (relative) pages
+            - [ ] `false` (default): Do not repeat
+        - [ ] `header`: Indicate what to consider as a "header"
+            - [ ] integer: At least first 'n' rows are a header (plus whatever rowspans show up there)
+                - [ ] Defaults to 1
+            - [ ] `none` or `0`: no header (disables header repetition regardless of `repeat-header`)
     - [ ] `cellx`
         - [X] Auto-positioning based on order and columns
         - [X] Place empty cells when there are too many
