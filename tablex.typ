@@ -859,23 +859,48 @@
 
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),
 // considering the left and top margins.
-// Also returns a 'content'-returning function which must be run and placed for this to work
-// (it updates the state).
-#let get_page_dim_state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt))
+// Requires placing 'get_page_dim_writer(the_returned_state)' on the
+// document.
+#let get_page_dim_state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_done: false, bottom_done: false))
 
 // A little trick to get the page max width and max height.
-// Places a component on the page (or outer container)'s bottom right, and saves its
-// coordinates.
+// Places a component on the page (or outer container)'s top left,
+// and one on the page's bottom right, and subtracts their coordinates.
 //
 // Must be fed a state variable, which is updated with (width: max x, height: max y).
 // The content it returns must be placed in the document for the page state to be
 // written to.
-#let get_page_dim_writer(page_dim_state) = place(bottom+right, locate(loc => {
-    let pos = loc.position()
-    let width = pos.x
-    let height = pos.y
-    page_dim_state.update(p => (width: width, height: height))
-}))
+//
+// NOTE: This function cannot differentiate between the actual page
+// and a possible box or block where the component using this function
+// could be contained in.
+#let get_page_dim_writer(page_dim_state) = {
+    place(top + left, locate(loc => {
+        page_dim_state.update(s => {
+            if s.top_done {
+                s
+            } else {
+                let pos = loc.position()
+                let width = s.width - pos.x
+                let height = s.width - pos.y
+                (width: width, height: height, top_done: true, bottom_done: s.bottom_done)
+            }
+        })
+    }))
+
+    place(bottom + right, locate(loc => {
+        page_dim_state.update(s => {
+            if s.bottom_done {
+                s
+            } else {
+                let pos = loc.position()
+                let width = s.width + pos.x
+                let height = s.width + pos.y
+                (width: width, height: height, top_done: s.top_done, bottom_done: true)
+            }
+        })
+    }))
+}
 
 // -- end: main functions
 
@@ -891,12 +916,12 @@
     get_page_dim_writer(page_dimensions)  // place it so it does its job
 
     locate(t_loc => style(styles => {
-        let page_dim_at = page_dimensions.at(t_loc)
+        let page_dim_at = page_dimensions.final(t_loc)
         let t_pos = t_loc.position()
 
         // Subtract the max width/height from current width/height to disregard margin/etc.
-        let page_width = page_dim_at.width - t_pos.x
-        let page_height = page_dim_at.height - t_pos.y
+        let page_width = page_dim_at.width
+        let page_height = page_dim_at.height
 
         let items = items.pos().map(table_item_convert)
 
