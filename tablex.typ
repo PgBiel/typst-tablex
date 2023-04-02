@@ -134,12 +134,33 @@
 }
 
 #let validate_cols_rows(columns, rows, items: ()) = {
+    if type(columns) == "integer" {
+        assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
+
+        columns = (auto,) * columns
+    }
+
+    if type(rows) == "integer" {
+        assert(rows >= 0, message: "Error: Cannot have a negative amount of rows.")
+        rows = (auto,) * rows
+    }
+
     if type(columns) != "array" {
         columns = (columns,)
     }
     
     if type(rows) != "array" {
         rows = (rows,)
+    }
+
+    // default empty column to a single auto column
+    if columns.len() == 0 {
+        columns = (auto,)
+    }
+
+    // default empty row to a single auto row
+    if rows.len() == 0 {
+        rows = (auto,)
     }
 
     let col_row_is_valid(col_row) = (
