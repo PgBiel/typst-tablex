@@ -4,14 +4,14 @@
 // -- types --
 
 #let hline(start: 0, end: auto, y: auto) = (
-    tabular_dict_type: "hline",
+    tabular-dict-type: "hline",
     start: start,
     end: end,
     y: y
 )
 
 #let vline(start: 0, end: auto, x: auto) = (
-    tabular_dict_type: "vline",
+    tabular-dict-type: "vline",
     start: start,
     end: end,
     x: x
@@ -23,7 +23,7 @@
     fill: auto, align: auto,
     inset: auto
 ) = (
-    tabular_dict_type: "cell",
+    tabular-dict-type: "cell",
     content: content,
     rowspan: rowspan,
     colspan: colspan,
@@ -35,7 +35,7 @@
 )
 
 #let occupied(x: 0, y: 0, parent_x: none, parent_y: none) = (
-    tabular_dict_type: "occupied",
+    tabular-dict-type: "occupied",
     x: x,
     y: y,
     parent_x: parent_x,
@@ -47,28 +47,28 @@
 // -- type checks, transformers and validators --
 
 // Is this a valid dict created by this library?
-#let is_tabular_dict(x) = (
+#let is-tabular-dict(x) = (
     type(x) == "dictionary"
-        and "tabular_dict_type" in x
+        and "tabular-dict-type" in x
 )
 
-#let is_tabular_dict_type(x, ..dict_types) = (
-    is_tabular_dict(x)
-        and x.tabular_dict_type in dict_types.pos()
+#let is-tabular-dict-type(x, ..dict_types) = (
+    is-tabular-dict(x)
+        and x.tabular-dict-type in dict_types.pos()
 )
 
-#let is_tabular_cell(x) = is_tabular_dict_type(x, "cell")
-#let is_tabular_hline(x) = is_tabular_dict_type(x, "hline")
-#let is_tabular_vline(x) = is_tabular_dict_type(x, "vline")
-#let is_some_tabular_line(x) = is_tabular_dict_type(x, "hline", "vline")
-#let is_tabular_occupied(x) = is_tabular_dict_type(x, "occupied")
+#let is-tabular-cell(x) = is-tabular-dict-type(x, "cell")
+#let is-tabular-hline(x) = is-tabular-dict-type(x, "hline")
+#let is-tabular-vline(x) = is-tabular-dict-type(x, "vline")
+#let is-some-tabular-line(x) = is-tabular-dict-type(x, "hline", "vline")
+#let is-tabular-occupied(x) = is-tabular-dict-type(x, "occupied")
 
-#let table_item_convert(item, keep_empty: true) = {
+#let table-item-convert(item, keep_empty: true) = {
     if type(item) == "function" {  // dynamic cell content
         cellx(item)
     } else if keep_empty and item == () {
         item
-    } else if type(item) != "dictionary" or "tabular_dict_type" not in item {
+    } else if type(item) != "dictionary" or "tabular-dict-type" not in item {
         cellx[#item]
     } else {
         item
@@ -76,7 +76,7 @@
 }
 
 #let rowspan(length, content, ..cell_options) = {
-    if is_tabular_cell(content) {
+    if is-tabular-cell(content) {
         (..content, rowspan: length, ..cell_options.named())
     } else {
         cellx(
@@ -87,7 +87,7 @@
 }
 
 #let colspan(length, content, ..cell_options) = {
-    if is_tabular_cell(content) {
+    if is-tabular-cell(content) {
         (..content, colspan: length, ..cell_options.named())
     } else {
         cellx(
@@ -99,14 +99,14 @@
 
 // Get expected amount of cell positions
 // in the table (considering colspan and rowspan)
-#let get_expected_grid_len(items, col_len: 0) = {
+#let get-expected-grid-len(items, col_len: 0) = {
     let len = 0
 
     // maximum explicit 'y' specified
     let max_explicit_y = items
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
-            if (is_tabular_cell(cell)
+            if (is-tabular-cell(cell)
                     and type(cell.y) in ("integer", "float")
                     and cell.y > acc) {
                 cell.y
@@ -116,7 +116,7 @@
         })
 
     for item in items {
-        if is_tabular_cell(item) and item.x == auto and item.y == auto {
+        if is-tabular-cell(item) and item.x == auto and item.y == auto {
             // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
         } else if type(item) == "content" {
@@ -133,7 +133,7 @@
     len
 }
 
-#let validate_cols_rows(columns, rows, items: ()) = {
+#let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == "integer" {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
 
@@ -179,7 +179,7 @@
 
     let col_len = columns.len()
 
-    let grid_len = get_expected_grid_len(items, col_len: col_len)
+    let grid_len = get-expected-grid-len(items, col_len: col_len)
 
     let expected_rows = calc.ceil(grid_len / col_len)
 
@@ -194,7 +194,7 @@
 
     let is_at_first_column(grid_len) = calc.mod(grid_len, col_len) == 0
 
-    while not is_at_first_column(get_expected_grid_len(items + new_items, col_len: col_len)) {  // fix incomplete rows
+    while not is_at_first_column(get-expected-grid-len(items + new_items, col_len: col_len)) {  // fix incomplete rows
         new_items.push(cellx[])
     }
 
@@ -208,7 +208,7 @@
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
-#let positions_spanned_by(cell, x: 0, y: 0, x_limit: 0, y_limit: none) = {
+#let positions-spanned-by(cell, x: 0, y: 0, x_limit: 0, y_limit: none) = {
     let result = ()
     let rowspan = if "rowspan" in cell { cell.rowspan } else { 1 }
     let colspan = if "colspan" in cell { cell.colspan } else { 1 }
@@ -240,7 +240,7 @@
 }
 
 // initialize an array with a certain element or init function, repeated
-#let init_array(amount, element: none, init_function: none) = {
+#let init-array(amount, element: none, init_function: none) = {
     let nones = ()
 
     if init_function == none {
@@ -252,7 +252,7 @@
 
 // Default 'x' to a certain value if it is equal to the forbidden value
 // ('none' by default)
-#let default_if_not(x, default, if_isnt: none) = {
+#let default-if-not(x, default, if_isnt: none) = {
     if x == if_isnt {
         default
     } else {
@@ -261,13 +261,13 @@
 }
 
 // Default 'x' to a certain value if it is none
-#let default_if_none(x, default) = default_if_not(x, default, if_isnt: none)
+#let default-if-none(x, default) = default-if-not(x, default, if_isnt: none)
 
 // Default 'x' to a certain value if it is auto
-#let default_if_auto(x, default) = default_if_not(x, default, if_isnt: auto)
+#let default-if-auto(x, default) = default-if-not(x, default, if_isnt: auto)
 
 // The max between a, b, or the other one if either is 'none'.
-#let max_if_not_none(a, b) = if a in (none, auto) {
+#let max-if-not-none(a, b) = if a in (none, auto) {
     b
 } else if b in (none, auto) {
     a
@@ -281,7 +281,7 @@
 // page_size: equivalent to 100%
 // frac_amount: amount of 'fr' specified
 // frac_total: total space shared by fractions
-#let convert_length_to_pt(
+#let convert-length-to-pt(
     len,
     styles: none, page_size: none, frac_amount: none, frac_total: none
 ) = {
@@ -357,25 +357,25 @@
 
 // --- grid functions ---
 
-#let create_grid(width, initial_height) = (
-    tabular_dict_type: "grid",
-    items: init_array(width * initial_height),
+#let create-grid(width, initial_height) = (
+    tabular-dict-type: "grid",
+    items: init-array(width * initial_height),
     width: width
 )
 
-#let is_tabular_grid(value) = is_tabular_dict_type("grid")
+#let is-tabular-grid(value) = is-tabular-dict-type("grid")
 
 // Gets the index of (x, y) in a grid's array.
-#let grid_index_at(x, y, width: none) = {
+#let grid-index-at(x, y, width: none) = {
     width = calc.floor(width)
     (y * width) + calc.mod(x, width)
 }
 
 // Gets the cell at the given grid x, y position.
 // Width (amount of columns) per line must be known.
-// E.g. grid_at(grid, 5, 2, width: 7)  => 5th column, 2nd row  (7 columns per row)
-#let grid_at(grid, x, y) = {
-    let index = grid_index_at(x, y, width: grid.width)
+// E.g. grid-at(grid, 5, 2, width: 7)  => 5th column, 2nd row  (7 columns per row)
+#let grid-at(grid, x, y) = {
+    let index = grid-index-at(x, y, width: grid.width)
 
     if index < grid.items.len() {
         grid.items.at(index)
@@ -386,23 +386,23 @@
 
 // Returns 'true' if the cell at (x, y)
 // exists in the grid.
-#let grid_has_pos(grid, x, y) = (
-    grid_index_at(x, y, width: grid.width) < grid.items.len()
+#let grid-has-pos(grid, x, y) = (
+    grid-index-at(x, y, width: grid.width) < grid.items.len()
 )
 
 // How many rows are in this grid? (Given its width)
-#let grid_count_rows(grid) = (
+#let grid-count-rows(grid) = (
     calc.floor(grid.items.len() / grid.width)
 )
 
 // Converts a grid array index to (x, y)
-#let grid_index_to_pos(grid, index) = (
+#let grid-index-to-pos(grid, index) = (
     (calc.mod(index, grid.width), calc.floor(index / grid.width))   
 )
 
 // Expand grid to the given coords
-#let grid_expand_to(grid, x, y, fill_with: (grid) => none) = {
-    let rows = grid_count_rows(grid)
+#let grid-expand-to(grid, x, y, fill_with: (grid) => none) = {
+    let rows = grid-count-rows(grid)
     let rowws = rows
 
     // quickly add missing rows
@@ -411,22 +411,22 @@
         rows += 1
     }
 
-    let now = grid_index_to_pos(grid, grid.items.len() - 1)
+    let now = grid-index-to-pos(grid, grid.items.len() - 1)
     // now columns and/or last missing row
-    while not grid_has_pos(grid, x, y) {
+    while not grid-has-pos(grid, x, y) {
         grid.items.push(fill_with(grid))
     }
-    let new = grid_index_to_pos(grid, grid.items.len() - 1)
+    let new = grid-index-to-pos(grid, grid.items.len() - 1)
 
     grid
 }
 
 // if occupied (extension of a cell) => get the cell that generated it.
 // if a normal cell => return it, untouched.
-#let get_parent_cell(cell, grid: none) = {
-    if is_tabular_occupied(cell) {
-        grid_at(grid, cell.parent_x, cell.parent_y)
-    } else if is_tabular_cell(cell) {
+#let get-parent-cell(cell, grid: none) = {
+    if is-tabular-occupied(cell) {
+        grid-at(grid, cell.parent_x, cell.parent_y)
+    } else if is-tabular-cell(cell) {
         cell
     } else {
         panic("Cannot get parent table cell of a non-cell object.")
@@ -434,12 +434,12 @@
 }
 
 // Return the next position available on the grid
-#let next_available_position(
+#let next-available-position(
     grid, x: 0, y: 0, x_limit: 0, y_limit: 0
 ) = {
     let cell = (x, y)
     let there_is_next(cell_pos) = {
-        let grid_cell = grid_at(grid, ..cell_pos)
+        let grid_cell = grid-at(grid, ..cell_pos)
         grid_cell != none
     }
 
@@ -463,12 +463,12 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate_grid(items, x_limit: 0, y_limit: 0) = {
+#let generate-grid(items, x_limit: 0, y_limit: 0) = {
     // init grid as a matrix
     // y_limit  x   x_limit
-    let grid = create_grid(x_limit, y_limit)
+    let grid = create-grid(x_limit, y_limit)
 
-    let grid_index_at = grid_index_at.with(width: x_limit)
+    let grid-index-at = grid-index-at.with(width: x_limit)
 
     let hlines = ()
     let vlines = ()
@@ -486,8 +486,8 @@
 
     let new_empty_cell(grid, index: auto) = {
         let empty_cell = cellx[]
-        let index = default_if_auto(index, grid.items.len())
-        let new_cell_pos = grid_index_to_pos(grid, index)
+        let index = default-if-auto(index, grid.items.len())
+        let new_cell_pos = grid-index-to-pos(grid, index)
         empty_cell.x = new_cell_pos.at(0)
         empty_cell.y = new_cell_pos.at(1)
 
@@ -507,21 +507,21 @@
             continue  // ignore all '()'
         }
 
-        let item = table_item_convert(item)
+        let item = table-item-convert(item)
 
 
-        if is_some_tabular_line(item) {  // detect lines' x, y
-            if is_tabular_hline(item) {
+        if is-some-tabular-line(item) {  // detect lines' x, y
+            if is-tabular-hline(item) {
                 let this_y = if first_cell_reached {
                     prev_y + 1
                 } else {
                     prev_y
                 }
 
-                item.y = default_if_auto(item.y, this_y)
+                item.y = default-if-auto(item.y, this_y)
 
                 hlines.push(item)
-            } else if is_tabular_vline(item) {
+            } else if is-tabular-vline(item) {
                 if item.x == auto {
                     if x == 0 and y == 0 {  // placed before any elements
                         item.x = prev_x
@@ -549,12 +549,12 @@
 
         let cell = item
 
-        assert(is_tabular_cell(cell), message: "All table items must be cells or lines.")
+        assert(is-tabular-cell(cell), message: "All table items must be cells or lines.")
 
         first_cell_reached = true
 
-        let this_x = default_if_auto(cell.x, x)
-        let this_y = default_if_auto(cell.y, y)
+        let this_x = default-if-auto(cell.x, x)
+        let this_y = default-if-auto(cell.y, y)
 
         if cell.x == none or cell.y == none {
             panic("Error: Received cell with 'none' as x or y.")
@@ -576,15 +576,15 @@
             panic("Error: Cell at " + repr((this_x, this_y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
         }
 
-        let cell_positions = positions_spanned_by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
+        let cell_positions = positions-spanned-by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
 
         for position in cell_positions {
             let px = position.at(0)
             let py = position.at(1)
-            let currently_there = grid_at(grid, px, py)
+            let currently_there = grid-at(grid, px, py)
 
             if currently_there != none {
-                let parent_cell = get_parent_cell(currently_there, grid: grid)
+                let parent_cell = get-parent-cell(currently_there, grid: grid)
 
                 panic("Error: The following cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this_x, this_y)) + ", and one starting at " + repr((parent_cell.x, parent_cell.y)))
             }
@@ -595,12 +595,12 @@
                 cell.y = this_y
 
                 // expand grid to allow placing this cell (including colspan / rowspan)
-                let grid_expand_res = grid_expand_to(grid, grid.width - 1, max_y)
+                let grid_expand_res = grid-expand-to(grid, grid.width - 1, max_y)
 
                 grid = grid_expand_res
-                y_limit = grid_count_rows(grid)
+                y_limit = grid-count-rows(grid)
 
-                let index = grid_index_at(this_x, this_y)
+                let index = grid-index-at(this_x, this_y)
 
                 if index > grid.items.len() {
                     panic("Internal tablex error: Could not expand grid to include cell at ", (this_x, this_y))
@@ -610,13 +610,13 @@
 
             // other secondary position (from colspan / rowspan)
             } else {
-                let index = grid_index_at(px, py)
+                let index = grid-index-at(px, py)
 
                 grid.items.at(index) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell (to join them later)
             }
         }
 
-        let next_pos = next_available_position(grid, x: this_x, y: this_y, x_limit: x_limit, y_limit: y_limit)
+        let next_pos = next-available-position(grid, x: this_x, y: this_y, x_limit: x_limit, y_limit: y_limit)
 
         prev_x = this_x
         prev_y = this_y
@@ -646,17 +646,17 @@
         items: grid.items,
         hlines: hlines,
         vlines: vlines,
-        new_row_count: grid_count_rows(grid)
+        new_row_count: grid-count-rows(grid)
     )
 }
 
 // Determine the size of 'auto' columns and rows
-#let determine_auto_column_row_sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
-    let inset = convert_length_to_pt(inset, styles: styles)
+#let determine-auto-column-row-sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
+    let inset = convert-length-to-pt(inset, styles: styles)
 
     let columns = columns.map(c => {
         if type(c) in ("length", "relative length", "ratio") {
-            convert_length_to_pt(c, styles: styles, page_size: page_width)
+            convert-length-to-pt(c, styles: styles, page_size: page_width)
         } else {
             c
         }
@@ -664,7 +664,7 @@
 
     let rows = rows.map(r => {
         if type(r) in ("length", "relative length", "ratio") {
-            convert_length_to_pt(r, styles: styles, page_size: page_height)
+            convert-length-to-pt(r, styles: styles, page_size: page_height)
         } else {
             r
         }
@@ -685,7 +685,7 @@
                 panic("Not enough cells specified for the given amount of rows and columns.")
             }
 
-            if is_tabular_occupied(cell) {  // placeholder - ignore
+            if is-tabular-occupied(cell) {  // placeholder - ignore
                 continue
             }
 
@@ -700,9 +700,9 @@
             let auto_row_amount = affected_auto_rows.len()  // same but for rows
 
             // take extra inset as extra width or height on 'auto'
-            let cell_inset = default_if_auto(cell.inset, inset)
+            let cell_inset = default-if-auto(cell.inset, inset)
 
-            let cell_inset = convert_length_to_pt(cell_inset, styles: styles)
+            let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
             let inset_diff = cell_inset - inset
 
@@ -712,7 +712,7 @@
                 let width = width / auto_col_amount  // resize auto columns proportionately, to fit the cell
 
                 for auto_column in affected_auto_columns {
-                    new_cols.at(auto_column) = max_if_not_none(width, new_cols.at(auto_column))
+                    new_cols.at(auto_column) = max-if-not-none(width, new_cols.at(auto_column))
                 }
             }
 
@@ -722,7 +722,7 @@
                 let height = height / auto_row_amount  // resize auto rows proportionately, to fit the cell
 
                 for auto_row in affected_auto_rows {
-                    new_rows.at(auto_row) = max_if_not_none(height, new_rows.at(auto_row))
+                    new_rows.at(auto_row) = max-if-not-none(height, new_rows.at(auto_row))
                 }
             }
         }
@@ -738,8 +738,8 @@
 
 // -- width/height utilities --
 
-#let width_between(start: 0, end: none, columns: (), inset: 5pt) = {
-    end = default_if_none(end, columns.len())
+#let width-between(start: 0, end: none, columns: (), inset: 5pt) = {
+    end = default-if-none(end, columns.len())
 
     let sum = 0pt
     for i in range(start, calc.min(columns.len() + 1, end)) {
@@ -748,8 +748,8 @@
     sum
 }
 
-#let height_between(start: 0, end: none, rows: (), inset: 5pt) = {
-    end = default_if_none(end, rows.len())
+#let height-between(start: 0, end: none, rows: (), inset: 5pt) = {
+    end = default-if-none(end, rows.len())
 
     let sum = 0pt
     for i in range(start, calc.min(rows.len() + 1, end))  {
@@ -758,16 +758,16 @@
     sum
 }
 
-#let cell_width(x, colspan: 1, columns: (), inset: 5pt) = {
-    width_between(start: x, end: x + colspan, columns: columns, inset: inset)
+#let cell-width(x, colspan: 1, columns: (), inset: 5pt) = {
+    width-between(start: x, end: x + colspan, columns: columns, inset: inset)
 }
 
-#let cell_height(y, rowspan: 1, rows: (), inset: 5pt) = {
-    height_between(start: y, end: y + rowspan, rows: rows, inset: inset)
+#let cell-height(y, rowspan: 1, rows: (), inset: 5pt) = {
+    height-between(start: y, end: y + rowspan, rows: rows, inset: inset)
 }
 
 // overide start and end for vlines and hlines (keep styling options and stuff)
-#let v_or_hline_with_span(v_or_hline, start: none, end: none) = {
+#let v-or-hline-with-span(v_or_hline, start: none, end: none) = {
     (
         ..v_or_hline,
         start: start,
@@ -776,7 +776,7 @@
 }
 
 // check the subspan a hline or vline goes through inside a larger span
-#let get_included_span(l_start, l_end, start: 0, end: 0, limit: 0) = {
+#let get-included-span(l_start, l_end, start: 0, end: 0, limit: 0) = {
     if l_start in (none, auto) {
         l_start = 0
     }
@@ -804,8 +804,8 @@
 // (hline) ----====---      (= and || indicate intersection)
 //             |  ||
 //             ----   <--- sample cell
-#let v_and_hline_spans_for_cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
-    let parent_cell = get_parent_cell(cell, grid: grid)
+#let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
+    let parent_cell = get-parent-cell(cell, grid: grid)
 
     if parent_cell != cell and parent_cell.colspan <= 1 and parent_cell.rowspan <= 1 {
         panic("Bad parent cell: ", (parent_cell.x, parent_cell.y), " cannot be a parent of ", (cell.x, cell.y), ": it only occupies one cell slot.")
@@ -838,8 +838,8 @@
         })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get_included_span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
-            v_or_hline_with_span(h, start: span.at(0), end: span.at(1))
+            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
+            v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
         })
 
     let vlines = vlines
@@ -869,8 +869,8 @@
         })
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get_included_span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
-            v_or_hline_with_span(v, start: span.at(0), end: span.at(1))
+            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
+            v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
         })
 
     (
@@ -881,9 +881,9 @@
 
 // Are two hlines the same?
 // (Check to avoid double drawing)
-#let is_same_hline(a, b) = (
-    is_tabular_hline(a)
-        and is_tabular_hline(b)
+#let is-same-hline(a, b) = (
+    is-tabular-hline(a)
+        and is-tabular-hline(b)
         and a.y == b.y
         and a.start == b.start
         and a.end == b.end
@@ -893,24 +893,24 @@
 
 // -- drawing --
 
-#let draw_hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
+#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
     let start = hline.start
     let end = hline.end
 
-    let y = height_between(start: initial_y, end: hline.y, rows: rows)
-    let start = (width_between(start: initial_x, end: start, columns: columns), y)
-    let end = (width_between(start: initial_x, end: end, columns: columns), y)
+    let y = height-between(start: initial_y, end: hline.y, rows: rows)
+    let start = (width-between(start: initial_x, end: start, columns: columns), y)
+    let end = (width-between(start: initial_x, end: end, columns: columns), y)
 
     line(start: start, end: end)
 }
 
-#let draw_vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
+#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
     let start = vline.start
     let end = vline.end
 
-    let x = width_between(start: initial_x, end: vline.x, columns: columns)
-    let start = (x, height_between(start: initial_y, end: start, rows: rows))
-    let end = (x, height_between(start: initial_y, end: end, rows: rows))
+    let x = width-between(start: initial_x, end: vline.x, columns: columns)
+    let start = (x, height-between(start: initial_y, end: start, rows: rows))
+    let end = (x, height-between(start: initial_y, end: end, rows: rows))
 
     line(start: start, end: end)
 }
@@ -921,7 +921,7 @@
 // inset - The table's inset
 // align_default - The default alignment if the cell doesn't specify one
 // fill_default - The default fill color / etc if the cell doesn't specify one
-#let make_cell_box(
+#let make-cell-box(
         cell,
         width: 0pt, height: 0pt, inset: 5pt,
         align_default: left,
@@ -942,10 +942,10 @@
     // use default align (specified in
     // table 'align:')
     // when the cell align is 'auto'
-    let cell_align = default_if_auto(cell.align, align_default)
+    let cell_align = default-if-auto(cell.align, align_default)
 
     // same here for fill
-    let cell_fill = default_if_auto(cell.fill, fill_default)
+    let cell_fill = default-if-auto(cell.fill, fill_default)
 
     if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
         panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
@@ -967,9 +967,9 @@
 
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),
 // considering the left and top margins.
-// Requires placing 'get_page_dim_writer(the_returned_state)' on the
+// Requires placing 'get-page-dim-writer(the_returned_state)' on the
 // document.
-#let get_page_dim_state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_done: false, bottom_done: false))
+#let get-page-dim-state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_done: false, bottom_done: false))
 
 // A little trick to get the page max width and max height.
 // Places a component on the page (or outer container)'s top left,
@@ -982,7 +982,7 @@
 // NOTE: This function cannot differentiate between the actual page
 // and a possible box or block where the component using this function
 // could be contained in.
-#let get_page_dim_writer(page_dim_state) = {
+#let get-page-dim-writer(page_dim_state) = {
     place(top + left, locate(loc => {
         page_dim_state.update(s => {
             if s.top_done {
@@ -1019,9 +1019,9 @@
     fill: none,
     ..items
 ) = {
-    let page_dimensions = get_page_dim_state()
+    let page_dimensions = get-page-dim-state()
 
-    get_page_dim_writer(page_dimensions)  // place it so it does its job
+    get-page-dim-writer(page_dimensions)  // place it so it does its job
 
     locate(t_loc => style(styles => {
         let page_dim_at = page_dimensions.final(t_loc)
@@ -1031,10 +1031,10 @@
         let page_width = page_dim_at.width
         let page_height = page_dim_at.height
 
-        let items = items.pos().map(table_item_convert)
+        let items = items.pos().map(table-item-convert)
 
-        let validated_cols_rows = validate_cols_rows(
-            columns, rows, items: items.filter(is_tabular_cell))
+        let validated_cols_rows = validate-cols-rows(
+            columns, rows, items: items.filter(is-tabular-cell))
 
         let columns = validated_cols_rows.columns
         let rows = validated_cols_rows.rows
@@ -1044,7 +1044,7 @@
         let row_len = rows.len()
 
         // generate cell matrix and other things
-        let grid_info = generate_grid(items, x_limit: col_len, y_limit: row_len)
+        let grid_info = generate-grid(items, x_limit: col_len, y_limit: row_len)
 
         let table_grid = grid_info.grid
         let hlines = grid_info.hlines
@@ -1059,7 +1059,7 @@
         let row_len = rows.len()
 
         // convert auto to actual size
-        let updated_cols_rows = determine_auto_column_row_sizes(
+        let updated_cols_rows = determine-auto-column-row-sizes(
             grid: table_grid,
             page_width: page_width, page_height: page_height,
             styles: styles,
@@ -1070,13 +1070,13 @@
         let rows = updated_cols_rows.rows
 
         // specialize some functions for the given grid, columns and rows
-        let v_and_hline_spans_for_cell = v_and_hline_spans_for_cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
-        let cell_width = cell_width.with(columns: columns)
-        let cell_height = cell_height.with(rows: rows)
-        let width_between = width_between.with(columns: columns, inset: inset)
-        let height_between = height_between.with(rows: rows, inset: inset)
-        let draw_hline = draw_hline.with(columns: columns, rows: rows)
-        let draw_vline = draw_vline.with(columns: columns, rows: rows)
+        let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
+        let cell-width = cell-width.with(columns: columns)
+        let cell-height = cell-height.with(rows: rows)
+        let width-between = width-between.with(columns: columns, inset: inset)
+        let height-between = height-between.with(rows: rows, inset: inset)
+        let draw-hline = draw-hline.with(columns: columns, rows: rows)
+        let draw-vline = draw-vline.with(columns: columns, rows: rows)
 
         // each row group is an unbreakable unit of rows.
         // In general, they're just one row. However, they can be multiple rows
@@ -1089,7 +1089,7 @@
         let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
         let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
-        let total_width = width_between(end: none)
+        let total_width = width-between(end: none)
 
         let row_groups = {
             let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
@@ -1100,24 +1100,24 @@
                 ))  // keep online hlines above or below this row
 
                 for column in range(0, col_len) {
-                    let cell = grid_at(table_grid, column, row)
-                    let lines_dict = v_and_hline_spans_for_cell(cell, hlines: hlines)
+                    let cell = grid-at(table_grid, column, row)
+                    let lines_dict = v-and-hline-spans-for-cell(cell, hlines: hlines)
                     let hlines = lines_dict.hlines
                     let vlines = lines_dict.vlines
 
 
-                    if is_tabular_cell(cell) and cell.rowspan > 1 {
+                    if is-tabular-cell(cell) and cell.rowspan > 1 {
                         // ensure row-spanned rows are in the same group
                         row_group_add_counter += cell.rowspan - 1
                     }
 
-                    if is_tabular_cell(cell) {
-                        let inset = default_if_auto(cell.inset, inset)
+                    if is-tabular-cell(cell) {
+                        let inset = default-if-auto(cell.inset, inset)
 
-                        let width = cell_width(cell.x, colspan: cell.colspan, inset: inset)
-                        let height = cell_height(cell.y, rowspan: cell.rowspan, inset: inset)
+                        let width = cell-width(cell.x, colspan: cell.colspan, inset: inset)
+                        let height = cell-height(cell.y, rowspan: cell.rowspan, inset: inset)
 
-                        let cell_box = make_cell_box(
+                        let cell_box = make-cell-box(
                             cell,
                             width: width, height: height, inset: inset,
                             align_default: align,
@@ -1127,7 +1127,7 @@
                     }
 
                     let hlines = hlines.filter(h =>
-                        this_row_group.hlines.filter(is_same_hline.with(h))
+                        this_row_group.hlines.filter(is-same-hline.with(h))
                             .len() == 0)
 
                     let vlines = vlines.filter(v =>
@@ -1194,12 +1194,12 @@
                                 for cell_box in row {
                                     let x = cell_box.cell.x
                                     let y = cell_box.cell.y
-                                    first_x = default_if_none(first_x, x)
-                                    first_y = default_if_none(first_y, y)
+                                    first_x = default-if-none(first_x, x)
+                                    first_y = default-if-none(first_y, y)
 
                                     place(top+left,
-                                        dx: width_between(start: first_x, end: x),
-                                        dy: height_between(start: first_y, end: y) + added_header_height,
+                                        dx: width-between(start: first_x, end: x),
+                                        dy: height-between(start: first_y, end: y) + added_header_height,
                                         cell_box.box)
 
                                     let box_h = measure(cell_box.box, styles).height
@@ -1213,25 +1213,25 @@
 
                             hide(rect(width: total_width, height: tallest_box_h + added_header_height))
 
-                            let draw_hline = draw_hline.with(initial_x: first_x, initial_y: first_y)
-                            let draw_vline = draw_vline.with(initial_x: first_x, initial_y: first_y)
+                            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
+                            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
 
                             for hline in hlines {
                                 if hline.y == start_y {
                                     if hline.y == 0 {
-                                        draw_hline(hline)
+                                        draw-hline(hline)
                                     } else if page_turned and added_header_height == 0pt {
-                                        draw_hline(hline)
+                                        draw-hline(hline)
                                         // no header repeated, but still at the top of the current page
                                     }
                                 } else {
                                     // normally, only draw the bottom hlines
-                                    draw_hline(hline)
+                                    draw-hline(hline)
                                 }
                             }
 
                             for vline in vlines {
-                                draw_vline(vline)
+                                draw-vline(vline)
                             }
                         })
 

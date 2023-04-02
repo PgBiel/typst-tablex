@@ -51,7 +51,7 @@ e
 #line(length: 11pt)
 #line(length: 1em)
 
-#style(styles => convert_length_to_pt(2fr, styles: styles, page_size: 500pt, frac_total: 300pt, frac_amount: 4))
+#style(styles => convert-length-to-pt(2fr, styles: styles, page_size: 500pt, frac_total: 300pt, frac_amount: 4))
 
 // #{calc.floor(autrrtttrro)}rrereeee
 deeteeeeeeeet
@@ -93,4 +93,4 @@ deeteeeeeeeet
 
 #tablex()
 
-eeeedreteteederttddettededteedeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
+eeeedreteteederttddettededteeedeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
