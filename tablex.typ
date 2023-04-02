@@ -394,6 +394,18 @@
     grid
 }
 
+// if occupied (extension of a cell) => get the cell that generated it.
+// if a normal cell => return it, untouched.
+#let get_parent_cell(cell, grid: none) = {
+    if is_tabular_occupied(cell) {
+        grid_at(grid, cell.parent_x, cell.parent_y)
+    } else if is_tabular_cell(cell) {
+        cell
+    } else {
+        panic("Cannot get parent table cell of a non-cell object.")
+    }
+}
+
 // Return the next position available on the grid
 #let next_available_position(
     grid, x: 0, y: 0, x_limit: 0, y_limit: 0
@@ -429,7 +441,6 @@
     // y_limit  x   x_limit
     let grid = create_grid(x_limit, y_limit)
 
-    let grid_at = grid_at.with(grid)
     let grid_index_at = grid_index_at.with(width: x_limit)
 
     let hlines = ()
@@ -534,6 +545,10 @@
         let max_x = this_x + cell.colspan - 1
         let max_y = this_y + cell.rowspan - 1
 
+        if this_x >= x_limit {
+            panic("Error: Cell at " + repr((this_x, this_y)) + " is placed at an inexistent column.")
+        }
+
         if max_x >= x_limit {
             panic("Error: Cell at " + repr((this_x, this_y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
         }
@@ -543,10 +558,12 @@
         for position in cell_positions {
             let px = position.at(0)
             let py = position.at(1)
-            let currently_there = grid_at(px, py)
+            let currently_there = grid_at(grid, px, py)
 
             if currently_there != none {
-                panic("The following cells attempted to occupy the same space: one starting at", (this_x, this_y), "and one at", (px, py))
+                let parent_cell = get_parent_cell(currently_there, grid: grid)
+
+                panic("Error: The following cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this_x, this_y)) + ", and one starting at " + repr((parent_cell.x, parent_cell.y)))
             }
 
             // initial position => assign it to the cell's x/y
@@ -691,18 +708,6 @@
             columns: new_cols,
             rows: new_rows
         )
-    }
-}
-
-// if occupied => get the cell that generated it.
-// if a cell => return it, untouched.
-#let get_parent_cell(cell, grid: none, width: none) = {
-    if is_tabular_occupied(cell) {
-        grid_at(grid, cell.parent_x, cell.parent_y)
-    } else if is_tabular_cell(cell) {
-        cell
-    } else {
-        panic("Cannot get parent table cell of a non-cell object.")
     }
 }
 
