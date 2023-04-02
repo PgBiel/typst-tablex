@@ -50,12 +50,12 @@ More powerful and customizable tables in Typst
         - [X] Allow `inset` override
             - [X] Works properly only with `auto` cols/rows
     - [ ] Auto-lines
-        - [ ] `auto_hlines` - `true` to place on all lines without hlines, `false` otherwise
-        - [ ] `auto_vlines` - similar
-        - [ ] `auto_lines` - controls both simultaneously (defaults to `true`)
+        - [ ] `auto-hlines` - `true` to place on all lines without hlines, `false` otherwise
+        - [ ] `auto-vlines` - similar
+        - [ ] `auto-lines` - controls both simultaneously (defaults to `true`)
     - [ ] Iteration attributes
-        - [ ] `map_cells` - Customize every single cell
-        - [ ] `map_hlines` - Customize each horizontal line
-        - [ ] `map_vlines` - Customize each vertical line
-        - [ ] `map_rows` - Customize entire rows of cells
-        - [ ] `map_cols` - Customize entire columns of cells
+        - [ ] `map-cells` - Customize every single cell
+        - [ ] `map-hlines` - Customize each horizontal line
+        - [ ] `map-vlines` - Customize each vertical line
+        - [ ] `map-rows` - Customize entire rows of cells
+        - [ ] `map-cols` - Customize entire columns of cells
