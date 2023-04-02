@@ -513,7 +513,12 @@
         }
 
         // up to which 'y' does this cell go
-        let max_y = if is_tabular_cell(cell) { this_y + cell.rowspan - 1 } else { this_y }
+        let max_x = this_x + cell.colspan - 1
+        let max_y = this_y + cell.rowspan - 1
+
+        if max_x >= x_limit {
+            panic("Error: Cell at " + repr((this_x, this_y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
+        }
 
         let cell_positions = positions_spanned_by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
 
@@ -753,11 +758,26 @@
         .filter(h => {
             let y = h.y
 
-            ((y in (cell.y, cell.y + 1, y_limit)
-                and (y != cell.y or parent_cell.y >= cell.y)  // only show top line if parent cell isn't strictly above
-                and (y != cell.y + 1 or ((parent_cell.y + parent_cell.rowspan - 1 <= cell.y) and (parent_cell.rowspan < 2)))) // only show bottom line if end of rowspan isn't below
-                and (h.end in (auto, none) or h.end >= cell.x + 1))
-                // ^ don't go beyond the hline's end
+            let in_top_bottom_or_limit = y in (cell.y, cell.y + 1, y_limit)
+
+            // only show top line if parent cell isn't strictly above
+            let top_not_in_middle_of_rowspan = not (y == cell.y and parent_cell.y < cell.y)
+
+            let bottom_rowspan_y = parent_cell.y + parent_cell.rowspan - 1
+
+            // only show bottom line if this is the cell in the bottom-most height of the rowspan (to the bottom)
+            // that is, if the end of the rowspan isn't strictly below
+            let bottom_not_in_middle_of_rowspan = not (y == cell.y + 1 and y <= bottom_rowspan_y)
+
+            let hline_hasnt_already_ended = (
+                h.end in (auto, none)  // always goes towards the right
+                or h.end >= cell.x + 1  // ends at or after this cell
+            )
+
+            (in_top_bottom_or_limit
+                and top_not_in_middle_of_rowspan
+                and bottom_not_in_middle_of_rowspan
+                and hline_hasnt_already_ended)
         })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
@@ -769,12 +789,27 @@
         .filter(v => {
             let x = v.x
 
-            ((x in (cell.x, cell.x + 1, x_limit))
-                and (x != cell.x or parent_cell.x >= cell.x)  // only show left line if parent cell isn't strictly to the left
-                and (x != cell.x + 1 or ((parent_cell.x + parent_cell.colspan - 1 <= cell.x) and (parent_cell.colspan < 2)))
-                and (v.end in (auto, none) or v.end >= cell.y + 1))
-                // ^ don't go beyond the vline's end
-        })  // only show right line if end of colspan isn't to the right
+            let at_left_right_or_limit = x in (cell.x, cell.x + 1, x_limit)
+
+            // only show left line if parent cell isn't strictly to the left
+            let left_not_in_middle_of_colspan = not (x == cell.x and parent_cell.x < cell.x)
+
+            let right_colspan_x = parent_cell.x + parent_cell.colspan - 1
+
+            // only show right line if this is the cell in the right-most column of the colspan
+            // that is, if the end of the colspan isn't strictly to the right
+            let right_not_in_middle_of_colspan = not (x == cell.x + 1 and x <= right_colspan_x)
+
+            let vline_hasnt_already_ended = (
+                v.end in (auto, none)  // always goes towards the bottom
+                or v.end >= cell.y + 1  // ends at or after this cell
+            )
+
+            (at_left_right_or_limit
+                and left_not_in_middle_of_colspan
+                and right_not_in_middle_of_colspan
+                and vline_hasnt_already_ended)
+        })
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
             let span = get_included_span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
@@ -993,8 +1028,6 @@
         // page in the latest row group
         let latest_page = state("tablex_tabular_latest_page", -1)
 
-        // don't draw hlines twice
-        let drawn_hlines = state("tablex_tabular_drawn_hlines", ((), (), (), (), (), ()))
         let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
         let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
@@ -1004,7 +1037,9 @@
             let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
             let current_row = 0
             for row in range(0, row_len) {
-                let hlines = hlines.filter(h => h.y in (current_row, current_row + 1))  // hlines between this row and the next
+                let hlines = hlines.filter(h => (
+                    h.y in (current_row, current_row + 1)
+                ))  // keep online hlines above or below this row
 
                 for column in range(0, col_len) {
                     let cell = grid_at(table_grid, column, row)
@@ -1118,22 +1153,25 @@
 
                             hide(rect(width: total_width, height: tallest_box_h + added_header_height))
 
+                            let draw_hline = draw_hline.with(initial_x: first_x, initial_y: first_y)
+                            let draw_vline = draw_vline.with(initial_x: first_x, initial_y: first_y)
+
                             for hline in hlines {
-                                let drawn_hlines_at = drawn_hlines.at(loc)
-                                if (page_turned and drawn_hlines_at.len() <= this_page - 1) or drawn_hlines_at.at(this_page - 1).filter(is_same_hline.with(hline)).len() == 0 {
-                                    draw_hline(hline, initial_x: first_x, initial_y: first_y)
-                                    drawn_hlines.update(l => {
-                                        while l.len() <= this_page - 1 {
-                                            l.push(())
-                                        }
-                                        l.at(this_page - 1).push(hline)
-                                        l
-                                    })
+                                if hline.y == start_y {
+                                    if hline.y == 0 {
+                                        draw_hline(hline)
+                                    } else if page_turned and added_header_height == 0pt {
+                                        draw_hline(hline)
+                                        // no header repeated, but still at the top of the current page
+                                    }
+                                } else {
+                                    // normally, only draw the bottom hlines
+                                    draw_hline(hline)
                                 }
                             }
 
                             for vline in vlines {
-                                draw_vline(vline, initial_x: first_x, initial_y: first_y)
+                                draw_vline(vline)
                             }
                         })
 
