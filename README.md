@@ -28,21 +28,22 @@ More powerful and customizable tables in Typst
     - [ ] `stroke`
         - [ ] Basic support (change all lines, vline or hline, without override)
         - [ ] `none` for no stroke
-- [ ] New features
-    - [X] Basic types (`tcell`, `hline`, `vline`)
+- [ ] New features for `#tablex`
+    - [X] Basic types (`cellx`, `hline`, `vline`)
     - [ ] `hline`, `vline`
         - [X] Auto-positioning when placed among cells
         - [X] Arbitrary positioning
         - [ ] Allow customizing `stroke`
     - [ ] `colspan`, `rowspan`
         - [X] Interrupt `hline` and `vline` with `end: auto`
-        - [X] Support simultaneous col/rowspan with `tcell(colspan:, rowspan:)`
+        - [X] Support simultaneous col/rowspan with `cellx(colspan:, rowspan:)`
+        - [X] Support nesting colspan/rowspan (`colspan(rowspan())`)
+        - [X] Support cell attributes (e.g. `colspan(2, align: left)[a]`)
         - [ ] Reliably detect conflicts
-        - [ ] Support nesting colspan/rowspan (`colspan(rowspan())`)
-    - [ ] `tcell`
+    - [ ] `cellx`
         - [X] Auto-positioning based on order and columns
         - [X] Place empty cells when there are too many
-        - [X] Allow arbitrary positioning with `tcell(x:, y:)`
+        - [X] Allow arbitrary positioning with `cellx(x:, y:)`
         - [X] Allow `align` override
         - [X] Allow `fill` override
         - [ ] Allow `inset` override
