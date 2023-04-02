@@ -1,8 +1,11 @@
 # typst-tablex
 More powerful and customizable tables in Typst
 
-## Roadmap
+## 0.1.0 Roadmap
 
+- [ ] General
+    - [ ] More docs
+    - [ ] Code cleanup
 - [ ] `#table` parity
     - [ ] `columns:`, `rows:`
         - [X] Basic support
