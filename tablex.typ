@@ -3,18 +3,20 @@
 
 // -- types --
 
-#let hline(start: 0, end: auto, y: auto) = (
+#let hline(start: 0, end: auto, y: auto, stroke: auto) = (
     tabular-dict-type: "hline",
     start: start,
     end: end,
-    y: y
+    y: y,
+    stroke: stroke
 )
 
-#let vline(start: 0, end: auto, x: auto) = (
+#let vline(start: 0, end: auto, x: auto, stroke: auto) = (
     tabular-dict-type: "vline",
     start: start,
     end: end,
-    x: x
+    x: x,
+    stroke: stroke
 )
 
 #let cellx(content,
@@ -893,26 +895,36 @@
 
 // -- drawing --
 
-#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
+#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto) = {
     let start = hline.start
     let end = hline.end
+    let stroke = default-if-auto(hline.stroke, stroke)
 
     let y = height-between(start: initial_y, end: hline.y, rows: rows)
     let start = (width-between(start: initial_x, end: start, columns: columns), y)
     let end = (width-between(start: initial_x, end: end, columns: columns), y)
 
-    line(start: start, end: end)
+    if stroke != auto {
+        line(start: start, end: end, stroke: stroke)
+    } else {
+        line(start: start, end: end)
+    }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: ()) = {
+#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto) = {
     let start = vline.start
     let end = vline.end
+    let stroke = default-if-auto(vline.stroke, stroke)
 
     let x = width-between(start: initial_x, end: vline.x, columns: columns)
     let start = (x, height-between(start: initial_y, end: start, rows: rows))
     let end = (x, height-between(start: initial_y, end: end, rows: rows))
 
-    line(start: start, end: end)
+    if stroke != auto {
+        line(start: start, end: end, stroke: stroke)
+    } else {
+        line(start: start, end: end)
+    }
 }
 
 // Makes a cell's box, using the given options
@@ -1017,6 +1029,7 @@
     inset: 5pt,
     align: auto,
     fill: none,
+    stroke: auto,
     ..items
 ) = {
     let page_dimensions = get-page-dim-state()
@@ -1075,8 +1088,8 @@
         let cell-height = cell-height.with(rows: rows)
         let width-between = width-between.with(columns: columns, inset: inset)
         let height-between = height-between.with(rows: rows, inset: inset)
-        let draw-hline = draw-hline.with(columns: columns, rows: rows)
-        let draw-vline = draw-vline.with(columns: columns, rows: rows)
+        let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
+        let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
 
         // each row group is an unbreakable unit of rows.
         // In general, they're just one row. However, they can be multiple rows
