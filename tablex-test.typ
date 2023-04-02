@@ -77,8 +77,8 @@ deeteeeeeeeet
 )
 
 #tablex(
-    columns: (49%, auto, auto, auto, auto),
-    rows: (auto,),
+    columns: (49%, auto, auto, auto, 10em),
+    rows: (5em,),
     debug: true,
     vline(), vline(), vline(), vline(), vline(), vline(),
     hline(),
@@ -86,10 +86,10 @@ deeteeeeeeeet
     hline(),
     [abcdef], (), (), (), [c],
     hline(),
-    [aa], [b], [c], [b], [c],
+    [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeetc],
     hline(),
     // [abcdef], [a], [b],
     // hline(),
 )
 
-eeeedreteteederttddettededteedeedeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
+eeeedreteteederttddettededteedeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde

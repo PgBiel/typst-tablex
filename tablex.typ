@@ -17,13 +17,19 @@
     x: x
 )
 
-#let cellx(content, x: auto, y: auto, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
+#let cellx(content,
+    x: auto, y: auto,
+    rowspan: 1, colspan: 1,
+    fill: auto, align: auto,
+    inset: auto
+) = (
     tabular_dict_type: "cell",
     content: content,
     rowspan: rowspan,
     colspan: colspan,
     align: align,
     fill: fill,
+    inset: inset,
     x: x,
     y: y,
 )
@@ -605,7 +611,9 @@
 }
 
 // Determine the size of 'auto' columns and rows
-#let determine_auto_column_row_sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none) = {
+#let determine_auto_column_row_sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
+    let inset = convert_length_to_pt(inset, styles: styles)
+
     let columns = columns.map(c => {
         if type(c) in ("length", "relative length", "ratio") {
             convert_length_to_pt(c, styles: styles, page_size: page_width)
@@ -651,9 +659,17 @@
             let auto_col_amount = affected_auto_columns.len()  // auto columns spanned by this cell (up to 1 if colspan is 1)
             let auto_row_amount = affected_auto_rows.len()  // same but for rows
 
+            // take extra inset as extra width or height on 'auto'
+            let cell_inset = default_if_none(cell.inset, inset, forbidden: auto)
+
+            let cell_inset = convert_length_to_pt(cell_inset, styles: styles)
+
+            let inset_diff = cell_inset - inset
+
             if auto_col_amount > 0 {
                 let measures = measure(cell.content, styles)
-                let width = measures.width / auto_col_amount  // resize auto columns proportionately, to fit the cell
+                let width = measures.width + 2*inset_diff
+                let width = width / auto_col_amount  // resize auto columns proportionately, to fit the cell
 
                 for auto_column in affected_auto_columns {
                     new_cols.at(auto_column) = max_if_not_none(width, new_cols.at(auto_column))
@@ -662,7 +678,8 @@
 
             if auto_row_amount > 0 {
                 let measures = measure(cell.content, styles)
-                let height = measures.height / auto_row_amount  // resize auto rows proportionately, to fit the cell
+                let height = measures.height + 2*inset_diff
+                let height = height / auto_row_amount  // resize auto rows proportionately, to fit the cell
 
                 for auto_row in affected_auto_rows {
                     new_rows.at(auto_row) = max_if_not_none(height, new_rows.at(auto_row))
@@ -1018,15 +1035,16 @@
             grid: table_grid,
             page_width: page_width, page_height: page_height,
             styles: styles,
-            columns: columns, rows: rows)
+            columns: columns, rows: rows,
+            inset: inset)
 
         let columns = updated_cols_rows.columns
         let rows = updated_cols_rows.rows
 
         // specialize some functions for the given grid, columns and rows
         let v_and_hline_spans_for_cell = v_and_hline_spans_for_cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
-        let cell_width = cell_width.with(columns: columns, inset: inset)
-        let cell_height = cell_height.with(rows: rows, inset: inset)
+        let cell_width = cell_width.with(columns: columns)
+        let cell_height = cell_height.with(rows: rows)
         let width_between = width_between.with(columns: columns, inset: inset)
         let height_between = height_between.with(rows: rows, inset: inset)
         let draw_hline = draw_hline.with(columns: columns, rows: rows)
@@ -1066,8 +1084,10 @@
                     }
 
                     if is_tabular_cell(cell) {
-                        let width = cell_width(cell.x, colspan: cell.colspan)
-                        let height = cell_height(cell.y, rowspan: cell.rowspan)
+                        let inset = default_if_none(cell.inset, inset, forbidden: auto)
+
+                        let width = cell_width(cell.x, colspan: cell.colspan, inset: inset)
+                        let height = cell_height(cell.y, rowspan: cell.rowspan, inset: inset)
 
                         let cell_box = make_cell_box(
                             cell,

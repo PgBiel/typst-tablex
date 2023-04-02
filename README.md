@@ -46,7 +46,8 @@ More powerful and customizable tables in Typst
         - [X] Allow arbitrary positioning with `cellx(x:, y:)`
         - [X] Allow `align` override
         - [X] Allow `fill` override
-        - [ ] Allow `inset` override
+        - [X] Allow `inset` override
+            - [X] Works properly only with `auto` cols/rows
     - [ ] Iteration attributes
         - [ ] `map_cells` - Customize every single cell
         - [ ] `map_hlines` - Customize each horizontal line
