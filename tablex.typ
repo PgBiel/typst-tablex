@@ -588,7 +588,23 @@
 }
 
 // Determine the size of 'auto' columns and rows
-#let determine_auto_column_row_sizes(grid: (), styles: none, columns: none, rows: none) = {
+#let determine_auto_column_row_sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none) = {
+    let columns = columns.map(c => {
+        if type(c) in ("length", "relative length", "ratio") {
+            convert_length_to_pt(c, styles: styles, page_size: page_width)
+        } else {
+            c
+        }
+    })
+
+    let rows = rows.map(r => {
+        if type(r) in ("length", "relative length", "ratio") {
+            convert_length_to_pt(r, styles: styles, page_size: page_height)
+        } else {
+            r
+        }
+    })
+
     if auto not in columns and auto not in rows {
         (
             columns: columns,
@@ -952,7 +968,9 @@
 
         // convert auto to actual size
         let updated_cols_rows = determine_auto_column_row_sizes(
-            grid: table_grid, styles: styles,
+            grid: table_grid,
+            page_width: page_width, page_height: page_height,
+            styles: styles,
             columns: columns, rows: rows)
 
         let columns = updated_cols_rows.columns
