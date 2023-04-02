@@ -1,2 +1,54 @@
 # typst-tablex
 More powerful and customizable tables in Typst
+
+## Roadmap
+
+- [ ] `#table` parity
+    - [ ] `columns:`, `rows:`
+        - [X] Basic support
+        - [X] Accept a single size to mean a single column
+        - [X] Adjust `auto` columns and rows
+        - [ ] Accept integers to mean multiple `auto`
+        - [X] Basic unit conversion (em -> pt, etc.)
+        - [X] Ratio unit conversion (100% -> page width...)
+        - [ ] Fractional unit conversion based on available space (1fr, 2fr -> 1/3, 2/3)
+        - [ ] Shrink `auto` columns based on available space
+    - [X] `fill`
+        - [X] Basic support (`color` for general fill)
+        - [X] Accept a function (`(row, column) => color`)
+    - [X] `align`
+        - [X] Basic support (`alignment` and `2d alignment` apply to all cells)
+        - [X] Accept a function (`(row, column) => alignment/2d alignment`)
+    - [X] `inset`
+    - [ ] `gutter`
+        - [ ] Basic support using invisible columns/maybe rows
+            - [ ] `column-gutter`
+            - [ ] `row-gutter`
+        - [ ] Hline, vline adaptations
+    - [ ] `stroke`
+        - [ ] Basic support (change all lines, vline or hline, without override)
+        - [ ] `none` for no stroke
+- [ ] New features
+    - [X] Basic types (`tcell`, `hline`, `vline`)
+    - [ ] `hline`, `vline`
+        - [X] Auto-positioning when placed among cells
+        - [X] Arbitrary positioning
+        - [ ] Allow customizing `stroke`
+    - [ ] `colspan`, `rowspan`
+        - [X] Interrupt `hline` and `vline` with `end: auto`
+        - [X] Support simultaneous col/rowspan with `tcell(colspan:, rowspan:)`
+        - [ ] Reliably detect conflicts
+        - [ ] Support nesting colspan/rowspan (`colspan(rowspan())`)
+    - [ ] `tcell`
+        - [X] Auto-positioning based on order and columns
+        - [X] Place empty cells when there are too many
+        - [X] Allow arbitrary positioning with `tcell(x:, y:)`
+        - [X] Allow `align` override
+        - [X] Allow `fill` override
+        - [ ] Allow `inset` override
+    - [ ] Iteration attributes
+        - [ ] `map_cells` - Customize every single cell
+        - [ ] `map_hlines` - Customize each horizontal line
+        - [ ] `map_vlines` - Customize each vertical line
+        - [ ] `map_rows` - Customize entire rows of cells
+        - [ ] `map_cols` - Customize entire columns of cells
