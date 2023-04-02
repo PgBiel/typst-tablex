@@ -17,15 +17,15 @@
     x: x
 )
 
-#let tcell(content, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
+#let tcell(content, x: auto, y: auto, fill: auto, align: auto, rowspan: 1, colspan: 1) = (
     tabular_dict_type: "cell",
     content: content,
     rowspan: rowspan,
     colspan: colspan,
     align: align,
     fill: fill,
-    x: auto,
-    y: auto,
+    x: x,
+    y: y,
 )
 
 #let occupied(x: 0, y: 0, parent_x: none, parent_y: none) = (
@@ -81,16 +81,35 @@
 
 // Get expected amount of cell positions
 // in the table (considering colspan and rowspan)
-#let get_expected_grid_len(items) = {
+#let get_expected_grid_len(items, col_len: 0) = {
     let len = 0
 
+    // maximum explicit 'y' specified
+    let max_explicit_y = items
+        .filter(c => c.y != auto)
+        .fold(0, (acc, cell) => {
+            if (is_tabular_cell(cell)
+                    and type(cell.y) in ("integer", "float")
+                    and cell.y > acc) {
+                cell.y
+            } else {
+                acc
+            }
+        })
+
     for item in items {
-        // cell occupies (colspan * rowspan) spaces
-        if is_tabular_cell(item) {
+        if is_tabular_cell(item) and item.x == auto and item.y == auto {
+            // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
         } else if type(item) == "content" {
             len += 1
         }
+    }
+
+    let rows(len) = calc.ceil(len / col_len)
+
+    while rows(len) < max_explicit_y {
+        len += col_len
     }
 
     len
@@ -119,12 +138,13 @@
         panic("Invalid row sizes (must all be 'auto' or a valid length specifier).")
     }
 
-    let grid_len = get_expected_grid_len(items)
-
     let col_len = columns.len()
+
+    let grid_len = get_expected_grid_len(items, col_len: col_len)
 
     let expected_rows = calc.ceil(grid_len / col_len)
 
+    // more cells than expected => add rows
     if rows.len() < expected_rows {
         let missing_rows = expected_rows - rows.len()
 
@@ -133,10 +153,11 @@
 
     let new_items = ()
 
-    while calc.mod(get_expected_grid_len(items), col_len) != 0 {  // fix incomplete rows
+    let is_at_first_column(grid_len) = calc.mod(grid_len, col_len) == 0
+
+    while not is_at_first_column(get_expected_grid_len(items + new_items, col_len: col_len)) {  // fix incomplete rows
         new_items.push(tcell[])
     }
-    // note that this doesn't consider cells with arbitrary x / y (generate_grid takes care of that)
 
     (columns: columns, rows: rows, items: new_items)
 }
@@ -348,14 +369,23 @@
 
 // Expand grid to the given coords
 #let grid_expand_to(grid, x, y, fill_with: (grid) => none) = {
-    let changed_rows = false
+    let rows = grid_count_rows(grid)
+    let rowws = rows
 
-    while not grid_has_pos(grid, x, y) {
-        grid.items.push(fill_with(grid))
-        changed_rows = calc.mod(grid.items.len(), grid.width) == 0
+    // quickly add missing rows
+    while rows < y {
+        grid.items += (fill_with(grid),) * grid.width
+        rows += 1
     }
 
-    (changed_rows: changed_rows, grid: grid)
+    let now = grid_index_to_pos(grid, grid.items.len() - 1)
+    // now columns and/or last missing row
+    while not grid_has_pos(grid, x, y) {
+        grid.items.push(fill_with(grid))
+    }
+    let new = grid_index_to_pos(grid, grid.items.len() - 1)
+
+    grid
 }
 
 // Return the next position available on the grid
@@ -409,10 +439,10 @@
 
     let range_of_items = range(items.len())
 
-    let new_empty_cell(grid) = {
-        let empty_cell = tcell(hide[a])
-        let new_cell_i = grid.items.len()
-        let new_cell_pos = grid_index_to_pos(grid, new_cell_i)
+    let new_empty_cell(grid, index: auto) = {
+        let empty_cell = tcell[]
+        let index = default_if_none(index, grid.items.len(), forbidden: auto)
+        let new_cell_pos = grid_index_to_pos(grid, index)
         empty_cell.x = new_cell_pos.at(0)
         empty_cell.y = new_cell_pos.at(1)
 
@@ -477,6 +507,14 @@
         let this_x = default_if_none(cell.x, x, forbidden: auto)
         let this_y = default_if_none(cell.y, y, forbidden: auto)
 
+        if cell.x == none or cell.y == none {
+            panic("Error: Received cell with 'none' as x or y.")
+        }
+
+        if this_x == none or this_y == none {
+            panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: ", (prev_x, prev_y), ", new cell: ", cell, ")")
+        }
+
         // up to which 'y' does this cell go
         let max_y = if is_tabular_cell(cell) { this_y + cell.rowspan - 1 } else { this_y }
 
@@ -499,17 +537,22 @@
                 // expand grid to allow placing this cell (including colspan / rowspan)
                 let grid_expand_res = grid_expand_to(grid, grid.width - 1, max_y)
 
-                grid = grid_expand_res.grid
-                if grid_expand_res.changed_rows {  // update row limit count lazily
-                    y_limit = grid_count_rows(grid)
-                }
+                grid = grid_expand_res
+                y_limit = grid_count_rows(grid)
 
-                grid.items.at(grid_index_at(this_x, this_y)) = cell
+                let index = grid_index_at(this_x, this_y)
+
+                if index > grid.items.len() {
+                    panic("Internal tablex error: Could not expand grid to include cell at ", (this_x, this_y))
+                }
+                grid.items.at(index) = cell
                 items.at(i) = cell
 
             // other secondary position (from colspan / rowspan)
             } else {
-                grid.items.at(grid_index_at(px, py)) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell
+                let index = grid_index_at(px, py)
+
+                grid.items.at(index) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell
             }
         }
 
@@ -533,7 +576,14 @@
         }
     }
 
-    // while there are incomplete rows
+    // for missing cell positions: add empty cell
+    for index, item in grid.items {
+        if item == none {
+            grid.items.at(index) = new_empty_cell(grid, index: index)
+        }
+    }
+
+    // while there are incomplete rows for some reason, add empty cells
     while calc.mod(grid.items.len(), grid.width) != 0 {
         grid.items.push(new_empty_cell(grid))
     }
