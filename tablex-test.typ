@@ -92,6 +92,13 @@ deeteeeeeeeet
     // hline(),
 )
 
-#tablex()
+#tablex(
+    columns: 4,
+    [a], [b], [c], [d],
+    hline(end: 2),
+    [a], colspan(2, rowspan(2)[b]), [d],
+    [a], (), (), [d],
+    [a], [b], [c], [d],
+)
 
-eeeedreteteederttddettededteeedeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
+eeeedreeteteederttddettededteeeesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde

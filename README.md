@@ -25,16 +25,16 @@ More powerful and customizable tables in Typst
             - [ ] `column-gutter`
             - [ ] `row-gutter`
         - [ ] Hline, vline adaptations
-    - [ ] `stroke`
-        - [ ] Basic support (change all lines, vline or hline, without override)
-        - [ ] `none` for no stroke
-    - [ ] Default to lines on every row and column
+    - [X] `stroke`
+        - [X] Basic support (change all lines, vline or hline, without override)
+        - [X] `none` for no stroke
+    - [X] Default to lines on every row and column
 - [ ] New features for `#tablex`
     - [X] Basic types (`cellx`, `hline`, `vline`)
-    - [ ] `hline`, `vline`
+    - [X] `hline`, `vline`
         - [X] Auto-positioning when placed among cells
         - [X] Arbitrary positioning
-        - [ ] Allow customizing `stroke`
+        - [X] Allow customizing `stroke`
     - [X] `colspan`, `rowspan`
         - [X] Interrupt `hline` and `vline` with `end: auto`
         - [X] Support simultaneous col/rowspan with `cellx(colspan:, rowspan:)`
@@ -49,10 +49,11 @@ More powerful and customizable tables in Typst
         - [X] Allow `fill` override
         - [X] Allow `inset` override
             - [X] Works properly only with `auto` cols/rows
-    - [ ] Auto-lines
-        - [ ] `auto-hlines` - `true` to place on all lines without hlines, `false` otherwise
-        - [ ] `auto-vlines` - similar
-        - [ ] `auto-lines` - controls both simultaneously (defaults to `true`)
+        - [ ] Dynamic content (maybe shortcut for `map-cells` on a single cell)
+    - [X] Auto-lines
+        - [X] `auto-hlines` - `true` to place on all lines without hlines, `false` otherwise
+        - [X] `auto-vlines` - similar
+        - [X] `auto-lines` - controls both simultaneously (defaults to `true`)
     - [ ] Iteration attributes
         - [ ] `map-cells` - Customize every single cell
         - [ ] `map-hlines` - Customize each horizontal line
