@@ -492,17 +492,13 @@
     for i in range_of_items {
         let item = items.at(i)
 
+        // allow specifying () to change vline position
         if type(item) == "array" and item.len() == 0 {
             if x == 0 and y == 0 {  // increment vline's secondary counter
                 prev_x += 1
-
-                if prev_x > x_limit {
-                    panic("Error: Specified way too many empty cells before the first row of the table. Please specify at most " + str(x_limit) + " empty cells or vlines
-                    on the first row.")
-                }
             }
 
-            continue
+            continue  // ignore all '()'
         }
 
         let item = table_item_convert(item)
@@ -527,7 +523,7 @@
                                      // in the meantime
 
                         if prev_x > x_limit + 1 {
-                            panic("Error: Specified way too many empty cells before the first row of the table. Please specify at most " + str(x_limit + 1) + " empty cells or vlines on the first row.")
+                            panic("Error: Specified way too many vlines or empty () cells before the first row of the table. (Note that () is used to separate vline()s at the beginning of the table.)  Please specify at most " + str(x_limit + 1) + " empty cells or vlines before the first cell of the table.")
                         }
                     } else if row_wrapped {
                         item.x = x_limit  // allow v_line at the last column
