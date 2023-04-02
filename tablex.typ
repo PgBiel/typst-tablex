@@ -252,13 +252,19 @@
 
 // Default 'x' to a certain value if it is equal to the forbidden value
 // ('none' by default)
-#let default_if_none(x, default, forbidden: none) = {
-    if x == forbidden {
+#let default_if_not(x, default, if_isnt: none) = {
+    if x == if_isnt {
         default
     } else {
         x
     }
 }
+
+// Default 'x' to a certain value if it is none
+#let default_if_none(x, default) = default_if_not(x, default, if_isnt: none)
+
+// Default 'x' to a certain value if it is auto
+#let default_if_auto(x, default) = default_if_not(x, default, if_isnt: auto)
 
 // The max between a, b, or the other one if either is 'none'.
 #let max_if_not_none(a, b) = if a in (none, auto) {
@@ -480,7 +486,7 @@
 
     let new_empty_cell(grid, index: auto) = {
         let empty_cell = cellx[]
-        let index = default_if_none(index, grid.items.len(), forbidden: auto)
+        let index = default_if_auto(index, grid.items.len())
         let new_cell_pos = grid_index_to_pos(grid, index)
         empty_cell.x = new_cell_pos.at(0)
         empty_cell.y = new_cell_pos.at(1)
@@ -512,7 +518,7 @@
                     prev_y
                 }
 
-                item.y = default_if_none(item.y, this_y, forbidden: auto)
+                item.y = default_if_auto(item.y, this_y)
 
                 hlines.push(item)
             } else if is_tabular_vline(item) {
@@ -547,8 +553,8 @@
 
         first_cell_reached = true
 
-        let this_x = default_if_none(cell.x, x, forbidden: auto)
-        let this_y = default_if_none(cell.y, y, forbidden: auto)
+        let this_x = default_if_auto(cell.x, x)
+        let this_y = default_if_auto(cell.y, y)
 
         if cell.x == none or cell.y == none {
             panic("Error: Received cell with 'none' as x or y.")
@@ -694,7 +700,7 @@
             let auto_row_amount = affected_auto_rows.len()  // same but for rows
 
             // take extra inset as extra width or height on 'auto'
-            let cell_inset = default_if_none(cell.inset, inset, forbidden: auto)
+            let cell_inset = default_if_auto(cell.inset, inset)
 
             let cell_inset = convert_length_to_pt(cell_inset, styles: styles)
 
@@ -936,10 +942,10 @@
     // use default align (specified in
     // table 'align:')
     // when the cell align is 'auto'
-    let cell_align = default_if_none(cell.align, align_default, forbidden: auto)
+    let cell_align = default_if_auto(cell.align, align_default)
 
     // same here for fill
-    let cell_fill = default_if_none(cell.fill, fill_default, forbidden: auto)
+    let cell_fill = default_if_auto(cell.fill, fill_default)
 
     if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
         panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
@@ -1106,7 +1112,7 @@
                     }
 
                     if is_tabular_cell(cell) {
-                        let inset = default_if_none(cell.inset, inset, forbidden: auto)
+                        let inset = default_if_auto(cell.inset, inset)
 
                         let width = cell_width(cell.x, colspan: cell.colspan, inset: inset)
                         let height = cell_height(cell.y, rowspan: cell.rowspan, inset: inset)
