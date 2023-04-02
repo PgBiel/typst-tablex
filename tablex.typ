@@ -905,7 +905,9 @@
     let end = (width-between(start: initial_x, end: end, columns: columns), y)
 
     if stroke != auto {
-        line(start: start, end: end, stroke: stroke)
+        if stroke != none {
+            line(start: start, end: end, stroke: stroke)
+        }
     } else {
         line(start: start, end: end)
     }
@@ -921,7 +923,9 @@
     let end = (x, height-between(start: initial_y, end: end, rows: rows))
 
     if stroke != auto {
-        line(start: start, end: end, stroke: stroke)
+        if stroke != none {
+            line(start: start, end: end, stroke: stroke)
+        }
     } else {
         line(start: start, end: end)
     }
