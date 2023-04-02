@@ -573,7 +573,6 @@
 
             let affected_auto_columns = range(cell.x, cell.x + cell.colspan).filter(c => columns.at(c) == auto)
 
-            // panic("GCR: ", grid_count_rows(grid), grid.items.len(), grid.width, rows, rows.len())
             let affected_auto_rows = range(cell.y, cell.y + cell.rowspan).filter(r => rows.at(r) == auto)
 
             let auto_col_amount = affected_auto_columns.len()  // auto columns spanned by this cell (up to 1 if colspan is 1)
@@ -595,7 +594,6 @@
                 for auto_row in affected_auto_rows {
                     new_rows.at(auto_row) = max_if_not_none(height, new_rows.at(auto_row))
                 }
-                // panic(measures, height, new_rows)
             }
         }
 
