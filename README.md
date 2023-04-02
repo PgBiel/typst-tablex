@@ -28,6 +28,7 @@ More powerful and customizable tables in Typst
     - [ ] `stroke`
         - [ ] Basic support (change all lines, vline or hline, without override)
         - [ ] `none` for no stroke
+    - [ ] Default to lines on every row and column
 - [ ] New features for `#tablex`
     - [X] Basic types (`cellx`, `hline`, `vline`)
     - [ ] `hline`, `vline`
@@ -48,6 +49,10 @@ More powerful and customizable tables in Typst
         - [X] Allow `fill` override
         - [X] Allow `inset` override
             - [X] Works properly only with `auto` cols/rows
+    - [ ] Auto-lines
+        - [ ] `auto_hlines` - `true` to place on all lines without hlines, `false` otherwise
+        - [ ] `auto_vlines` - similar
+        - [ ] `auto_lines` - controls both simultaneously (defaults to `true`)
     - [ ] Iteration attributes
         - [ ] `map_cells` - Customize every single cell
         - [ ] `map_hlines` - Customize each horizontal line
