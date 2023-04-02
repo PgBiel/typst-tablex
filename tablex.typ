@@ -435,6 +435,7 @@
     let x = 0
     let y = 0
 
+    let first_cell_reached = false  // if true, hline should always be placed after the current row
     let row_wrapped = false  // if true, a vline should be added to the end of a row
 
     let range_of_items = range(items.len())
@@ -471,7 +472,13 @@
 
         if is_some_tabular_line(item) {  // detect lines' x, y
             if is_tabular_hline(item) {
-                item.y = default_if_none(item.y, default_if_none(y, y_limit), forbidden: auto)
+                let this_y = if first_cell_reached {
+                    prev_y + 1
+                } else {
+                    prev_y
+                }
+
+                item.y = default_if_none(item.y, this_y, forbidden: auto)
 
                 hlines.push(item)
             } else if is_tabular_vline(item) {
@@ -503,6 +510,8 @@
         let cell = item
 
         assert(is_tabular_cell(cell), message: "All table items must be cells or lines.")
+
+        first_cell_reached = true
 
         let this_x = default_if_none(cell.x, x, forbidden: auto)
         let this_y = default_if_none(cell.y, y, forbidden: auto)
