@@ -70,7 +70,7 @@ deeteeeeeeeet
     hline(),
     [a], [b], [xyz],
     hline(end: 1),
-    cellx(x: 0, y: 0)[eeeeeeeeeeeeeee], [b],
+    [b],
     hline(),
     ..range(0, 25).map(i => ([d], [#{i + 3}], [a],
     hline())).flatten(),

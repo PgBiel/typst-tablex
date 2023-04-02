@@ -34,12 +34,12 @@ More powerful and customizable tables in Typst
         - [X] Auto-positioning when placed among cells
         - [X] Arbitrary positioning
         - [ ] Allow customizing `stroke`
-    - [ ] `colspan`, `rowspan`
+    - [X] `colspan`, `rowspan`
         - [X] Interrupt `hline` and `vline` with `end: auto`
         - [X] Support simultaneous col/rowspan with `cellx(colspan:, rowspan:)`
         - [X] Support nesting colspan/rowspan (`colspan(rowspan())`)
         - [X] Support cell attributes (e.g. `colspan(2, align: left)[a]`)
-        - [ ] Reliably detect conflicts
+        - [X] Reliably detect conflicts
     - [ ] `cellx`
         - [X] Auto-positioning based on order and columns
         - [X] Place empty cells when there are too many
