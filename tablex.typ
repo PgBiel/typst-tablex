@@ -1028,12 +1028,43 @@
 
 // -- end: main functions
 
+// option parsing functions
+
+// Parses 'auto-lines', generating the corresponding lists of
+// new hlines and vlines
+#let generate-autolines(auto-lines: false, auto-hlines: auto, auto-vlines: auto, hlines: none, vlines: none, col_len: none, row_len: none) = {
+    let auto-hlines = default-if-auto(auto-hlines, auto-lines)
+    let auto-vlines = default-if-auto(auto-vlines, auto-lines)
+
+    let new_hlines = ()
+    let new_vlines = ()
+
+    if auto-hlines {
+        new_hlines = range(0, row_len + 1)
+            .filter(y => hlines.filter(h => h.y == y).len() == 0)
+            .map(y => hline(y: y))
+    }
+
+    if auto-vlines {
+        new_vlines = range(0, col_len + 1)
+            .filter(x => vlines.filter(v => v.x == x).len() == 0)
+            .map(x => vline(x: x))
+    }
+
+    (new_hlines: new_hlines, new_vlines: new_vlines)
+}
+
+// -- end: option parsing
+
 #let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
     align: auto,
     fill: none,
     stroke: auto,
+    auto-lines: true,
+    auto-hlines: auto,
+    auto-vlines: auto,
     ..items
 ) = {
     let page_dimensions = get-page-dim-state()
@@ -1074,6 +1105,18 @@
 
         let col_len = columns.len()
         let row_len = rows.len()
+
+        let auto_lines_res = generate-autolines(
+            auto-lines: auto-lines, auto-hlines: auto-hlines,
+            auto-vlines: auto-vlines,
+            hlines: hlines,
+            vlines: vlines,
+            col_len: col_len,
+            row_len: row_len
+        )
+
+        hlines += auto_lines_res.new_hlines
+        vlines += auto_lines_res.new_vlines
 
         // convert auto to actual size
         let updated_cols_rows = determine-auto-column-row-sizes(
