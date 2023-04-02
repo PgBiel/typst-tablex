@@ -8,7 +8,7 @@ More powerful and customizable tables in Typst
         - [X] Basic support
         - [X] Accept a single size to mean a single column
         - [X] Adjust `auto` columns and rows
-        - [ ] Accept integers to mean multiple `auto`
+        - [X] Accept integers to mean multiple `auto`
         - [X] Basic unit conversion (em -> pt, etc.)
         - [X] Ratio unit conversion (100% -> page width...)
         - [ ] Fractional unit conversion based on available space (1fr, 2fr -> 1/3, 2/3)

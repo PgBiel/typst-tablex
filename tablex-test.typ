@@ -77,19 +77,20 @@ deeteeeeeeeet
 )
 
 #tablex(
-    columns: (49%, auto, auto, auto, 10em),
-    rows: (5em,),
-    debug: true,
+    columns: 5,
+    rows: 1,
     vline(), vline(), vline(), vline(), vline(), vline(),
     hline(),
     [abcdef], colspan(3, rowspan(2, [ee], fill: red), align: horizon), (), (), [c],
     hline(),
     [abcdef], (), (), (), [c],
     hline(),
-    [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeetc],
+    [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeetec],
     hline(),
     // [abcdef], [a], [b],
     // hline(),
 )
+
+#tablex()
 
 eeeedreteteederttddettededteedeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
