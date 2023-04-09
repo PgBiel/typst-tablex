@@ -24,9 +24,9 @@ More powerful and customizable tables in Typst
         - [X] Accept a function (`(row, column) => alignment/2d alignment`)
     - [X] `inset`
     - [ ] `gutter`
-        - [ ] Basic support using invisible columns/maybe rows
-            - [ ] `column-gutter`
-            - [ ] `row-gutter`
+        - [X] Basic support
+            - [X] `column-gutter`
+            - [X] `row-gutter`
         - [ ] Hline, vline adaptations
     - [X] `stroke`
         - [X] Basic support (change all lines, vline or hline, without override)
