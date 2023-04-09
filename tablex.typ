@@ -3,8 +3,8 @@
 
 // -- types --
 
-#let hline(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
-    tabular-dict-type: "hline",
+#let hlinex(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+    tablex-dict-type: "hline",
     start: start,
     end: end,
     y: y,
@@ -13,8 +13,8 @@
     gutter-restrict: gutter-restrict,
 )
 
-#let vline(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
-    tabular-dict-type: "vline",
+#let vlinex(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+    tablex-dict-type: "vline",
     start: start,
     end: end,
     x: x,
@@ -29,7 +29,7 @@
     fill: auto, align: auto,
     inset: auto
 ) = (
-    tabular-dict-type: "cell",
+    tablex-dict-type: "cell",
     content: content,
     rowspan: rowspan,
     colspan: colspan,
@@ -41,7 +41,7 @@
 )
 
 #let occupied(x: 0, y: 0, parent_x: none, parent_y: none) = (
-    tabular-dict-type: "occupied",
+    tablex-dict-type: "occupied",
     x: x,
     y: y,
     parent_x: parent_x,
@@ -53,36 +53,36 @@
 // -- type checks, transformers and validators --
 
 // Is this a valid dict created by this library?
-#let is-tabular-dict(x) = (
+#let is-tablex-dict(x) = (
     type(x) == "dictionary"
-        and "tabular-dict-type" in x
+        and "tablex-dict-type" in x
 )
 
-#let is-tabular-dict-type(x, ..dict_types) = (
-    is-tabular-dict(x)
-        and x.tabular-dict-type in dict_types.pos()
+#let is-tablex-dict-type(x, ..dict_types) = (
+    is-tablex-dict(x)
+        and x.tablex-dict-type in dict_types.pos()
 )
 
-#let is-tabular-cell(x) = is-tabular-dict-type(x, "cell")
-#let is-tabular-hline(x) = is-tabular-dict-type(x, "hline")
-#let is-tabular-vline(x) = is-tabular-dict-type(x, "vline")
-#let is-some-tabular-line(x) = is-tabular-dict-type(x, "hline", "vline")
-#let is-tabular-occupied(x) = is-tabular-dict-type(x, "occupied")
+#let is-tablex-cell(x) = is-tablex-dict-type(x, "cell")
+#let is-tablex-hline(x) = is-tablex-dict-type(x, "hline")
+#let is-tablex-vline(x) = is-tablex-dict-type(x, "vline")
+#let is-some-tablex-line(x) = is-tablex-dict-type(x, "hline", "vline")
+#let is-tablex-occupied(x) = is-tablex-dict-type(x, "occupied")
 
 #let table-item-convert(item, keep_empty: true) = {
     if type(item) == "function" {  // dynamic cell content
         cellx(item)
     } else if keep_empty and item == () {
         item
-    } else if type(item) != "dictionary" or "tabular-dict-type" not in item {
+    } else if type(item) != "dictionary" or "tablex-dict-type" not in item {
         cellx[#item]
     } else {
         item
     }
 }
 
-#let rowspan(length, content, ..cell_options) = {
-    if is-tabular-cell(content) {
+#let rowspanx(length, content, ..cell_options) = {
+    if is-tablex-cell(content) {
         (..content, rowspan: length, ..cell_options.named())
     } else {
         cellx(
@@ -92,8 +92,8 @@
     }
 }
 
-#let colspan(length, content, ..cell_options) = {
-    if is-tabular-cell(content) {
+#let colspanx(length, content, ..cell_options) = {
+    if is-tablex-cell(content) {
         (..content, colspan: length, ..cell_options.named())
     } else {
         cellx(
@@ -112,7 +112,7 @@
     let max_explicit_y = items
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
-            if (is-tabular-cell(cell)
+            if (is-tablex-cell(cell)
                     and type(cell.y) in ("integer", "float")
                     and cell.y > acc) {
                 cell.y
@@ -122,7 +122,7 @@
         })
 
     for item in items {
-        if is-tabular-cell(item) and item.x == auto and item.y == auto {
+        if is-tablex-cell(item) and item.x == auto and item.y == auto {
             // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
         } else if type(item) == "content" {
@@ -382,12 +382,12 @@
 // --- grid functions ---
 
 #let create-grid(width, initial_height) = (
-    tabular-dict-type: "grid",
+    tablex-dict-type: "grid",
     items: init-array(width * initial_height),
     width: width
 )
 
-#let is-tabular-grid(value) = is-tabular-dict-type("grid")
+#let is-tablex-grid(value) = is-tablex-dict-type("grid")
 
 // Gets the index of (x, y) in a grid's array.
 #let grid-index-at(x, y, grid: none, width: none) = {
@@ -459,9 +459,9 @@
 // if occupied (extension of a cell) => get the cell that generated it.
 // if a normal cell => return it, untouched.
 #let get-parent-cell(cell, grid: none) = {
-    if is-tabular-occupied(cell) {
+    if is-tablex-occupied(cell) {
         grid-at(grid, cell.parent_x, cell.parent_y)
-    } else if is-tabular-cell(cell) {
+    } else if is-tablex-cell(cell) {
         cell
     } else {
         panic("Cannot get parent table cell of a non-cell object: " + repr(cell))
@@ -545,8 +545,8 @@
         let item = table-item-convert(item)
 
 
-        if is-some-tabular-line(item) {  // detect lines' x, y
-            if is-tabular-hline(item) {
+        if is-some-tablex-line(item) {  // detect lines' x, y
+            if is-tablex-hline(item) {
                 let this_y = if first_cell_reached {
                     prev_y + 1
                 } else {
@@ -556,7 +556,7 @@
                 item.y = default-if-auto(item.y, this_y)
 
                 hlines.push(item)
-            } else if is-tabular-vline(item) {
+            } else if is-tablex-vline(item) {
                 if item.x == auto {
                     if x == 0 and y == 0 {  // placed before any elements
                         item.x = prev_x
@@ -584,7 +584,7 @@
 
         let cell = item
 
-        assert(is-tabular-cell(cell), message: "All table items must be cells or lines.")
+        assert(is-tablex-cell(cell), message: "All table items must be cells or lines.")
 
         first_cell_reached = true
 
@@ -603,7 +603,7 @@
         cell.y = this_y
         cell = table-item-convert(map-cells(cell))
 
-        assert(is-tabular-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
+        assert(is-tablex-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
 
         if row_wrapped {
             row_wrapped = false
@@ -612,7 +612,7 @@
         let content = cell.content
         let content = if type(content) == "function" {
             let res = content(this_x, this_y)
-            if is-tabular-cell(res) {
+            if is-tablex-cell(res) {
                 cell = res
                 this_x = cell.x
                 this_y = cell.y
@@ -1305,8 +1305,8 @@
 // Are two hlines the same?
 // (Check to avoid double drawing)
 #let is-same-hline(a, b) = (
-    is-tabular-hline(a)
-        and is-tabular-hline(b)
+    is-tablex-hline(a)
+        and is-tablex-hline(b)
         and a.y == b.y
         and a.start == b.start
         and a.end == b.end
@@ -1421,7 +1421,7 @@
 // considering the left and top margins.
 // Requires placing 'get-page-dim-writer(the_returned_state)' on the
 // document.
-#let get-page-dim-state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
+#let get-page-dim-state() = state("tablex_tablex_page_dims", (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
 
 // A little trick to get the page max width and max height.
 // Places a component on the page (or outer container)'s top left,
@@ -1475,6 +1475,7 @@
     styles: none,
     min-pos: none,
     max-pos: none,
+    header-hlines-have-priority: true,
     table-loc: none,
     total-width: none,
 ) = {
@@ -1567,14 +1568,24 @@
                 // only draw the top hline
                 // if header's wasn't already drawn
                 if hline.y == start-y {
-                    if hline.y == 0 or (gutter.row != none and hline.gutter-restrict == top) {
+                    let header_last_y = if first-row-group != none {
+                        first-row-group.row_group.y_span.at(1)
+                    } else {
+                        none
+                    }
+                    if not header-hlines-have-priority and not is-header and start-y == header_last_y + 1 {
+                        // second row (after header, and it has no hline priority).
                         draw-hline(hline, pre-gutter: false)
-                    } else if page_turned and added_header_height == 0pt {
+                    } else if hline.y == 0 or (gutter.row != none and hline.gutter-restrict == top) {
+                        draw-hline(hline, pre-gutter: false)
+                    } else if page_turned and (added_header_height == 0pt or not header-hlines-have-priority) {
                         draw-hline(hline, pre-gutter: false)
                         // no header repeated, but still at the top of the current page
                     }
                 } else {
-                    if hline.y == end-y and gutter.row != none and hline.gutter-restrict == top {
+                    if hline.y == end-y + 1 and (
+                        (is-header and not header-hlines-have-priority)
+                        or (gutter.row != none and hline.gutter-restrict == top)) {
                         continue  // the next row group should draw this
                     }
                     // normally, only draw the bottom hlines
@@ -1615,6 +1626,7 @@
     hlines: none, vlines: none,
     repeat-header: false,
     styles: none,
+    header-hlines-have-priority: true,
     min-pos: none,
     max-pos: none,
     table-loc: none,
@@ -1634,7 +1646,7 @@
     // if one of their cells spans multiple rows.
     let first_row_group = none
 
-    let header_pages = state("tablex_tabular_header_pages", (table-loc.page(),))
+    let header_pages = state("tablex_tablex_header_pages", (table-loc.page(),))
     let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
     let total_width = width-between(end: none)
@@ -1652,7 +1664,7 @@
             let hlines = lines_dict.hlines
             let vlines = lines_dict.vlines
 
-            if is-tabular-cell(cell) {
+            if is-tablex-cell(cell) {
                 // ensure row-spanned rows are in the same group
                 row_group_add_counter += calc.max(0, cell.rowspan - 1)
 
@@ -1713,6 +1725,7 @@
                 repeat-header: repeat-header,
                 total-width: total_width,
                 table-loc: table-loc,
+                header-hlines-have-priority: header-hlines-have-priority,
                 min-pos: min-pos,
                 max-pos: max-pos,
                 styles: styles,
@@ -1746,13 +1759,13 @@
     if auto-hlines {
         new_hlines = range(0, row_len + 1)
             .filter(y => hlines.filter(h => h.y == y).len() == 0)
-            .map(y => hline(y: y))
+            .map(y => hlinex(y: y))
     }
 
     if auto-vlines {
         new_vlines = range(0, col_len + 1)
             .filter(x => vlines.filter(v => v.x == x).len() == 0)
-            .map(x => vline(x: x))
+            .map(x => vlinex(x: x))
     }
 
     (new_hlines: new_hlines, new_vlines: new_vlines)
@@ -1776,6 +1789,8 @@
     (col: col-gutter, row: row-gutter)
 }
 
+// Accepts a map-X param, and returns its default, or validates
+// it.
 #let parse-map-func(map-func, uses-second-param: false) = {
     if map-func in (none, auto) {
         if uses-second-param {
@@ -1800,12 +1815,12 @@
     map-cols: none,
 ) = {
     vlines = vlines.map(map-vlines)
-    if vlines.any(h => not is-tabular-vline(h)) {
+    if vlines.any(h => not is-tablex-vline(h)) {
         panic("'map-vlines' function returned a non-vline.")
     }
 
     hlines = hlines.map(map-hlines)
-    if hlines.any(h => not is-tabular-hline(h)) {
+    if hlines.any(h => not is-tablex-hline(h)) {
         panic("'map-hlines' function returned a non-hline.")
     }
 
@@ -1817,7 +1832,7 @@
 
         // occupied cells = none for the outer user
         let cells = map-rows(row, original_cells.map(c => {
-            if is-tabular-occupied(c) { none } else { c }
+            if is-tablex-occupied(c) { none } else { c }
         }))
 
         if type(cells) != "array" {
@@ -1825,9 +1840,9 @@
         }
 
         // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i_c => is-tabular-cell(original_cells.at(i_c.at(0))))
+        let cells = enumerate(cells).filter(i_c => is-tablex-cell(original_cells.at(i_c.at(0))))
 
-        if cells.any(i_c => not is-tabular-cell(i_c.at(1))) {
+        if cells.any(i_c => not is-tablex-cell(i_c.at(1))) {
             panic("Tablex error: 'map-rows' returned a non-cell.")
         }
 
@@ -1865,7 +1880,7 @@
 
         // occupied cells = none for the outer user
         let cells = map-cols(column, original_cells.map(c => {
-            if is-tabular-occupied(c) { none } else { c }
+            if is-tablex-occupied(c) { none } else { c }
         }))
 
         if type(cells) != "array" {
@@ -1873,9 +1888,9 @@
         }
 
         // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i_c => is-tabular-cell(original_cells.at(i_c.at(0))))
+        let cells = enumerate(cells).filter(i_c => is-tablex-cell(original_cells.at(i_c.at(0))))
 
-        if cells.any(i_c => not is-tabular-cell(i_c.at(1))) {
+        if cells.any(i_c => not is-tablex-cell(i_c.at(1))) {
             panic("Tablex error: 'map-cols' returned a non-cell.")
         }
 
@@ -1924,8 +1939,21 @@
     repeat-header
 }
 
+#let validate-header-hlines-priority(
+    header-hlines-have-priority
+) = {
+    header-hlines-have-priority = default-if-auto(default-if-none(header-hlines-have-priority, true), true)
+
+    if type(header-hlines-have-priority) != "boolean" {
+        panic("Tablex error: 'header-hlines-have-priority' option must be a boolean.")
+    }
+
+    header-hlines-have-priority
+}
+
 // -- end: option parsing
 
+// Creates a table.
 #let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
@@ -1935,6 +1963,7 @@
     column-gutter: auto, row-gutter: auto,
     gutter: none,
     repeat-header: false,
+    header-hlines-have-priority: true,
     auto-lines: true,
     auto-hlines: auto,
     auto-vlines: auto,
@@ -1950,6 +1979,7 @@
     get-page-dim-writer(page_dimensions)  // place it so it does its job
 
     let repeat-header = validate-repeat-header(repeat-header)
+    let header-hlines-have-priority = validate-header-hlines-priority(header-hlines-have-priority)
     let map-cells = parse-map-func(map-cells)
     let map-hlines = parse-map-func(map-hlines)
     let map-vlines = parse-map-func(map-vlines)
@@ -1977,7 +2007,7 @@
         )
 
         let validated_cols_rows = validate-cols-rows(
-            columns, rows, items: items.filter(is-tabular-cell))
+            columns, rows, items: items.filter(is-tablex-cell))
 
         let columns = validated_cols_rows.columns
         let rows = validated_cols_rows.rows
@@ -2054,6 +2084,7 @@
             hlines: hlines, vlines: vlines,
             styles: styles,
             repeat-header: repeat-header,
+            header-hlines-have-priority: header-hlines-have-priority,
             min-pos: min_pos,
             max-pos: max_pos,
             table-loc: t_loc
@@ -2061,4 +2092,9 @@
 
         grid(columns: (auto,), rows: auto, ..row_groups)
     }))
+}
+
+// Same as table but defaults to lines off
+#let gridx(..options) = {
+    tablex(auto-lines: false, ..options)
 }
