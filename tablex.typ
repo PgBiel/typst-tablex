@@ -8,7 +8,8 @@
     start: start,
     end: end,
     y: y,
-    stroke: stroke
+    stroke: stroke,
+    conflicts: false
 )
 
 #let vline(start: 0, end: auto, x: auto, stroke: auto) = (
@@ -16,7 +17,8 @@
     start: start,
     end: end,
     x: x,
-    stroke: stroke
+    stroke: stroke,
+    conflicts: false
 )
 
 #let cellx(content,
@@ -1209,7 +1211,13 @@
     }
 
     let hlines = hlines
-        .filter(h => {
+        .map(h => {
+            // get the intersection between the hline and the cell's x-span.
+            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
+            
+            let intersected-hline = v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+
+            // now, let's determine if this line would conflict with a rowspan
             let y = h.y
 
             let in_top_bottom_or_limit = y in (cell.y, cell.y + 1, y_limit)
@@ -1228,19 +1236,23 @@
                 or h.end >= cell.x + 1  // ends at or after this cell
             )
 
-            (in_top_bottom_or_limit
+            intersected-hline.conflicts = not (in_top_bottom_or_limit
                 and top_not_in_middle_of_rowspan
                 and bottom_not_in_middle_of_rowspan
                 and hline_hasnt_already_ended)
-        })
-        .map(h => {
-            // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
-            v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+
+            intersected-hline
         })
 
     let vlines = vlines
-        .filter(v => {
+        .map(v => {
+            // get the intersection between the hline and the cell's x-span.
+            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
+            
+            let intersected-vline = v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+
+            // now, let's check if this would conflict
+            // with a colspan
             let x = v.x
 
             let at_left_right_or_limit = x in (cell.x, cell.x + 1, x_limit)
@@ -1259,15 +1271,12 @@
                 or v.end >= cell.y + 1  // ends at or after this cell
             )
 
-            (at_left_right_or_limit
+            intersected-vline.conflicts = not (at_left_right_or_limit
                 and left_not_in_middle_of_colspan
                 and right_not_in_middle_of_colspan
                 and vline_hasnt_already_ended)
-        })
-        .map(v => {
-            // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
-            v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+
+            intersected-vline
         })
 
     (
@@ -1295,9 +1304,19 @@
     let end = hline.end
     let stroke = default-if-auto(hline.stroke, stroke)
 
+    if hline.conflicts {
+        return
+    }
+
     let y = height-between(start: initial_y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
-    let start = (width-between(start: initial_x, end: start, columns: columns, gutter: gutter), y)
-    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter), y)
+
+    let start = if hline.conflicts {
+        (width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: true), y)
+    } else {
+        (width-between(start: initial_x, end: start, columns: columns, gutter: gutter), y)
+
+    }
+    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: false), y)
 
     if stroke != auto {
         if stroke != none {
@@ -1313,8 +1332,21 @@
     let end = vline.end
     let stroke = default-if-auto(vline.stroke, stroke)
 
+    if vline.conflicts {
+        return
+    }
+
     let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
-    let start = (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
+    let start = if vline.conflicts {
+        if stop-before-row-gutter {
+            return  // nothing to draw (we would stop at the start)
+        }
+
+        // if conflicts => draw on top of the gutter at least
+        (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: true))
+    } else {
+        (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
+    }
     let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter))
 
     if stroke != auto {
