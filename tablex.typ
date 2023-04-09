@@ -1954,6 +1954,74 @@
 // -- end: option parsing
 
 // Creates a table.
+//
+// OPTIONS:
+// columns: table column sizes (array of sizes,
+// or a single size for 1 column)
+//
+// rows: row sizes (same format as columns)
+// align: how to align cells (alignment or 
+// a function (col, row) => alignment)
+//
+// items: The table items, as specified by the columns
+// and rows. Can also be cellx, hlinex and vlinex objects.
+//
+// fill: how to fill cells (color or
+// a function (col, row) => color)
+//
+// stroke: how to draw the table lines (stroke)
+// column-gutter: optional separation (length) between columns
+// row-gutter: optional separation (length) between rows
+// gutter: quickly apply a length to both column- and row-gutter
+//
+// repeat-header: true = repeat the first row (or rowspan)
+// on all pages; integer = repeat for the first n pages;
+// array of integers = repeat on exactly those pages
+// (where 1 is the first, so ignored); false = do not repeat
+// the first row group (default).
+//
+// header-hlines-have-priority: if true, the horizontal
+// lines below the header being repeated take priority
+// over the rows they appear atop of on further pages.
+// If false, they draw their own horizontal lines.
+// Defaults to true.
+//
+// auto-lines: true = applies true to both auto-hlines and
+// auto-vlines; false = applies false to both.
+// Their values override this one unless they are 'auto'.
+//
+// auto-hlines: true = draw a horizontal line on every line
+// without a manual horizontal line specified; false = do
+// not draw any horizontal line without manual specification.
+// Defaults to 'auto' (follows 'auto-lines').
+//
+// auto-vlines: true = draw a vertical line on every column
+// without a manual vertical line specified; false = requires
+// manual specification. Defaults to 'auto' (follows
+// 'auto-lines')
+//
+// map-cells: Takes a cellx and returns another cellx (or
+// content).
+//
+// map-hlines: Takes each horizontal line (hlinex) and
+// returns another.
+//
+// map-vlines: Takes each vertical line (vlinex) and
+// returns another.
+//
+// map-rows: Maps each row of cells.
+// Takes (row_num, cell_array) and returns
+// the modified cell_array. Note that, here, they
+// cannot be sent to another row. Also, cells may be
+// 'none' if they're a position taken by a cell in a
+// colspan/rowspan.
+//
+// map-cols: Maps each column of cells.
+// Takes (col_num, cell_array) and returns
+// the modified cell_array. Note that, here, they
+// cannot be sent to another row. Also, cells may be
+// 'none' if they're a position taken by a cell in a
+// colspan/rowspan.
 #let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
