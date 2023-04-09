@@ -595,6 +595,31 @@
             panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: ", (prev_x, prev_y), ", new cell: ", cell, ")")
         }
 
+        let content = cell.content
+        let content = if type(content) == "function" {
+            let res = content(this_x, this_y)
+            if is-tabular-cell(res) {
+                cell = res
+                this_x = cell.x
+                this_y = cell.y
+                [#res.content]
+            } else {
+                [#res]
+            }
+        } else {
+            [#content]
+        }
+
+        if this_x == none or this_y == none {
+            panic("Error: Cell with function as content returned another cell with 'none' as x or y!")
+        }
+
+        if type(this_x) != "integer" or type(this_y) != "integer" {
+            panic("Error: Cell coordinates must be integers. Invalid pair: " + repr((this_x, this_y)))
+        }
+
+        cell.content = content
+
         // up to which 'y' does this cell go
         let max_x = this_x + cell.colspan - 1
         let max_y = this_y + cell.rowspan - 1
@@ -1245,6 +1270,8 @@
         fill_default
     }
 
+    let content = cell.content
+
     // use default align (specified in
     // table 'align:')
     // when the cell align is 'auto'
@@ -1258,9 +1285,9 @@
     }
 
     let aligned_cell_content = if cell_align == auto {
-        [#cell.content]
+        [#content]
     } else {
-        align(cell_align)[#cell.content]
+        align(cell_align)[#content]
     }
 
     box(width: width, height: height, inset: inset, fill: cell_fill,
@@ -1376,6 +1403,7 @@
                     first_x = default-if-none(first_x, x)
                     first_y = default-if-none(first_y, y)
 
+                    // place the cell!
                     place(top+left,
                         dx: width-between(start: first_x, end: x),
                         dy: height-between(start: first_y, end: y) + added_header_height,
