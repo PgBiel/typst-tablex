@@ -54,7 +54,7 @@ e
 #style(styles => convert-length-to-pt(2fr, styles: styles, page_size: 500pt, frac_total: 300pt, frac_amount: 4))
 
 // #{calc.floor(autrrtttrro)}rrereeee
-deeteeeeeeeet
+deeteeeeeeeeedett
 #tablex(
     columns: (auto, auto, auto), // rows: ((1em, 1em, 1em),) eeee
     rows: (auto,),
@@ -74,6 +74,7 @@ deeteeeeeeeet
     hline(),
     ..range(0, 25).map(i => ([d], [#{i + 3}], [a],
     hline())).flatten(),
+    [b], [c],
 )
 
 #tablex(
@@ -95,10 +96,32 @@ deeteeeeeeeet
 #tablex(
     columns: 4,
     [a], [b], [c], [d],
-    hline(end: 2),
+    hline(),
     [a], colspan(2, rowspan(2)[b]), [d],
     [a], (), (), [d],
     [a], [b], [c], [d],
 )
 
-eeeedreeteteederttddettededteeeesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteesssde
+#tablex(
+    columns: (1fr, 1fr, 1fr, 1fr),
+    [a], [b], [c], [d],
+    hline(),
+    [a], colspan(2, rowspan(2)[b]), [d],
+    [a], (), (), [d],
+    [a], [b], [c], [d],
+)
+
+#tablex(
+    columns: (1em, 1em, auto, auto),
+    rows: (1em, 1em, auto),
+    [a], [b], [cd], [d],
+    hline(),
+    [a], colspan(2, rowspan(2)[bcccccccc\ c\ c\ c]), [d],
+    [a], (), (), [d],
+    [a], [e], [f], [d],
+    [a], [b], [c], [de],
+)
+
+eeeedreeteteederttddettededteeedeceesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteestderedeeeeefeeeeessde
+
+s

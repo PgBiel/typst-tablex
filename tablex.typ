@@ -277,6 +277,24 @@
     calc.max(a, b)
 }
 
+// Backwards-compatible enumerate
+#let enumerate(arr) = {
+    if type(arr) != "array" {
+        return arr
+    }
+
+    let new-arr = ()
+    let i = 0
+
+    for x in arr {
+        new-arr.push((i, x))
+
+        i += 1
+    }
+
+    new-arr
+}
+
 // Convert a certain (non-relative) length to pt
 //
 // styles: from style()
@@ -368,7 +386,8 @@
 #let is-tabular-grid(value) = is-tabular-dict-type("grid")
 
 // Gets the index of (x, y) in a grid's array.
-#let grid-index-at(x, y, width: none) = {
+#let grid-index-at(x, y, grid: none, width: none) = {
+    width = default-if-none(grid, (width: width)).width
     width = calc.floor(width)
     (y * width) + calc.mod(x, width)
 }
@@ -389,7 +408,7 @@
 // Returns 'true' if the cell at (x, y)
 // exists in the grid.
 #let grid-has-pos(grid, x, y) = (
-    grid-index-at(x, y, width: grid.width) < grid.items.len()
+    grid-index-at(x, y, grid: grid) < grid.items.len()
 )
 
 // How many rows are in this grid? (Given its width)
@@ -402,7 +421,17 @@
     (calc.mod(index, grid.width), calc.floor(index / grid.width))   
 )
 
-// Expand grid to the given coords
+// Fetches an entire row of cells (all positions with the given y).
+#let grid-get-row(grid, y) = {
+    range(grid.width).map(x => grid-at(grid, x, y))
+}
+
+// Fetches an entire column of cells (all positions with the given x).
+#let grid-get-column(grid, x) = {
+    range(grid-count-rows(grid)).map(y => grid-at(grid, x, y))
+}
+
+// Expand grid to the given coords (add the missing cells)
 #let grid-expand-to(grid, x, y, fill_with: (grid) => none) = {
     let rows = grid-count-rows(grid)
     let rowws = rows
@@ -431,7 +460,7 @@
     } else if is-tabular-cell(cell) {
         cell
     } else {
-        panic("Cannot get parent table cell of a non-cell object.")
+        panic("Cannot get parent table cell of a non-cell object: " + repr(cell))
     }
 }
 
@@ -588,7 +617,7 @@
             if currently_there != none {
                 let parent_cell = get-parent-cell(currently_there, grid: grid)
 
-                panic("Error: The following cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this_x, this_y)) + ", and one starting at " + repr((parent_cell.x, parent_cell.y)))
+                panic("Error: Multiple cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this_x, this_y)) + ", and one starting at " + repr((parent_cell.x, parent_cell.y)))
             }
 
             // initial position => assign it to the cell's x/y
@@ -632,7 +661,9 @@
     }
 
     // for missing cell positions: add empty cell
-    for index, item in grid.items {
+    for index_item in enumerate(grid.items) {
+        let index = index_item.at(0)
+        let item = index_item.at(1)
         if item == none {
             grid.items.at(index) = new_empty_cell(grid, index: index)
         }
@@ -652,18 +683,297 @@
     )
 }
 
-// Determine the size of 'auto' columns and rows
-#let determine-auto-column-row-sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
-    let inset = convert-length-to-pt(inset, styles: styles)
+// -- end: grid functions --
 
+// -- col/row size functions --
+
+// Sums the sizes of fixed-size tracks (cols/rows). Anything else
+// (auto, 1fr, ...) is ignored.
+#let sum_fixed_size_tracks(tracks) = {
+    tracks.fold(0pt, (acc, el) => {
+        if type(el) == "length" {
+            acc + el
+        } else {
+            acc
+        }
+    })
+}
+
+// Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
+// based on the remaining sizes (after fixed-size and auto columns)
+#let determine-frac-tracks(tracks, remaining: 0pt) = {
+    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == "fraction")
+
+    let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
+    if amount-frac <= 0 {
+        return tracks
+    }
+
+    let frac-width = remaining / amount-frac
+
+    for i_size in frac-tracks {
+        let i = i_size.at(0)
+        let size = i_size.at(1)
+
+        tracks.at(i) = frac-width * (size / 1fr)
+    }
+
+    tracks
+}
+
+// Gets the last (rightmost) auto column a cell is inserted in, for
+// due expansion
+#let get-colspan-last-auto-col(cell, columns: none) = {
+    let cell_cols = range(cell.x, cell.x + cell.colspan)
+    let last_auto_col = none
+
+    for i_col in enumerate(columns).filter(i_col => i_col.at(0) in cell_cols) {
+        let i = i_col.at(0)
+        let col = i_col.at(1)
+
+        if col == auto {
+            last_auto_col = max-if-not-none(last_auto_col, i)
+        }
+    }
+
+    last_auto_col
+}
+
+// Gets the last (bottom-most) auto row a cell is inserted in, for
+// due expansion
+#let get-rowspan-last-auto-row(cell, rows: none) = {
+    let cell_rows = range(cell.y, cell.y + cell.rowspan)
+    let last_auto_row = none
+
+    for i_row in enumerate(rows).filter(i_row => i_row.at(0) in cell_rows) {
+        let i = i_row.at(0)
+        let row = i_row.at(1)
+
+        if row == auto {
+            last_auto_row = max-if-not-none(last_auto_row, i)
+        }
+    }
+
+    last_auto_row
+}
+
+// Given a cell that may span one or more columns, sums the
+// sizes of the columns it spans, when those columns have fixed sizes.
+// Useful to subtract from the total width to find out how much more
+// should an auto column extend to have that cell fit in the table.
+#let get-colspan-fixed-size-covered(cell, columns: none, inset: none) = {
+    let cell_cols = range(cell.x, cell.x + cell.colspan)
+    let size = 0pt
+
+    for i_col in enumerate(columns).filter(i_col => i_col.at(0) in cell_cols) {
+        let i = i_col.at(0)
+        let col = i_col.at(1)
+
+        if type(col) == "length" {
+            size += col + 2*inset
+        }
+    }
+    size
+}
+
+// Given a cell that may span one or more rows, sums the
+// sizes of the rows it spans, when those rows have fixed sizes.
+// Useful to subtract from the total height to find out how much more
+// should an auto row extend to have that cell fit in the table.
+#let get-rowspan-fixed-size-covered(cell, rows: none, inset: none) = {
+    let cell_rows = range(cell.y, cell.y + cell.rowspan)
+    let size = 0pt
+
+    for i_row in enumerate(rows).filter(i_row => i_row.at(0) in cell_rows) {
+        let i = i_row.at(0)
+        let row = i_row.at(1)
+
+        if type(row) == "length" {
+            size += row + 2*inset
+        }
+    }
+    size
+}
+
+// calculate the size of auto columns (based on the max width of their cells)
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none) = {
+    assert(styles != none, message: "Cannot measure auto columns without styles")
+    let total_auto_size = 0pt
+    let auto_sizes = ()
+    let new_columns = columns
+
+    for i_col in enumerate(columns) {
+        let i = i_col.at(0)
+        let col = i_col.at(1)
+
+        if col == auto {
+            // max cell width
+            let col_size = grid-get-column(grid, i)
+                .fold(0pt, (max, cell) => {
+                    if cell == none {
+                        panic("Not enough cells specified for the given amount of rows and columns.")
+                    }
+
+                    let pcell = get-parent-cell(cell, grid: grid)  // in case this is a colspan
+                    let last_auto_col = get-colspan-last-auto-col(pcell, columns: columns)
+
+                    // only expand the last auto column of a colspan,
+                    // and only the amount necessary that isn't already
+                    // covered by fixed size columns.
+                    if last_auto_col == i {
+                        // take extra inset as extra width or height on 'auto'
+                        let cell_inset = default-if-auto(pcell.inset, inset)
+
+                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
+
+                        let inset_diff = cell_inset - inset
+
+                        let width = measure(pcell.content, styles).width + 2*inset_diff
+                        let fixed_size = get-colspan-fixed-size-covered(pcell, columns: columns, inset: inset)
+
+                        calc.max(max, width - fixed_size, 0pt)
+                    } else {
+                        max
+                    }
+                })
+
+            total_auto_size += col_size
+            auto_sizes.push((i, col_size))
+            new_columns.at(i) = col_size
+        }
+    }
+
+    (total: total_auto_size, sizes: auto_sizes, columns: new_columns)
+}
+
+#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
+    let remaining = available
+    let auto_cols_remaining = auto_cols.len()
+    let fair_share = remaining / auto_cols_remaining
+
+    for i_col in auto_cols {
+        let i = i_col.at(0)
+        let col = i_col.at(1)
+
+        auto_cols_remaining -= 1
+        if col < fair_share {  // ok, keep your size, it's less than the limit
+            remaining -= col
+            fair_share = remaining / auto_cols_remaining
+        } else {  // you surpassed the limit!!!
+            remaining -= fair_share
+            columns.at(i) = fair_share
+        }
+    }
+
+    columns
+}
+
+#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none) = {
     let columns = columns.map(c => {
         if type(c) in ("length", "relative length", "ratio") {
             convert-length-to-pt(c, styles: styles, page_size: page_width)
+        } else if c == none {
+            0pt
         } else {
             c
         }
     })
 
+    let total_fixed_size = sum_fixed_size_tracks(columns)
+
+    let available_size = page_width - total_fixed_size
+
+    if available_size >= 0pt {
+        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset)
+        let total_auto_size = auto_cols_result.total
+        let auto_sizes = auto_cols_result.sizes
+        columns = auto_cols_result.columns
+
+        let remaining_size = available_size - total_auto_size
+        if remaining_size >= 0pt {
+            columns = determine-frac-tracks(
+                columns,
+                remaining: remaining_size
+            )
+        } else {
+            columns = fit-auto-columns(
+                available: available_size,
+                auto_cols: auto_sizes,
+                columns: columns
+            )
+            columns = columns.map(c => {
+                if type(c) == "fraction" {
+                    0pt  // no space left to be divided
+                } else {
+                    c
+                }
+            })
+        }
+    } else {
+        columns = columns.map(c => {
+            if c == auto or type(c) == "fraction" {
+                0pt  // no space remaining!
+            } else {
+                c
+            }
+        })
+    }
+
+    columns
+}
+
+// calculate the size of auto rows (based on the max height of their cells)
+#let determine-auto-rows(grid: (), styles: none, rows: none, inset: none) = {
+    assert(styles != none, message: "Cannot measure auto rows without styles")
+    let total_auto_size = 0pt
+    let auto_sizes = ()
+    let new_rows = rows
+
+    for i_row in enumerate(rows) {
+        let i = i_row.at(0)
+        let row = i_row.at(1)
+
+        if row == auto {
+            // max cell height
+            let row_size = grid-get-row(grid, i)
+                .fold(0pt, (max, cell) => {
+                    if cell == none {
+                        panic("Not enough cells specified for the given amount of rows and rows.")
+                    }
+
+                    let pcell = get-parent-cell(cell, grid: grid)  // in case this is a rowspan
+                    let last_auto_row = get-rowspan-last-auto-row(pcell, rows: rows)
+
+                    // only expand the last auto row of a rowspan,
+                    // and only the amount necessary that isn't already
+                    // covered by fixed size rows.
+                    if last_auto_row == i {
+                        // take extra inset as extra width or height on 'auto'
+                        let cell_inset = default-if-auto(pcell.inset, inset)
+
+                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
+
+                        let inset_diff = cell_inset - inset
+
+                        let height = measure(pcell.content, styles).height + 2*inset_diff
+                        let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows, inset: inset)
+
+                        calc.max(max, height - fixed_size, 0pt)
+                    } else {
+                        max
+                    }
+                })
+
+            total_auto_size += row_size
+            auto_sizes.push((i, row_size))
+            new_rows.at(i) = row_size
+        }
+    }
+
+    (total: total_auto_size, sizes: auto_sizes, rows: new_rows)
+}
+
+#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, rows: none, inset: none) = {
     let rows = rows.map(r => {
         if type(r) in ("length", "relative length", "ratio") {
             convert-length-to-pt(r, styles: styles, page_size: page_height)
@@ -672,71 +982,51 @@
         }
     })
 
-    if auto not in columns and auto not in rows {
-        (
-            columns: columns,
-            rows: rows
-        )  // no action necessary if no auto's are present
+    let auto_rows_res = determine-auto-rows(
+        grid: grid, rows: rows, styles: styles, inset: inset
+    )
+
+    let auto_size = auto_rows_res.total
+    rows = auto_rows_res.rows
+
+    let remaining = page_height - sum_fixed_size_tracks(rows) - auto_size
+
+    if remaining >= 0pt {  // split fractions in one page
+        determine-frac-tracks(rows, remaining: remaining)
     } else {
-        let new_cols = columns.slice(0)
-        let new_rows = rows.slice(0)
-
-        for cell in grid.items {
-            if cell == none {
-                panic(grid.items)
-                panic("Not enough cells specified for the given amount of rows and columns.")
+        rows.map(r => {
+            if type(r) == "fraction" {  // no space remaining in this page or box
+                0pt
+            } else {
+                r
             }
-
-            if is-tabular-occupied(cell) {  // placeholder - ignore
-                continue
-            }
-
-            let col_count = cell.x
-            let row_count = cell.y
-
-            let affected_auto_columns = range(cell.x, cell.x + cell.colspan).filter(c => columns.at(c) == auto)
-
-            let affected_auto_rows = range(cell.y, cell.y + cell.rowspan).filter(r => rows.at(r) == auto)
-
-            let auto_col_amount = affected_auto_columns.len()  // auto columns spanned by this cell (up to 1 if colspan is 1)
-            let auto_row_amount = affected_auto_rows.len()  // same but for rows
-
-            // take extra inset as extra width or height on 'auto'
-            let cell_inset = default-if-auto(cell.inset, inset)
-
-            let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
-
-            let inset_diff = cell_inset - inset
-
-            if auto_col_amount > 0 {
-                let measures = measure(cell.content, styles)
-                let width = measures.width + 2*inset_diff
-                let width = width / auto_col_amount  // resize auto columns proportionately, to fit the cell
-
-                for auto_column in affected_auto_columns {
-                    new_cols.at(auto_column) = max-if-not-none(width, new_cols.at(auto_column))
-                }
-            }
-
-            if auto_row_amount > 0 {
-                let measures = measure(cell.content, styles)
-                let height = measures.height + 2*inset_diff
-                let height = height / auto_row_amount  // resize auto rows proportionately, to fit the cell
-
-                for auto_row in affected_auto_rows {
-                    new_rows.at(auto_row) = max-if-not-none(height, new_rows.at(auto_row))
-                }
-            }
-        }
-
-        (
-            columns: new_cols,
-            rows: new_rows
-        )
+        })
     }
 }
 
-// -- end: grid functions --
+// Determine the size of 'auto' columns and rows
+#let determine-auto-column-row-sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
+    let inset = convert-length-to-pt(inset, styles: styles)
+
+    let columns = determine-column-sizes(
+        grid: grid,
+        page_width: page_width, styles: styles, columns: columns,
+        inset: inset
+    )
+
+    let rows = determine-row-sizes(
+        grid: grid,
+        page_height: page_height, styles: styles, rows: rows,
+        inset: inset
+    )
+
+    (
+        columns: columns,
+        rows: rows
+    )
+}
+
+// -- end: col/row size functions --
 
 // -- width/height utilities --
 
