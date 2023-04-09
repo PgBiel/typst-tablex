@@ -53,11 +53,13 @@ e
 
 #style(styles => convert-length-to-pt(2fr, styles: styles, page_size: 500pt, frac_total: 300pt, frac_amount: 4))
 
-// #{calc.floor(autrrtttrro)}rrereeee
-deeteeeeeeeeedett
+// #{calc.floor(autrrterrreeeertettrro)}rrereeee
+deeteeeeereeeedetteeeee
 #tablex(
     columns: (auto, auto, auto), // rows: ((1em, 1em, 1em),) eeee
     rows: (auto,),
+    column-gutter: 1fr,
+    row-gutter: 15pt,
     align: (column, row) => {(top, center).at(calc.mod(row + column, 2))},
     // fill: (column, row) => {(blue, red).at(calc.mod(row + column, 2))},
     vline(), vline(), vline(), vline(),
@@ -66,7 +68,7 @@ deeteeeeeeeeedett
     hline(start: 0, end: 1),
     cellx(colspan: 2, rowspan: 2)[a], [b\ c],
     hline(),
-    () , (), [cefdseerd],
+    () , (), [cefdsrdeefffeeeeeeeeeeeeerd],
     hline(),
     [a], [b], [xyz],
     hline(end: 1),
@@ -81,13 +83,13 @@ deeteeeeeeeeedett
     columns: 5,
     rows: 1,
     stroke: red + 2pt,
-    vline(), vline(), vline(), vline(), vline(), vline(),
+    vline(), (), vline(), vline(), vline(), vline(),
     hline(),
     [abcdef], colspan(3, rowspan(2, [ee], fill: red), align: horizon), (), (), [c],
     hline(stroke: blue),
     [abcdef], (), (), (), [c],
     hline(),
-    [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeetec],
+    [aa], [b], [c], [b], cellx(inset: 2pt, align: center+horizon)[cdeecfeeeeeeeeeeeeeeeeeerdteeettetteeefdxeeeeeddeeeetec],
     hline(),
     // [abcdef], [a], [b],
     // hline(),
@@ -122,6 +124,6 @@ deeteeeeeeeeedett
     [a], [b], [c], [dee],
 )
 
-eeeedreetetdeederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdferreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessde
+eeeedreetetdeederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdferreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessdeeee
 
 s
