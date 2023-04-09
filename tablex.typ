@@ -1433,15 +1433,16 @@
 #let draw-row-group(
     row-group,
     is-header: false,
-    latest-page-state: none,
-    pages-with-header-state: none,
+    header-pages-state: none,
     first-row-group: none,
     columns: none, rows: none,
     inset: none, stroke: none,
     gutter: none,
+    repeat-header: false,
     styles: none,
     min-pos: none,
     max-pos: none,
+    table-loc: none,
     total-width: none,
 ) = {
     let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
@@ -1461,26 +1462,33 @@
 
         // let page_turned = not is-header and old_page not in (this_page, -1)
         let pos = loc.position()
-        let page_turned = pos.y == min-pos.y
+        let page = pos.page
+        let rel_page = page - table-loc.page() + 1
+
+        let at_top = pos.y == min-pos.y  // to guard against re-draw issues
+        let header_pages = header-pages-state.at(loc)
+        let header_count = header_pages.len()
+        let page_turned = page not in header_pages
 
         // draw row group
         block(breakable: false, {
             let added_header_height = 0pt  // if we added a header, move down
 
             // page turned => add header
-            // + header wasn't already added (if redrawing)
-            if page_turned and not is-header {
-                let measures = measure(first-row-group.content, styles)
-                place(top+left, first-row-group.content)  // add header
-                added_header_height = measures.height
-
-                // do not place the header again on this page
-                // pages-with-header-state.update(l => l + (this_page,))
+            if page_turned and at_top and not is-header {
+                if repeat-header != false {
+                    header-pages-state.update(l => l + (page,))
+                    if (repeat-header == true) or (type(repeat-header) == "integer" and rel_page <= repeat-header) or (type(repeat-header) == "array" and rel_page in repeat-header) {
+                        let measures = measure(first-row-group.content, styles)
+                        place(top+left, first-row-group.content)  // add header
+                        added_header_height = measures.height
+                    }
+                }
             }
 
             let row_gutter_dy = default-if-none(gutter.row, 0pt)
 
-            // move lines down by the height of the header
+            // move lines down by the height of the added header
             show line: place.with(top + left, dy: added_header_height)
 
             let first_x = none
@@ -1569,6 +1577,7 @@
     fill: none,
     align: none,
     hlines: none, vlines: none,
+    repeat-header: false,
     styles: none,
     min-pos: none,
     max-pos: none,
@@ -1589,10 +1598,7 @@
     // if one of their cells spans multiple rows.
     let first_row_group = none
 
-    // page in the latest row group
-    let latest_page = state("tablex_tabular_latest_page", table-loc.page())
-
-    let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
+    let header_pages = state("tablex_tabular_header_pages", (table-loc.page(),))
     let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
     let total_width = width-between(end: none)
@@ -1661,13 +1667,14 @@
             let content = draw-row-group(
                 row_group,
                 is-header: is_header,
-                latest-page-state: latest_page,
-                pages-with-header-state: pages_with_header,
+                header-pages-state: header_pages,
                 first-row-group: first_row_group,
                 columns: columns, rows: rows,
                 stroke: stroke, inset: inset,
                 gutter: gutter,
+                repeat-header: repeat-header,
                 total-width: total_width,
+                table-loc: table-loc,
                 min-pos: min-pos,
                 max-pos: max-pos,
                 styles: styles,
@@ -1867,6 +1874,18 @@
     (grid: grid, hlines: hlines, vlines: vlines)
 }
 
+#let validate-repeat-header(repeat-header) = {
+    repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
+
+    if type(repeat-header) not in ("boolean", "integer", "array") {
+        panic("Tablex error: 'repeat-header' must be a boolean (true - always repeat the header, false - never), an integer (amount of pages for which to repeat the header), or an array of integers (relative pages in which the header should repeat).")
+    } else if type(repeat-header) == "array" and repeat-header.any(i => type(i) != "integer") {
+        panic("Tablex error: 'repeat-header' cannot be an array of anything other than integers!")
+    }
+
+    repeat-header
+}
+
 // -- end: option parsing
 
 #let tablex(
@@ -1877,6 +1896,7 @@
     stroke: auto,
     column-gutter: auto, row-gutter: auto,
     gutter: none,
+    repeat-header: false,
     auto-lines: true,
     auto-hlines: auto,
     auto-vlines: auto,
@@ -1891,6 +1911,7 @@
 
     get-page-dim-writer(page_dimensions)  // place it so it does its job
 
+    let repeat-header = validate-repeat-header(repeat-header)
     let map-cells = parse-map-func(map-cells)
     let map-hlines = parse-map-func(map-hlines)
     let map-vlines = parse-map-func(map-vlines)
@@ -1994,6 +2015,7 @@
             fill: fill, align: align,
             hlines: hlines, vlines: vlines,
             styles: styles,
+            repeat-header: repeat-header,
             min-pos: min_pos,
             max-pos: max_pos,
             table-loc: t_loc
