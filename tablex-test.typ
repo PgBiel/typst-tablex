@@ -118,10 +118,10 @@ deeteeeeeeeeedett
     hline(),
     [a], colspan(2, rowspan(2)[bcccccccc\ c\ c\ c]), [d],
     [a], (), (), [d],
-    [a], [e], [f], [d],
-    [a], [b], [c], [de],
+    [a], [e], [f], [dee],
+    [a], [b], [c], [dee],
 )
 
-eeeedreeteteederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdffteeeeeeeeesedteteestderedeeeeefeeeeessde
+eeeedreetetdeederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessde
 
 s

@@ -1316,6 +1316,105 @@
     }))
 }
 
+// Draws a row group using locate() and a block().
+#let draw-row-group(
+    row-group,
+    is-header: false,
+    latest-page-state: none,
+    pages-with-header-state: none,
+    first-row-group: none,
+    columns: none, rows: none,
+    inset: none, stroke: none,
+    styles: none,
+    total-width: none,
+) = {
+    let width-between = width-between.with(columns: columns, inset: inset)
+    let height-between = height-between.with(rows: rows, inset: inset)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
+
+    let group-rows = row-group.rows
+    let hlines = row-group.hlines
+    let vlines = row-group.vlines
+    let start-y = row-group.y_span.at(0)
+    let end-y = row-group.y_span.at(1)
+
+    locate(loc => {
+        let old_page = latest-page-state.at(loc)
+        let this_page = loc.page()
+
+        let page_turned = not is-header and old_page not in (this_page, -1)
+
+        // draw row group
+        block(breakable: false, {
+            let added_header_height = 0pt  // if we added a header, move down
+
+            // page turned => add header
+            // + header wasn't already added (if redrawing)
+            if page_turned and this_page not in pages-with-header-state.at(loc) {
+                let measures = measure(first-row-group.content, styles)
+                place(top+left, first-row-group.content)  // add header
+                added_header_height = measures.height
+
+                // do not place the header again on this page
+                pages-with-header-state.update(l => l + (this_page,))
+            }
+
+            // move lines down by the height of the header
+            show line: place.with(top + left, dy: added_header_height)
+
+            let first_x = none
+            let first_y = none
+
+            let tallest_box_h = 0pt
+
+            let first_row = true
+            for row in group-rows {
+                for cell_box in row {
+                    let x = cell_box.cell.x
+                    let y = cell_box.cell.y
+                    first_x = default-if-none(first_x, x)
+                    first_y = default-if-none(first_y, y)
+
+                    place(top+left,
+                        dx: width-between(start: first_x, end: x),
+                        dy: height-between(start: first_y, end: y) + added_header_height,
+                        cell_box.box)
+
+                    let box_h = measure(cell_box.box, styles).height
+                    tallest_box_h = calc.max(tallest_box_h, box_h)
+                }
+                first_row = false
+            }
+
+            hide(rect(width: total-width, height: tallest_box_h + added_header_height))
+
+            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
+            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
+
+            for hline in hlines {
+                if hline.y == start-y {
+                    if hline.y == 0 {
+                        draw-hline(hline)
+                    } else if page_turned and added_header_height == 0pt {
+                        draw-hline(hline)
+                        // no header repeated, but still at the top of the current page
+                    }
+                } else {
+                    // normally, only draw the bottom hlines
+                    draw-hline(hline)
+                }
+            }
+
+            for vline in vlines {
+                draw-vline(vline)
+            }
+        })
+
+        latest-page-state.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
+    })
+}
+
 // Generates groups of rows.
 // By default, 1 row + rows from its rowspan cells = 1 row group.
 // The first row group is the header, which is repeated across pages.
@@ -1337,8 +1436,6 @@
     let cell-height = cell-height.with(rows: rows)
     let width-between = width-between.with(columns: columns, inset: inset)
     let height-between = height-between.with(rows: rows, inset: inset)
-    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
-    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
 
     // each row group is an unbreakable unit of rows.
     // In general, they're just one row. However, they can be multiple rows
@@ -1405,10 +1502,6 @@
 
             let row_group = this_row_group
 
-            let rows = row_group.rows
-            let hlines = row_group.hlines
-            let vlines = row_group.vlines
-
             // get where the row starts and where it ends
             let start_y = row_group.y_span.at(0)
             let end_y = row_group.y_span.at(1)
@@ -1417,89 +1510,21 @@
 
             this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
 
+            let is_header = first_row_group == none
+            let content = draw-row-group(
+                row_group,
+                is-header: is_header,
+                latest-page-state: latest_page,
+                pages-with-header-state: pages_with_header,
+                first-row-group: first_row_group,
+                columns: columns, rows: rows,
+                stroke: stroke, inset: inset,
+                total-width: total_width,
+                styles: styles,
+            )
 
-            let row_group_content(is_first: false) = locate(loc => {
-                let old_page = latest_page.at(loc)
-                let this_page = loc.page()
-
-                let page_turned = not is_first and old_page not in (this_page, -1)
-
-                block(breakable: false, {
-                    let added_header_height = 0pt  // if we added a header, move down
-
-                    if page_turned and this_page not in pages_with_header.at(loc) {
-                        // panic("OLDPAGE:", old_page, "NEW", this_page)
-                        let measures = measure(first_row_group.content, styles)
-                        place(top+left, first_row_group.content)  // add header
-                        added_header_height = measures.height
-
-                        // do not place the header again on this page
-                        pages_with_header.update(l => l + (this_page,))
-                    }
-
-                    // move lines down by the height of the header
-                    show line: place.with(top + left, dy: added_header_height)
-
-                    let first_x = none
-                    let first_y = none
-
-                    let tallest_box_h = 0pt;
-                    let tallest_box = [];
-
-                    let first_row = true
-                    for row in rows {
-                        for cell_box in row {
-                            let x = cell_box.cell.x
-                            let y = cell_box.cell.y
-                            first_x = default-if-none(first_x, x)
-                            first_y = default-if-none(first_y, y)
-
-                            place(top+left,
-                                dx: width-between(start: first_x, end: x),
-                                dy: height-between(start: first_y, end: y) + added_header_height,
-                                cell_box.box)
-
-                            let box_h = measure(cell_box.box, styles).height
-                            if box_h > tallest_box_h {
-                                tallest_box_h = box_h
-                                tallest_box = cell_box.box
-                            }
-                        }
-                        first_row = false
-                    }
-
-                    hide(rect(width: total_width, height: tallest_box_h + added_header_height))
-
-                    let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
-                    let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
-
-                    for hline in hlines {
-                        if hline.y == start_y {
-                            if hline.y == 0 {
-                                draw-hline(hline)
-                            } else if page_turned and added_header_height == 0pt {
-                                draw-hline(hline)
-                                // no header repeated, but still at the top of the current page
-                            }
-                        } else {
-                            // normally, only draw the bottom hlines
-                            draw-hline(hline)
-                        }
-                    }
-
-                    for vline in vlines {
-                        draw-vline(vline)
-                    }
-                })
-
-                latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
-            })
-
-            let is_first = first_row_group == none
-            let content = row_group_content(is_first: is_first)
-
-            if is_first {
-                first_row_group = (row_group: row_group, content: content)
+            if is_header {  // this is now the header group.
+                first_row_group = (row_group: row_group, content: content)  // 'content' to repeat later
             }
 
             (content,)
