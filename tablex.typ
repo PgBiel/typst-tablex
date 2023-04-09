@@ -726,15 +726,24 @@
 
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
-#let determine-frac-tracks(tracks, remaining: 0pt) = {
+#let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
     let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == "fraction")
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
-    if amount-frac <= 0 {
-        return tracks
+
+    if type(gutter) == "fraction" {
+        amount-frac += (gutter / 1fr) * (tracks.len() - 1)
     }
 
-    let frac-width = remaining / amount-frac
+    let frac-width = if amount-frac > 0 {
+        remaining / amount-frac
+    } else {
+        0pt
+    }
+
+    if type(gutter) == "fraction" {
+        gutter = frac-width * (gutter / 1fr)
+    }
 
     for i_size in frac-tracks {
         let i = i_size.at(0)
@@ -743,7 +752,7 @@
         tracks.at(i) = frac-width * (size / 1fr)
     }
 
-    tracks
+    (tracks: tracks, gutter: gutter)
 }
 
 // Gets the last (rightmost) auto column a cell is inserted in, for
@@ -893,7 +902,7 @@
     columns
 }
 
-#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none) = {
+#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, col-gutter: none) = {
     let columns = columns.map(c => {
         if type(c) in ("length", "relative length", "ratio") {
             convert-length-to-pt(c, styles: styles, page_size: page_width)
@@ -904,7 +913,15 @@
         }
     })
 
-    let total_fixed_size = sum_fixed_size_tracks(columns)
+    // what is the fixed size of the gutter?
+    // (calculate it later if it's fractional)
+    let fixed-size-gutter = if type(col-gutter) == "length" {
+        col-gutter
+    } else {
+        0pt
+    }
+
+    let total_fixed_size = sum_fixed_size_tracks(columns) + fixed-size-gutter * (columns.len() - 1)
 
     let available_size = page_width - total_fixed_size
 
@@ -916,10 +933,14 @@
 
         let remaining_size = available_size - total_auto_size
         if remaining_size >= 0pt {
-            columns = determine-frac-tracks(
+            let frac_res = determine-frac-tracks(
                 columns,
-                remaining: remaining_size
+                remaining: remaining_size,
+                gutter: col-gutter
             )
+
+            columns = frac_res.tracks
+            fixed-size-gutter = frac_res.gutter
         } else {
             columns = fit-auto-columns(
                 available: available_size,
@@ -944,7 +965,14 @@
         })
     }
 
-    columns
+    (
+        columns: columns,
+        gutter: if col-gutter == none {
+            none
+        } else {
+            fixed-size-gutter
+        }
+    )
 }
 
 // calculate the size of auto rows (based on the max height of their cells)
@@ -998,7 +1026,7 @@
     (total: total_auto_size, sizes: auto_sizes, rows: new_rows)
 }
 
-#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, rows: none, inset: none) = {
+#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, rows: none, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
         if type(r) in ("length", "relative length", "ratio") {
             convert-length-to-pt(r, styles: styles, page_size: page_height)
@@ -1014,40 +1042,72 @@
     let auto_size = auto_rows_res.total
     rows = auto_rows_res.rows
 
-    let remaining = page_height - sum_fixed_size_tracks(rows) - auto_size
+    // what is the fixed size of the gutter?
+    // (calculate it later if it's fractional)
+    let fixed-size-gutter = if type(row-gutter) == "length" {
+        row-gutter
+    } else {
+        0pt
+    }
+
+    let remaining = page_height - sum_fixed_size_tracks(rows) - auto_size - fixed-size-gutter * (rows.len() - 1)
 
     if remaining >= 0pt {  // split fractions in one page
-        determine-frac-tracks(rows, remaining: remaining)
+        let frac_res = determine-frac-tracks(rows, remaining: remaining, gutter: row-gutter)
+        (
+            rows: frac_res.tracks,
+            gutter: frac_res.gutter
+        )
     } else {
-        rows.map(r => {
-            if type(r) == "fraction" {  // no space remaining in this page or box
-                0pt
+        (
+            rows: rows.map(r => {
+                if type(r) == "fraction" {  // no space remaining in this page or box
+                    0pt
+                } else {
+                    r
+                }
+            }),
+            gutter: if row-gutter == none {
+                none
             } else {
-                r
+                fixed-size-gutter
             }
-        })
+        )
     }
 }
 
-// Determine the size of 'auto' columns and rows
-#let determine-auto-column-row-sizes(grid: (), page_width: 0pt, page_height: 0pt, styles: none, columns: none, rows: none, inset: none) = {
+// Determine the size of 'auto' and 'fr' columns and rows
+#let determine-auto-column-row-sizes(
+    grid: (),
+    page_width: 0pt, page_height: 0pt,
+    styles: none,
+    columns: none, rows: none,
+    inset: none, gutter: none
+) = {
     let inset = convert-length-to-pt(inset, styles: styles)
 
-    let columns = determine-column-sizes(
+    let columns_res = determine-column-sizes(
         grid: grid,
         page_width: page_width, styles: styles, columns: columns,
-        inset: inset
+        inset: inset,
+        col-gutter: gutter.col
     )
+    columns = columns_res.columns
+    gutter.col = columns_res.gutter
 
-    let rows = determine-row-sizes(
+    let rows_res = determine-row-sizes(
         grid: grid,
         page_height: page_height, styles: styles, rows: rows,
-        inset: inset
+        inset: inset,
+        row-gutter: gutter.row
     )
+    rows = rows_res.rows
+    gutter.row = rows_res.gutter
 
     (
         columns: columns,
-        rows: rows
+        rows: rows,
+        gutter: gutter
     )
 }
 
@@ -1055,32 +1115,52 @@
 
 // -- width/height utilities --
 
-#let width-between(start: 0, end: none, columns: (), inset: 5pt) = {
+#let width-between(start: 0, end: none, columns: (), inset: 5pt, gutter: none, pre-gutter: false) = {
+    let col-gutter = default-if-none(default-if-none(gutter, (col: 0pt)).col, 0pt)
     end = default-if-none(end, columns.len())
 
+    let col_range = range(start, calc.min(columns.len() + 1, end))
+
     let sum = 0pt
-    for i in range(start, calc.min(columns.len() + 1, end)) {
-        sum += columns.at(i) + 2 * inset
+    for i in col_range {
+        sum += columns.at(i) + 2 * inset + col-gutter
     }
+
+    // if the end is after all columns, there is
+    // no gutter at the end.
+    if pre-gutter or end == columns.len() {
+        sum = calc.max(0pt, sum - col-gutter) // remove extra gutter from last col
+    }
+
     sum
 }
 
-#let height-between(start: 0, end: none, rows: (), inset: 5pt) = {
+#let height-between(start: 0, end: none, rows: (), inset: 5pt, gutter: none, pre-gutter: false) = {
+    let row-gutter = default-if-none(default-if-none(gutter, (row: 0pt)).row, 0pt)
     end = default-if-none(end, rows.len())
 
+    let row_range = range(start, calc.min(rows.len() + 1, end))
+
     let sum = 0pt
-    for i in range(start, calc.min(rows.len() + 1, end))  {
-        sum += rows.at(i) + 2*inset
+    for i in row_range {
+        sum += rows.at(i) + 2*inset + row-gutter
     }
+
+    // if the end is after all rows, there is
+    // no gutter at the end.
+    if pre-gutter or end == rows.len() {
+        sum = calc.max(0pt, sum - row-gutter) // remove extra gutter from last row
+    }
+
     sum
 }
 
-#let cell-width(x, colspan: 1, columns: (), inset: 5pt) = {
-    width-between(start: x, end: x + colspan, columns: columns, inset: inset)
+#let cell-width(x, colspan: 1, columns: (), inset: 5pt, gutter: none) = {
+    width-between(start: x, end: x + colspan, columns: columns, inset: inset, gutter: gutter, pre-gutter: true)
 }
 
-#let cell-height(y, rowspan: 1, rows: (), inset: 5pt) = {
-    height-between(start: y, end: y + rowspan, rows: rows, inset: inset)
+#let cell-height(y, rowspan: 1, rows: (), inset: 5pt, gutter: none) = {
+    height-between(start: y, end: y + rowspan, rows: rows, inset: inset, gutter: gutter, pre-gutter: true)
 }
 
 // overide start and end for vlines and hlines (keep styling options and stuff)
@@ -1210,14 +1290,14 @@
 
 // -- drawing --
 
-#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto) = {
+#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false) = {
     let start = hline.start
     let end = hline.end
     let stroke = default-if-auto(hline.stroke, stroke)
 
-    let y = height-between(start: initial_y, end: hline.y, rows: rows)
-    let start = (width-between(start: initial_x, end: start, columns: columns), y)
-    let end = (width-between(start: initial_x, end: end, columns: columns), y)
+    let y = height-between(start: initial_y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
+    let start = (width-between(start: initial_x, end: start, columns: columns, gutter: gutter), y)
+    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter), y)
 
     if stroke != auto {
         if stroke != none {
@@ -1228,14 +1308,14 @@
     }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto) = {
+#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false) = {
     let start = vline.start
     let end = vline.end
     let stroke = default-if-auto(vline.stroke, stroke)
 
-    let x = width-between(start: initial_x, end: vline.x, columns: columns)
-    let start = (x, height-between(start: initial_y, end: start, rows: rows))
-    let end = (x, height-between(start: initial_y, end: end, rows: rows))
+    let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
+    let start = (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
+    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter))
 
     if stroke != auto {
         if stroke != none {
@@ -1352,13 +1432,14 @@
     first-row-group: none,
     columns: none, rows: none,
     inset: none, stroke: none,
+    gutter: none,
     styles: none,
     total-width: none,
 ) = {
-    let width-between = width-between.with(columns: columns, inset: inset)
-    let height-between = height-between.with(rows: rows, inset: inset)
-    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
-    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
+    let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
+    let height-between = height-between.with(rows: rows, inset: inset, gutter: gutter)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
 
     let group-rows = row-group.rows
     let hlines = row-group.hlines
@@ -1430,12 +1511,20 @@
                     }
                 } else {
                     // normally, only draw the bottom hlines
-                    draw-hline(hline)
+                    draw-hline(hline, pre-gutter: false)
+
+                    if gutter.row != none and hline.y != rows.len() {
+                        draw-hline(hline, pre-gutter: true)
+                    }
                 }
             }
 
             for vline in vlines {
-                draw-vline(vline)
+                draw-vline(vline, pre-gutter: false)
+
+                if gutter.col != none and vline.x != columns.len() {
+                    draw-vline(vline, pre-gutter: true)
+                }
             }
         })
 
@@ -1449,7 +1538,9 @@
 #let generate-row-groups(
     grid: none,
     columns: none, rows: none,
-    stroke: none, inset: none, fill: none,
+    stroke: none, inset: none,
+    gutter: none,
+    fill: none,
     align: none,
     hlines: none, vlines: none,
     styles: none,
@@ -1460,10 +1551,10 @@
 
     // specialize some functions for the given grid, columns and rows
     let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid)
-    let cell-width = cell-width.with(columns: columns)
-    let cell-height = cell-height.with(rows: rows)
-    let width-between = width-between.with(columns: columns, inset: inset)
-    let height-between = height-between.with(rows: rows, inset: inset)
+    let cell-width = cell-width.with(columns: columns, gutter: gutter)
+    let cell-height = cell-height.with(rows: rows, gutter: gutter)
+    let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
+    let height-between = height-between.with(rows: rows, inset: inset, gutter: gutter)
 
     // each row group is an unbreakable unit of rows.
     // In general, they're just one row. However, they can be multiple rows
@@ -1547,6 +1638,7 @@
                 first-row-group: first_row_group,
                 columns: columns, rows: rows,
                 stroke: stroke, inset: inset,
+                gutter: gutter,
                 total-width: total_width,
                 styles: styles,
             )
@@ -1591,6 +1683,24 @@
     (new_hlines: new_hlines, new_vlines: new_vlines)
 }
 
+#let parse-gutters(col-gutter: auto, row-gutter: auto, gutter: auto, styles: none, page-width: 0pt, page-height: 0pt) = {
+    col-gutter = default-if-auto(col-gutter, gutter)
+    row-gutter = default-if-auto(row-gutter, gutter)
+
+    col-gutter = default-if-auto(col-gutter, 0pt)
+    row-gutter = default-if-auto(row-gutter, 0pt)
+
+    if type(col-gutter) in ("length", "relative length", "ratio") {
+        col-gutter = convert-length-to-pt(col-gutter, styles: styles, page_size: page-width)
+    }
+
+    if type(row-gutter) in ("length", "relative length", "ratio") {
+        row-gutter = convert-length-to-pt(row-gutter, styles: styles, page_size: page-width)
+    }
+
+    (col: col-gutter, row: row-gutter)
+}
+
 // -- end: option parsing
 
 #let tablex(
@@ -1599,6 +1709,8 @@
     align: auto,
     fill: none,
     stroke: auto,
+    column-gutter: auto, row-gutter: auto,
+    gutter: none,
     auto-lines: true,
     auto-hlines: auto,
     auto-vlines: auto,
@@ -1617,6 +1729,13 @@
         let page_height = page_dim_at.height
 
         let items = items.pos().map(table-item-convert)
+
+        let gutter = parse-gutters(
+            col-gutter: column-gutter, row-gutter: row-gutter,
+            gutter: gutter,
+            styles: styles,
+            page-width: page_width, page-height: page_height
+        )
 
         let validated_cols_rows = validate-cols-rows(
             columns, rows, items: items.filter(is-tabular-cell))
@@ -1661,16 +1780,20 @@
             page_width: page_width, page_height: page_height,
             styles: styles,
             columns: columns, rows: rows,
-            inset: inset)
+            inset: inset,
+            gutter: gutter
+        )
 
         let columns = updated_cols_rows.columns
         let rows = updated_cols_rows.rows
+        let gutter = updated_cols_rows.gutter
 
         let row_groups = generate-row-groups(
             grid: table_grid,
             columns: columns, rows: rows,
-            stroke: stroke, inset: inset, fill: fill,
-            align: align,
+            stroke: stroke, inset: inset,
+            gutter: gutter,
+            fill: fill, align: align,
             hlines: hlines, vlines: vlines,
             styles: styles,
             table-loc: t_loc
