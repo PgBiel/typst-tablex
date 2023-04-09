@@ -1,59 +1,9 @@
 #import "tablex.typ": *
 
-#place(top+left, locate(loc => loc.position()))
-
 *Test*
 
 test
 
-// #show: it => style(styles => {
-//     [#repr(it)]
-//     [#measure(it, styles)]
-    
-//     [#it]
-// })
-
-
-#let ee = state("T", none)
-
-#let d = place(bottom+right, locate(loc => {
-    ee.update(t => loc.position())
-}))
-
-#d
-r
-
-e 
-
-#line(length: 100%)
-#locate(loc => {
-    let pos = ee.at(loc)
-    if pos != none {
-        line(length: pos.x - loc.position().x)
-    }
-})
-// ddd
-// #locate(loc => repr(loc.position()))
-
-#(100%, 1fr, 100% - 1pt, 1em).map(type)
-
-#{
-    box(width: 1fr, line(length: 100%))
-    box(width: 1fr, line(stroke: blue, length: 100%))
-    box(width: auto, line(stroke: red, length: 100%))
-}
-
-#let b = box(width: 100%)[]
-#let a = rotate(45deg, table(columns: (100%,), table(columns: (100%,), [a])))
-#a
-#style(styles => measure(box(width: 1em), styles))
-
-#line(length: 11pt)
-#line(length: 1em)
-
-#style(styles => convert-length-to-pt(2fr, styles: styles, page_size: 500pt, frac_total: 300pt, frac_amount: 4))
-
-// #{calc.floor(autrrterrreeeertettrro)}rrereeee
 deeteeeeereeeedetteeeee
 #tablex(
     columns: (auto, auto, auto), // rows: ((1em, 1em, 1em),) eeee
@@ -106,11 +56,16 @@ deeteeeeereeeedetteeeee
 
 #tablex(
     columns: (1fr, 1fr, 1fr, 1fr),
+    map-cells: cell => (..cell, content: cell.content + [adf]),
+    map-rows: (row, cells) => cells.map(c => if c == none { none } else { (..c, content: c.content + [#row]) }),
+    map-cols: (col, cells) => cells.map(c => if c == none { none } else { (..c, content: c.content + [#col]) }),
+    map-hlines: h => (..h, stroke: 5pt + (red, blue).at(calc.mod(h.y, 2))),
+    map-vlines: v => (..v, stroke: 5pt + (yellow, green.darken(50%)).at(calc.mod(v.x, 2))),
     [a], [b], [c], [d],
     hline(),
     [a], colspan(2, rowspan(2)[b]), [d],
     [a], (), (), [d],
-    [a], [b], [c], [d],
+    [a], [b], [c], [de],
 )
 
 #tablex(
