@@ -3,20 +3,24 @@
 
 // -- types --
 
-#let hline(start: 0, end: auto, y: auto, stroke: auto) = (
+#let hline(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
     tabular-dict-type: "hline",
     start: start,
     end: end,
     y: y,
-    stroke: stroke
+    stroke: stroke,
+    stop-pre-gutter: stop-pre-gutter,
+    gutter-restrict: gutter-restrict,
 )
 
-#let vline(start: 0, end: auto, x: auto, stroke: auto) = (
+#let vline(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
     tabular-dict-type: "vline",
     start: start,
     end: end,
     x: x,
-    stroke: stroke
+    stroke: stroke,
+    stop-pre-gutter: stop-pre-gutter,
+    gutter-restrict: gutter-restrict,
 )
 
 #let cellx(content,
@@ -600,6 +604,10 @@
         cell = table-item-convert(map-cells(cell))
 
         assert(is-tabular-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
+
+        if row_wrapped {
+            row_wrapped = false
+        }
 
         let content = cell.content
         let content = if type(content) == "function" {
@@ -1242,8 +1250,14 @@
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
             let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
-            v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+
+            if span == none {  // no intersection!
+                none
+            } else {
+                v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+            }
         })
+        .filter(x => x != none)
 
     let vlines = vlines
         .filter(v => {
@@ -1273,8 +1287,14 @@
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
             let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
-            v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+
+            if span == none {  // no intersection!
+                none
+            } else {
+                v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+            }
         })
+        .filter(x => x != none)
 
     (
         hlines: hlines,
@@ -1290,6 +1310,7 @@
         and a.y == b.y
         and a.start == b.start
         and a.end == b.end
+        and a.gutter-restrict == b.gutter-restrict
 )
 
 // -- end: width/height utilities --
@@ -1301,9 +1322,15 @@
     let end = hline.end
     let stroke = default-if-auto(hline.stroke, stroke)
 
+    if start == end { return }
+
+    if (pre-gutter and hline.gutter-restrict == bottom) or (not pre-gutter and hline.gutter-restrict == top) {
+        return
+    }
+
     let y = height-between(start: initial_y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
-    let start = (width-between(start: initial_x, end: start, columns: columns, gutter: gutter), y)
-    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter), y)
+    let start = (width-between(start: initial_x, end: start, columns: columns, gutter: gutter, pre-gutter: false), y)
+    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true), y)
 
     if stroke != auto {
         if stroke != none {
@@ -1319,9 +1346,15 @@
     let end = vline.end
     let stroke = default-if-auto(vline.stroke, stroke)
 
+    if start == end { return }
+
+    if (pre-gutter and vline.gutter-restrict == right) or (not pre-gutter and vline.gutter-restrict == left) {
+        return
+    }
+
     let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
     let start = (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
-    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter))
+    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter or vline.stop-pre-gutter == true))
 
     if stroke != auto {
         if stroke != none {
@@ -1534,13 +1567,16 @@
                 // only draw the top hline
                 // if header's wasn't already drawn
                 if hline.y == start-y {
-                    if hline.y == 0 {
+                    if hline.y == 0 or (gutter.row != none and hline.gutter-restrict == top) {
                         draw-hline(hline, pre-gutter: false)
                     } else if page_turned and added_header_height == 0pt {
                         draw-hline(hline, pre-gutter: false)
                         // no header repeated, but still at the top of the current page
                     }
                 } else {
+                    if hline.y == end-y and gutter.row != none and hline.gutter-restrict == top {
+                        continue  // the next row group should draw this
+                    }
                     // normally, only draw the bottom hlines
                     draw-hline(hline, pre-gutter: true)
 
@@ -1634,12 +1670,14 @@
                 this_row_group.rows.last().push((cell: cell, box: cell_box))
             }
 
-            let hlines = hlines.filter(h =>
-                this_row_group.hlines
-                    .filter(is-same-hline.with(h))
-                    .len() == 0)
+            let hlines = hlines
+                .filter(h =>
+                    this_row_group.hlines
+                        .filter(is-same-hline.with(h))
+                        .len() == 0)
 
-            let vlines = vlines.filter(v => v not in this_row_group.vlines)
+            let vlines = vlines
+                .filter(v => v not in this_row_group.vlines)
 
             this_row_group.hlines += hlines
             this_row_group.vlines += vlines
