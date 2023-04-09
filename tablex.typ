@@ -1308,14 +1308,14 @@
     }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false) = {
+#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false, stop-before-row-gutter: false) = {
     let start = vline.start
     let end = vline.end
     let stroke = default-if-auto(vline.stroke, stroke)
 
     let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
     let start = (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
-    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter))
+    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter))
 
     if stroke != auto {
         if stroke != none {
@@ -1382,7 +1382,7 @@
 // considering the left and top margins.
 // Requires placing 'get-page-dim-writer(the_returned_state)' on the
 // document.
-#let get-page-dim-state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_done: false, bottom_done: false))
+#let get-page-dim-state() = state("tablex_tabular_page_dims", (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
 
 // A little trick to get the page max width and max height.
 // Places a component on the page (or outer container)'s top left,
@@ -1398,26 +1398,26 @@
 #let get-page-dim-writer(page_dim_state) = {
     place(top + left, locate(loc => {
         page_dim_state.update(s => {
-            if s.top_done {
+            if s.top_left != none {
                 s
             } else {
                 let pos = loc.position()
                 let width = s.width - pos.x
                 let height = s.width - pos.y
-                (width: width, height: height, top_done: true, bottom_done: s.bottom_done)
+                (width: width, height: height, top_left: pos, bottom_right: s.bottom_right)
             }
         })
     }))
 
     place(bottom + right, locate(loc => {
         page_dim_state.update(s => {
-            if s.bottom_done {
+            if s.bottom_right != none {
                 s
             } else {
                 let pos = loc.position()
                 let width = s.width + pos.x
                 let height = s.width + pos.y
-                (width: width, height: height, top_done: s.top_done, bottom_done: true)
+                (width: width, height: height, top_left: s.top_left, bottom_right: pos)
             }
         })
     }))
@@ -1434,6 +1434,8 @@
     inset: none, stroke: none,
     gutter: none,
     styles: none,
+    min-pos: none,
+    max-pos: none,
     total-width: none,
 ) = {
     let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
@@ -1448,10 +1450,12 @@
     let end-y = row-group.y_span.at(1)
 
     locate(loc => {
-        let old_page = latest-page-state.at(loc)
-        let this_page = loc.page()
+        // let old_page = latest-page-state.at(loc)
+        // let this_page = loc.page()
 
-        let page_turned = not is-header and old_page not in (this_page, -1)
+        // let page_turned = not is-header and old_page not in (this_page, -1)
+        let pos = loc.position()
+        let page_turned = pos.y == min-pos.y
 
         // draw row group
         block(breakable: false, {
@@ -1459,14 +1463,16 @@
 
             // page turned => add header
             // + header wasn't already added (if redrawing)
-            if page_turned and this_page not in pages-with-header-state.at(loc) {
+            if page_turned and not is-header {
                 let measures = measure(first-row-group.content, styles)
                 place(top+left, first-row-group.content)  // add header
                 added_header_height = measures.height
 
                 // do not place the header again on this page
-                pages-with-header-state.update(l => l + (this_page,))
+                // pages-with-header-state.update(l => l + (this_page,))
             }
+
+            let row_gutter_dy = default-if-none(gutter.row, 0pt)
 
             // move lines down by the height of the header
             show line: place.with(top + left, dy: added_header_height)
@@ -1496,39 +1502,53 @@
                 first_row = false
             }
 
-            hide(rect(width: total-width, height: tallest_box_h + added_header_height))
+            let row_group_height = tallest_box_h + added_header_height + row_gutter_dy
+
+            let is_last_row = pos.y + row_group_height + row_gutter_dy >= max-pos.y
+
+            if is_last_row {
+                row_group_height -= row_gutter_dy
+                // one less gutter at the end
+            }
+
+            hide(rect(width: total-width, height: row_group_height))
 
             let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
 
             for hline in hlines {
+                // only draw the top hline
+                // if header's wasn't already drawn
                 if hline.y == start-y {
                     if hline.y == 0 {
-                        draw-hline(hline)
+                        draw-hline(hline, pre-gutter: false)
                     } else if page_turned and added_header_height == 0pt {
-                        draw-hline(hline)
+                        draw-hline(hline, pre-gutter: false)
                         // no header repeated, but still at the top of the current page
                     }
                 } else {
                     // normally, only draw the bottom hlines
-                    draw-hline(hline, pre-gutter: false)
+                    draw-hline(hline, pre-gutter: true)
 
-                    if gutter.row != none and hline.y != rows.len() {
-                        draw-hline(hline, pre-gutter: true)
+                    // don't draw the post-row gutter hline
+                    // if this is the last row in the page
+                    // or the last row in the whole table
+                    if gutter.row != none and hline.y < rows.len() and not is_last_row {
+                        draw-hline(hline, pre-gutter: false)
                     }
                 }
             }
 
             for vline in vlines {
-                draw-vline(vline, pre-gutter: false)
+                draw-vline(vline, pre-gutter: true, stop-before-row-gutter: is_last_row)
 
-                if gutter.col != none and vline.x != columns.len() {
-                    draw-vline(vline, pre-gutter: true)
+                // don't draw the post-col gutter vline
+                // if this is the last vline
+                if gutter.col != none and vline.x < columns.len() {
+                    draw-vline(vline, pre-gutter: false, stop-before-row-gutter: is_last_row)
                 }
             }
         })
-
-        latest-page-state.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
     })
 }
 
@@ -1544,6 +1564,8 @@
     align: none,
     hlines: none, vlines: none,
     styles: none,
+    min-pos: none,
+    max-pos: none,
     table-loc: none,
 ) = {
     let col_len = columns.len()
@@ -1640,6 +1662,8 @@
                 stroke: stroke, inset: inset,
                 gutter: gutter,
                 total-width: total_width,
+                min-pos: min-pos,
+                max-pos: max-pos,
                 styles: styles,
             )
 
@@ -1728,6 +1752,9 @@
         let page_width = page_dim_at.width
         let page_height = page_dim_at.height
 
+        let max_pos = default-if-none(page_dim_at.bottom_right, (x: t_pos.x + page_width, y: t_pos.y + page_height))
+        let min_pos = default-if-none(page_dim_at.top_left, t_pos)
+
         let items = items.pos().map(table-item-convert)
 
         let gutter = parse-gutters(
@@ -1796,6 +1823,8 @@
             fill: fill, align: align,
             hlines: hlines, vlines: vlines,
             styles: styles,
+            min-pos: min_pos,
+            max-pos: max_pos,
             table-loc: t_loc
         )
 
