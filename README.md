@@ -7,15 +7,15 @@ More powerful and customizable tables in Typst
     - [ ] More docs
     - [ ] Code cleanup
 - [ ] `#table` parity
-    - [ ] `columns:`, `rows:`
+    - [X] `columns:`, `rows:`
         - [X] Basic support
         - [X] Accept a single size to mean a single column
         - [X] Adjust `auto` columns and rows
         - [X] Accept integers to mean multiple `auto`
         - [X] Basic unit conversion (em -> pt, etc.)
         - [X] Ratio unit conversion (100% -> page width...)
-        - [ ] Fractional unit conversion based on available space (1fr, 2fr -> 1/3, 2/3)
-        - [ ] Shrink `auto` columns based on available space
+        - [X] Fractional unit conversion based on available space (1fr, 2fr -> 1/3, 2/3)
+        - [X] Shrink `auto` columns based on available space
     - [X] `fill`
         - [X] Basic support (`color` for general fill)
         - [X] Accept a function (`(row, column) => color`)
@@ -55,7 +55,7 @@ More powerful and customizable tables in Typst
             - [ ] integer: At least first 'n' rows are a header (plus whatever rowspans show up there)
                 - [ ] Defaults to 1
             - [ ] `none` or `0`: no header (disables header repetition regardless of `repeat-header`)
-    - [ ] `cellx`
+    - [X] `cellx`
         - [X] Auto-positioning based on order and columns
         - [X] Place empty cells when there are too many
         - [X] Allow arbitrary positioning with `cellx(x:, y:)`
@@ -63,7 +63,7 @@ More powerful and customizable tables in Typst
         - [X] Allow `fill` override
         - [X] Allow `inset` override
             - [X] Works properly only with `auto` cols/rows
-        - [ ] Dynamic content (maybe shortcut for `map-cells` on a single cell)
+        - [X] Dynamic content (maybe shortcut for `map-cells` on a single cell)
     - [X] Auto-lines
         - [X] `auto-hlines` - `true` to place on all lines without hlines, `false` otherwise
         - [X] `auto-vlines` - similar
