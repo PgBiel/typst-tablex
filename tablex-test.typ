@@ -112,16 +112,16 @@ deeteeeeeeeeedett
 )
 
 #tablex(
-    columns: (1em, 1em, auto, auto),
+    columns: (1em, 2em, auto, auto),
     rows: (1em, 1em, auto),
     [a], [b], [cd], [d],
     hline(),
     [a], colspan(2, rowspan(2)[bcccccccc\ c\ c\ c]), [d],
     [a], (), (), [d],
-    [a], [e], [f], [dee],
+    [a], (x, y) => text(size: 7pt, [#(x, y)]), [f], [dee],
     [a], [b], [c], [dee],
 )
 
-eeeedreetetdeederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdfrreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessde
+eeeedreetetdeederttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdferreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessde
 
 s
