@@ -1316,6 +1316,200 @@
     }))
 }
 
+// Generates groups of rows.
+// By default, 1 row + rows from its rowspan cells = 1 row group.
+// The first row group is the header, which is repeated across pages.
+#let generate-row-groups(
+    grid: none,
+    columns: none, rows: none,
+    stroke: none, inset: none, fill: none,
+    align: none,
+    hlines: none, vlines: none,
+    styles: none,
+    table-loc: none,
+) = {
+    let col_len = columns.len()
+    let row_len = rows.len()
+
+    // specialize some functions for the given grid, columns and rows
+    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid)
+    let cell-width = cell-width.with(columns: columns)
+    let cell-height = cell-height.with(rows: rows)
+    let width-between = width-between.with(columns: columns, inset: inset)
+    let height-between = height-between.with(rows: rows, inset: inset)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
+
+    // each row group is an unbreakable unit of rows.
+    // In general, they're just one row. However, they can be multiple rows
+    // if one of their cells spans multiple rows.
+    let first_row_group = none
+
+    // page in the latest row group
+    let latest_page = state("tablex_tabular_latest_page", table-loc.page())
+
+    let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
+    let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
+
+    let total_width = width-between(end: none)
+
+    let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
+    let current_row = 0
+    for row in range(0, row_len) {
+        let hlines = hlines.filter(h => (
+            h.y in (current_row, current_row + 1)
+        ))  // keep online hlines above or below this row
+
+        for column in range(0, col_len) {
+            let cell = grid-at(grid, column, row)
+            let lines_dict = v-and-hline-spans-for-cell(cell, hlines: hlines)
+            let hlines = lines_dict.hlines
+            let vlines = lines_dict.vlines
+
+            if is-tabular-cell(cell) {
+                // ensure row-spanned rows are in the same group
+                row_group_add_counter += calc.max(0, cell.rowspan - 1)
+
+                let inset = default-if-auto(cell.inset, inset)
+
+                let width = cell-width(cell.x, colspan: cell.colspan, inset: inset)
+                let height = cell-height(cell.y, rowspan: cell.rowspan, inset: inset)
+
+                let cell_box = make-cell-box(
+                    cell,
+                    width: width, height: height, inset: inset,
+                    align_default: align,
+                    fill_default: fill)
+
+                this_row_group.rows.last().push((cell: cell, box: cell_box))
+            }
+
+            let hlines = hlines.filter(h =>
+                this_row_group.hlines
+                    .filter(is-same-hline.with(h))
+                    .len() == 0)
+
+            let vlines = vlines.filter(v => v not in this_row_group.vlines)
+
+            this_row_group.hlines += hlines
+            this_row_group.vlines += vlines
+        }
+
+        current_row += 1
+        row_group_add_counter -= 1  // one row added
+
+        // added all pertaining rows to the group
+        // now we can draw it
+        if row_group_add_counter <= 0 {
+            row_group_add_counter = 1
+
+            let row_group = this_row_group
+
+            let rows = row_group.rows
+            let hlines = row_group.hlines
+            let vlines = row_group.vlines
+
+            // get where the row starts and where it ends
+            let start_y = row_group.y_span.at(0)
+            let end_y = row_group.y_span.at(1)
+
+            let next_y = end_y + 1
+
+            this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
+
+
+            let row_group_content(is_first: false) = locate(loc => {
+                let old_page = latest_page.at(loc)
+                let this_page = loc.page()
+
+                let page_turned = not is_first and old_page not in (this_page, -1)
+
+                block(breakable: false, {
+                    let added_header_height = 0pt  // if we added a header, move down
+
+                    if page_turned and this_page not in pages_with_header.at(loc) {
+                        // panic("OLDPAGE:", old_page, "NEW", this_page)
+                        let measures = measure(first_row_group.content, styles)
+                        place(top+left, first_row_group.content)  // add header
+                        added_header_height = measures.height
+
+                        // do not place the header again on this page
+                        pages_with_header.update(l => l + (this_page,))
+                    }
+
+                    // move lines down by the height of the header
+                    show line: place.with(top + left, dy: added_header_height)
+
+                    let first_x = none
+                    let first_y = none
+
+                    let tallest_box_h = 0pt;
+                    let tallest_box = [];
+
+                    let first_row = true
+                    for row in rows {
+                        for cell_box in row {
+                            let x = cell_box.cell.x
+                            let y = cell_box.cell.y
+                            first_x = default-if-none(first_x, x)
+                            first_y = default-if-none(first_y, y)
+
+                            place(top+left,
+                                dx: width-between(start: first_x, end: x),
+                                dy: height-between(start: first_y, end: y) + added_header_height,
+                                cell_box.box)
+
+                            let box_h = measure(cell_box.box, styles).height
+                            if box_h > tallest_box_h {
+                                tallest_box_h = box_h
+                                tallest_box = cell_box.box
+                            }
+                        }
+                        first_row = false
+                    }
+
+                    hide(rect(width: total_width, height: tallest_box_h + added_header_height))
+
+                    let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
+                    let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
+
+                    for hline in hlines {
+                        if hline.y == start_y {
+                            if hline.y == 0 {
+                                draw-hline(hline)
+                            } else if page_turned and added_header_height == 0pt {
+                                draw-hline(hline)
+                                // no header repeated, but still at the top of the current page
+                            }
+                        } else {
+                            // normally, only draw the bottom hlines
+                            draw-hline(hline)
+                        }
+                    }
+
+                    for vline in vlines {
+                        draw-vline(vline)
+                    }
+                })
+
+                latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
+            })
+
+            let is_first = first_row_group == none
+            let content = row_group_content(is_first: is_first)
+
+            if is_first {
+                first_row_group = (row_group: row_group, content: content)
+            }
+
+            (content,)
+        } else {
+            this_row_group.rows.push(())
+            this_row_group.y_span.at(1) += 1
+        }
+    }
+}
+
 // -- end: main functions
 
 // option parsing functions
@@ -1419,189 +1613,15 @@
         let columns = updated_cols_rows.columns
         let rows = updated_cols_rows.rows
 
-        // specialize some functions for the given grid, columns and rows
-        let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: table_grid)
-        let cell-width = cell-width.with(columns: columns)
-        let cell-height = cell-height.with(rows: rows)
-        let width-between = width-between.with(columns: columns, inset: inset)
-        let height-between = height-between.with(rows: rows, inset: inset)
-        let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke)
-        let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke)
-
-        // each row group is an unbreakable unit of rows.
-        // In general, they're just one row. However, they can be multiple rows
-        // if one of their cells spans multiple rows.
-        let first_row_group = none
-
-        // page in the latest row group
-        let latest_page = state("tablex_tabular_latest_page", -1)
-
-        let pages_with_header = state("tablex_tabular_pages_with_header", (1,))
-        let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
-
-        let total_width = width-between(end: none)
-
-        let row_groups = {
-            let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
-            let current_row = 0
-            for row in range(0, row_len) {
-                let hlines = hlines.filter(h => (
-                    h.y in (current_row, current_row + 1)
-                ))  // keep online hlines above or below this row
-
-                for column in range(0, col_len) {
-                    let cell = grid-at(table_grid, column, row)
-                    let lines_dict = v-and-hline-spans-for-cell(cell, hlines: hlines)
-                    let hlines = lines_dict.hlines
-                    let vlines = lines_dict.vlines
-
-
-                    if is-tabular-cell(cell) and cell.rowspan > 1 {
-                        // ensure row-spanned rows are in the same group
-                        row_group_add_counter += cell.rowspan - 1
-                    }
-
-                    if is-tabular-cell(cell) {
-                        let inset = default-if-auto(cell.inset, inset)
-
-                        let width = cell-width(cell.x, colspan: cell.colspan, inset: inset)
-                        let height = cell-height(cell.y, rowspan: cell.rowspan, inset: inset)
-
-                        let cell_box = make-cell-box(
-                            cell,
-                            width: width, height: height, inset: inset,
-                            align_default: align,
-                            fill_default: fill)
-
-                        this_row_group.rows.last().push((cell: cell, box: cell_box))
-                    }
-
-                    let hlines = hlines.filter(h =>
-                        this_row_group.hlines.filter(is-same-hline.with(h))
-                            .len() == 0)
-
-                    let vlines = vlines.filter(v =>
-                        v not in this_row_group.vlines)
-
-                    this_row_group.hlines += hlines
-                    this_row_group.vlines += vlines
-                }
-
-                current_row += 1
-                row_group_add_counter -= 1
-
-                // added all pertaining rows to the group
-                // now we can draw it
-                if row_group_add_counter <= 0 {
-                    row_group_add_counter = 1
-
-                    let row_group = this_row_group
-
-                    let rows = row_group.rows
-                    let hlines = row_group.hlines
-                    let vlines = row_group.vlines
-
-                    // get where the row starts and where it ends
-                    let start_y = row_group.y_span.at(0)
-                    let end_y = row_group.y_span.at(1)
-
-                    let next_y = end_y + 1
-
-                    this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
-
-
-                    let row_group_content(is_first: false) = locate(loc => {
-                        let old_page = latest_page.at(loc)
-                        let this_page = loc.page()
-
-
-
-                        let page_turned = not is_first and old_page != this_page
-
-                        block(breakable: false, {
-                            let added_header_height = 0pt  // if we added a header, move down
-
-                            if page_turned and this_page not in pages_with_header.at(loc) {
-                                let measures = measure(first_row_group.content, styles)
-                                place(top+left, first_row_group.content)  // add header
-                                added_header_height = measures.height
-
-                                // do not place the header again on this page
-                                pages_with_header.update(l => l + (this_page,))
-                            }
-
-                            // move lines down by the height of the header
-                            show line: place.with(top + left, dy: added_header_height)
-
-                            let first_x = none
-                            let first_y = none
-
-                            let tallest_box_h = 0pt;
-                            let tallest_box = [];
-
-                            let first_row = true
-                            for row in rows {
-                                for cell_box in row {
-                                    let x = cell_box.cell.x
-                                    let y = cell_box.cell.y
-                                    first_x = default-if-none(first_x, x)
-                                    first_y = default-if-none(first_y, y)
-
-                                    place(top+left,
-                                        dx: width-between(start: first_x, end: x),
-                                        dy: height-between(start: first_y, end: y) + added_header_height,
-                                        cell_box.box)
-
-                                    let box_h = measure(cell_box.box, styles).height
-                                    if box_h > tallest_box_h {
-                                        tallest_box_h = box_h
-                                        tallest_box = cell_box.box
-                                    }
-                                }
-                                first_row = false
-                            }
-
-                            hide(rect(width: total_width, height: tallest_box_h + added_header_height))
-
-                            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
-                            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
-
-                            for hline in hlines {
-                                if hline.y == start_y {
-                                    if hline.y == 0 {
-                                        draw-hline(hline)
-                                    } else if page_turned and added_header_height == 0pt {
-                                        draw-hline(hline)
-                                        // no header repeated, but still at the top of the current page
-                                    }
-                                } else {
-                                    // normally, only draw the bottom hlines
-                                    draw-hline(hline)
-                                }
-                            }
-
-                            for vline in vlines {
-                                draw-vline(vline)
-                            }
-                        })
-
-                        latest_page.update(calc.max.with(this_page))  // don't change the page if it is already larger than ours
-                    })
-
-                    let is_first = first_row_group == none
-                    let content = row_group_content(is_first: is_first)
-
-                    if is_first {
-                        first_row_group = (row_group: row_group, content: content)
-                    }
-
-                    (content,)
-                } else {
-                    this_row_group.rows.push(())
-                    this_row_group.y_span.at(1) += 1
-                }
-            }
-        }
+        let row_groups = generate-row-groups(
+            grid: table_grid,
+            columns: columns, rows: rows,
+            stroke: stroke, inset: inset, fill: fill,
+            align: align,
+            hlines: hlines, vlines: vlines,
+            styles: styles,
+            table-loc: t_loc
+        )
 
         grid(columns: (auto,), rows: auto, ..row_groups)
     }))
