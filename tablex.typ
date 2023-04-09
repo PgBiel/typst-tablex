@@ -494,7 +494,7 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate-grid(items, x_limit: 0, y_limit: 0) = {
+#let generate-grid(items, x_limit: 0, y_limit: 0, map-cells: c => c) = {
     // init grid as a matrix
     // y_limit  x   x_limit
     let grid = create-grid(x_limit, y_limit)
@@ -594,6 +594,12 @@
         if this_x == none or this_y == none {
             panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: ", (prev_x, prev_y), ", new cell: ", cell, ")")
         }
+
+        cell.x = this_x
+        cell.y = this_y
+        cell = table-item-convert(map-cells(cell))
+
+        assert(is-tabular-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
 
         let content = cell.content
         let content = if type(content) == "function" {
@@ -1725,6 +1731,142 @@
     (col: col-gutter, row: row-gutter)
 }
 
+#let parse-map-func(map-func, uses-second-param: false) = {
+    if map-func in (none, auto) {
+        if uses-second-param {
+            (a, b) => b  // identity
+        } else {
+            o => o  // identity
+        }
+    } else if type(map-func) != "function" {
+        panic("Map parameters must be functions.")
+    } else {
+        map-func
+    }
+}
+
+#let apply-maps(
+    grid: (),
+    hlines: (),
+    vlines: (),
+    map-hlines: none,
+    map-vlines: none,
+    map-rows: none,
+    map-cols: none,
+) = {
+    vlines = vlines.map(map-vlines)
+    if vlines.any(h => not is-tabular-vline(h)) {
+        panic("'map-vlines' function returned a non-vline.")
+    }
+
+    hlines = hlines.map(map-hlines)
+    if hlines.any(h => not is-tabular-hline(h)) {
+        panic("'map-hlines' function returned a non-hline.")
+    }
+
+    let col_len = grid.width
+    let row_len = grid-count-rows(grid)
+
+    for row in range(row_len) {
+        let original_cells = grid-get-row(grid, row)
+
+        // occupied cells = none for the outer user
+        let cells = map-rows(row, original_cells.map(c => {
+            if is-tabular-occupied(c) { none } else { c }
+        }))
+
+        if type(cells) != "array" {
+            panic("Tablex error: 'map-rows' returned something that isn't an array.")
+        }
+
+        // only modify non-occupied cells
+        let cells = enumerate(cells).filter(i_c => is-tabular-cell(original_cells.at(i_c.at(0))))
+
+        if cells.any(i_c => not is-tabular-cell(i_c.at(1))) {
+            panic("Tablex error: 'map-rows' returned a non-cell.")
+        }
+
+        if cells.any(i_c => {
+            let c = i_c.at(1)
+            let x = c.x
+            let y = c.y
+            type(x) != "integer" or type(y) != "integer" or x < 0 or y < 0 or x >= col_len or y >= row_len
+        }) {
+            panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
+        }
+
+        if cells.any(i_c => i_c.at(1).y != row) {
+            panic("Tablex error: 'map-rows' returned a cell in a different row (the 'y' must be kept the same).")
+        }
+
+        if cells.any(i_c => {
+            let i = i_c.at(0)
+            let c = i_c.at(1)
+            let orig_c = original_cells.at(i)
+
+            c.colspan != orig_c.colspan or c.rowspan != orig_c.rowspan
+        }) {
+            panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-rows'.")
+        }
+    
+        for i_cell in cells {
+            let cell = i_cell.at(1)
+            grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+        }
+    }
+
+    for column in range(col_len) {
+        let original_cells = grid-get-column(grid, column)
+
+        // occupied cells = none for the outer user
+        let cells = map-cols(column, original_cells.map(c => {
+            if is-tabular-occupied(c) { none } else { c }
+        }))
+
+        if type(cells) != "array" {
+            panic("Tablex error: 'map-cols' returned something that isn't an array.")
+        }
+
+        // only modify non-occupied cells
+        let cells = enumerate(cells).filter(i_c => is-tabular-cell(original_cells.at(i_c.at(0))))
+
+        if cells.any(i_c => not is-tabular-cell(i_c.at(1))) {
+            panic("Tablex error: 'map-cols' returned a non-cell.")
+        }
+
+        if cells.any(i_c => {
+            let c = i_c.at(1)
+            let x = c.x
+            let y = c.y
+            type(x) != "integer" or type(y) != "integer" or x < 0 or y < 0 or x >= col_len or y >= row_len
+        }) {
+            panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
+        }
+
+        if cells.any(i_c => i_c.at(1).x != column) {
+            panic("Tablex error: 'map-cols' returned a cell in a different column (the 'x' must be kept the same).")
+        }
+
+        if cells.any(i_c => {
+            let i = i_c.at(0)
+            let c = i_c.at(1)
+            let orig_c = original_cells.at(i)
+
+            c.colspan != orig_c.colspan or c.rowspan != orig_c.rowspan
+        }) {
+            panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-cols'.")
+        }
+    
+        for i_cell in cells {
+            let cell = i_cell.at(1)
+            cell.content = [#cell.content]
+            grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+        }
+    }
+
+    (grid: grid, hlines: hlines, vlines: vlines)
+}
+
 // -- end: option parsing
 
 #let tablex(
@@ -1738,11 +1880,22 @@
     auto-lines: true,
     auto-hlines: auto,
     auto-vlines: auto,
+    map-cells: none,
+    map-hlines: none,
+    map-vlines: none,
+    map-rows: none,
+    map-cols: none,
     ..items
 ) = {
     let page_dimensions = get-page-dim-state()
 
     get-page-dim-writer(page_dimensions)  // place it so it does its job
+
+    let map-cells = parse-map-func(map-cells)
+    let map-hlines = parse-map-func(map-hlines)
+    let map-vlines = parse-map-func(map-vlines)
+    let map-rows = parse-map-func(map-rows, uses-second-param: true)
+    let map-cols = parse-map-func(map-cols, uses-second-param: true)
 
     locate(t_loc => style(styles => {
         let page_dim_at = page_dimensions.final(t_loc)
@@ -1775,7 +1928,11 @@
         let row_len = rows.len()
 
         // generate cell matrix and other things
-        let grid_info = generate-grid(items, x_limit: col_len, y_limit: row_len)
+        let grid_info = generate-grid(
+            items,
+            x_limit: col_len, y_limit: row_len,
+            map-cells: map-cells
+        )
 
         let table_grid = grid_info.grid
         let hlines = grid_info.hlines
@@ -1800,6 +1957,20 @@
 
         hlines += auto_lines_res.new_hlines
         vlines += auto_lines_res.new_vlines
+
+        let mapped_grid = apply-maps(
+            grid: table_grid,
+            hlines: hlines,
+            vlines: vlines,
+            map-hlines: map-hlines,
+            map-vlines: map-vlines,
+            map-rows: map-rows,
+            map-cols: map-cols
+        )
+
+        table_grid = mapped_grid.grid
+        hlines = mapped_grid.hlines
+        vlines = mapped_grid.vlines
 
         // convert auto to actual size
         let updated_cols_rows = determine-auto-column-row-sizes(
