@@ -152,13 +152,13 @@ Here's a sample:
 
 #### Bulk line customization
 
-You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. For example:
+You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```
 #tablex(
     columns: 3,
     map-hlines: h => (..h, stroke: blue),
-    map-vlines: h => (..h, stroke: green + 2pt),
+    map-vlines: v => (..v, stroke: green + 2pt),
     colspanx(2)[a], (),  [b],
     [c], rowspanx(2)[d], [ed],
     [f], (),             [g]

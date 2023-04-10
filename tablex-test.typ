@@ -178,7 +178,7 @@ s
 #tablex(
     columns: 3,
     map-hlines: h => (..h, stroke: blue),
-    map-vlines: h => (..h, stroke: green + 2pt),
+    map-vlines: v => (..v, stroke: green + 2pt),
     colspanx(2)[a], (),  [b],
     [c], rowspanx(2)[d], [ed],
     [f], (),             [g]
