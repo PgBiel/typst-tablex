@@ -1127,7 +1127,7 @@
 
 // -- width/height utilities --
 
-#let width-between(start: 0, end: none, columns: (), inset: 5pt, gutter: none, pre-gutter: false) = {
+#let width-between(start: 0, end: none, columns: (), gutter: none, pre-gutter: false) = {
     let col-gutter = default-if-none(default-if-none(gutter, (col: 0pt)).col, 0pt)
     end = default-if-none(end, columns.len())
 
@@ -1147,7 +1147,7 @@
     sum
 }
 
-#let height-between(start: 0, end: none, rows: (), inset: 5pt, gutter: none, pre-gutter: false) = {
+#let height-between(start: 0, end: none, rows: (), gutter: none, pre-gutter: false) = {
     let row-gutter = default-if-none(default-if-none(gutter, (row: 0pt)).row, 0pt)
     end = default-if-none(end, rows.len())
 
@@ -1167,12 +1167,12 @@
     sum
 }
 
-#let cell-width(x, colspan: 1, columns: (), inset: 5pt, gutter: none) = {
-    width-between(start: x, end: x + colspan, columns: columns, inset: inset, gutter: gutter, pre-gutter: true)
+#let cell-width(x, colspan: 1, columns: (), gutter: none) = {
+    width-between(start: x, end: x + colspan, columns: columns, gutter: gutter, pre-gutter: true)
 }
 
-#let cell-height(y, rowspan: 1, rows: (), inset: 5pt, gutter: none) = {
-    height-between(start: y, end: y + rowspan, rows: rows, inset: inset, gutter: gutter, pre-gutter: true)
+#let cell-height(y, rowspan: 1, rows: (), gutter: none) = {
+    height-between(start: y, end: y + rowspan, rows: rows, gutter: gutter, pre-gutter: true)
 }
 
 // overide start and end for vlines and hlines (keep styling options and stuff)
@@ -1491,8 +1491,8 @@
     table-loc: none,
     total-width: none,
 ) = {
-    let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
-    let height-between = height-between.with(rows: rows, inset: inset, gutter: gutter)
+    let width-between = width-between.with(columns: columns, gutter: gutter)
+    let height-between = height-between.with(rows: rows, gutter: gutter)
     let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
     let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
 
@@ -1654,8 +1654,8 @@
     let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid)
     let cell-width = cell-width.with(columns: columns, gutter: gutter)
     let cell-height = cell-height.with(rows: rows, gutter: gutter)
-    let width-between = width-between.with(columns: columns, inset: inset, gutter: gutter)
-    let height-between = height-between.with(rows: rows, inset: inset, gutter: gutter)
+    let width-between = width-between.with(columns: columns, gutter: gutter)
+    let height-between = height-between.with(rows: rows, gutter: gutter)
 
     // each row group is an unbreakable unit of rows.
     // In general, they're just one row. However, they can be multiple rows
@@ -1684,8 +1684,8 @@
                 // ensure row-spanned rows are in the same group
                 row_group_add_counter += calc.max(0, cell.rowspan - 1)
 
-                let width = cell-width(cell.x, colspan: cell.colspan, inset: inset)
-                let height = cell-height(cell.y, rowspan: cell.rowspan, inset: inset)
+                let width = cell-width(cell.x, colspan: cell.colspan)
+                let height = cell-height(cell.y, rowspan: cell.rowspan)
 
                 let cell_box = make-cell-box(
                     cell,
