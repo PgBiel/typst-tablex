@@ -81,7 +81,14 @@ deeteeeeereeeedetteeeee
     [a], [b], [c], [dee],
 )
 
-eeeedreetetdeederfttddeerreeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdferreeedeefgederdaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessdeeee
+eeeedreetetdeederfttddeerreddeeeteeeeeerettededteeedeceesdeedeeefteetdedeeesefdferreeedeefeettgederedaeeteeeeddrdfeeedeeffteeeeeeeeesedteteestderedeeeeefeeeeessdeeee
+
+s
+s
+s
+s
+
+s
 
 s
 
@@ -89,6 +96,7 @@ s
     columns: (1em, 2em, auto, auto),
     rows: (1em, 1em, auto),
     gutter: 20pt,
+    align: center + horizon,
     auto-lines: true,
     map-hlines: h => (..h, stop-pre-gutter: default-if-auto(h.stop-pre-gutter, true)),
     map-vlines: h => (..h, stop-pre-gutter: default-if-auto(h.stop-pre-gutter, true)),
@@ -108,4 +116,135 @@ s
     [a], (), (), [d],
     [a], (x, y) => text(size: 7pt, [#(x, y)]), [f], [dee],
     [a], [b], [c], [dee],
+)
+
+== Examples from the docs
+
+#tablex(
+    columns: (auto, 1em, 1fr, 1fr),  // 3 columns
+    rows: auto,  // at least 1 row of auto size,
+    fill: red,
+    align: center + horizon,
+    stroke: green,
+    [a], [b], [c], [d],
+    [e], [f], [g], [h],
+    [i], [j], [k], [l]
+)
+
+#repeat[a]
+#place(bottom+right)[b]
+#tablex(
+    columns: 3,
+    colspanx(2)[a], (),  [b],
+    [c], rowspanx(2)[d], [ed],
+    [f], (),             [g]
+)
+
+#tablex(
+    columns: 4,
+    auto-lines: false,
+    vlinex(), vlinex(), vlinex(), (), vlinex(),
+    colspanx(2)[a], (),  [b], [J],
+    [c], rowspanx(2)[d], [e], [K],
+    [f], (),             [g], [L],
+)
+
+#tablex(
+    columns: 4,
+    auto-vlines: false,
+    colspanx(2)[a], (),  [b], [J],
+    [c], rowspanx(2)[d], [e], [K],
+    [f], (),             [g], [L],
+)
+
+#gridx(
+    columns: 4,
+    (), (), vlinex(end: 2),
+    hlinex(stroke: yellow + 2pt),
+    colspanx(2)[a], (),  [b], [J],
+    hlinex(start: 0, end: 1, stroke: yellow + 2pt),
+    hlinex(start: 1, end: 2, stroke: green + 2pt),
+    hlinex(start: 2, end: 3, stroke: red + 2pt),
+    hlinex(start: 3, end: 4, stroke: blue.lighten(50%) + 2pt),
+    [c], rowspanx(2)[d], [e], [K],
+    hlinex(start: 2),
+    [f], (),             [g], [L],
+)
+
+#tablex(
+    columns: 3,
+    map-hlines: h => (..h, stroke: blue),
+    map-vlines: h => (..h, stroke: green + 2pt),
+    colspanx(2)[a], (),  [b],
+    [c], rowspanx(2)[d], [ed],
+    [f], (),             [g]
+)
+
+#tablex(
+    columns: 3,
+    fill: red,
+    align: right,
+    colspanx(2)[a], (),  [beeee],
+    [c], rowspanx(2)[d], cellx(fill: blue, align: left)[e],
+    [f], (),             [g]
+)
+
+#tablex(
+    columns: 4,
+    auto-vlines: true,
+
+    map-cells: cell => {
+        (..cell, content: emph(cell.content))
+    },
+
+    map-rows: (row, cells) => cells.map(c =>
+        if c == none {
+            c
+        } else {
+            (..c, content: [#c.content])
+        }
+    ),
+
+    map-cols: (col, cells) => cells.map(c =>
+        if c == none {
+            c
+        } else {
+            (..c, fill: if col < 2 { blue } else { yellow })
+        }
+    ),
+
+    colspanx(2)[a], (),  [b], [J],
+    [c], rowspanx(2)[dd], [e], [K],
+    [f], (),             [g], [L],
+)
+
+#tablex(
+    columns: 4,
+    fill: blue,
+    colspanx(2, rotate(30deg)[a]), rotate(30deg)[a], rotate(30deg)[a],rotate(30deg)[a],
+)
+
+#pagebreak()
+#v(80%)
+
+#tablex(
+    columns: 4,
+    align: center + horizon,
+    auto-vlines: false,
+    repeat-header: true,
+    header-rows: 2,
+
+    /* --- header --- */
+    rowspanx(2)[*Names*], colspanx(2)[*Properties*], (), rowspanx(2)[*Creators*],
+    (),                 [*Type*], [*Size*], (),
+    /* -------------- */
+
+    [Machine], [Steel], [5 $"cm"^3$], [John p& Kate],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Robert],
+    [Frog], [Animal], [6 $"cm"^3$], [Rodbert],
 )
