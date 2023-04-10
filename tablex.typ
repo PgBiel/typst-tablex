@@ -728,7 +728,7 @@
 
 // Sums the sizes of fixed-size tracks (cols/rows). Anything else
 // (auto, 1fr, ...) is ignored.
-#let sum_fixed_size_tracks(tracks) = {
+#let sum-fixed-size-tracks(tracks) = {
     tracks.fold(0pt, (acc, el) => {
         if type(el) == "length" {
             acc + el
@@ -818,7 +818,7 @@
         let col = i_col.at(1)
 
         if type(col) == "length" {
-            size += col + 2*inset
+            size += col
         }
     }
     size
@@ -837,7 +837,7 @@
         let row = i_row.at(1)
 
         if type(row) == "length" {
-            size += row + 2*inset
+            size += row
         }
     }
     size
@@ -874,9 +874,7 @@
 
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
-                        let inset_diff = cell_inset - inset
-
-                        let width = measure(pcell.content, styles).width + 2*inset_diff
+                        let width = measure(pcell.content, styles).width + 2*cell_inset
                         let fixed_size = get-colspan-fixed-size-covered(pcell, columns: columns, inset: inset)
 
                         calc.max(max, width - fixed_size, 0pt)
@@ -894,7 +892,7 @@
     (total: total_auto_size, sizes: auto_sizes, columns: new_columns)
 }
 
-#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
+#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none, inset: none) = {
     let remaining = available
     let auto_cols_remaining = auto_cols.len()
     let fair_share = remaining / auto_cols_remaining
@@ -935,7 +933,7 @@
         0pt
     }
 
-    let total_fixed_size = sum_fixed_size_tracks(columns) + fixed-size-gutter * (columns.len() - 1)
+    let total_fixed_size = sum-fixed-size-tracks(columns) + fixed-size-gutter * (columns.len() - 1)
 
     let available_size = page_width - total_fixed_size
 
@@ -952,6 +950,7 @@
                 remaining: remaining_size,
                 gutter: col-gutter
             )
+            // if remaining_size > 0pt { panic(frac_res, remaining_size, auto_cols_result, available_size, page_width) }
 
             columns = frac_res.tracks
             fixed-size-gutter = frac_res.gutter
@@ -959,7 +958,8 @@
             columns = fit-auto-columns(
                 available: available_size,
                 auto_cols: auto_sizes,
-                columns: columns
+                columns: columns,
+                inset: inset
             )
             columns = columns.map(c => {
                 if type(c) == "fraction" {
@@ -1005,7 +1005,7 @@
             let row_size = grid-get-row(grid, i)
                 .fold(0pt, (max, cell) => {
                     if cell == none {
-                        panic("Not enough cells specified for the given amount of rows and rows.")
+                        panic("Not enough cells specified for the given amount of rows and columns.")
                     }
 
                     let pcell = get-parent-cell(cell, grid: grid)  // in case this is a rowspan
@@ -1020,9 +1020,7 @@
 
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
-                        let inset_diff = cell_inset - inset
-
-                        let height = measure(pcell.content, styles).height + 2*inset_diff
+                        let height = measure(pcell.content, styles).height + 2*cell_inset
                         let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows, inset: inset)
 
                         calc.max(max, height - fixed_size, 0pt)
@@ -1064,7 +1062,7 @@
         0pt
     }
 
-    let remaining = page_height - sum_fixed_size_tracks(rows) - auto_size - fixed-size-gutter * (rows.len() - 1)
+    let remaining = page_height - sum-fixed-size-tracks(rows) - auto_size - fixed-size-gutter * (rows.len() - 1)
 
     if remaining >= 0pt {  // split fractions in one page
         let frac_res = determine-frac-tracks(rows, remaining: remaining, gutter: row-gutter)
@@ -1137,7 +1135,7 @@
 
     let sum = 0pt
     for i in col_range {
-        sum += columns.at(i) + 2 * inset + col-gutter
+        sum += columns.at(i) + col-gutter
     }
 
     // if the end is after all columns, there is
@@ -1157,7 +1155,7 @@
 
     let sum = 0pt
     for i in row_range {
-        sum += rows.at(i) + 2*inset + row-gutter
+        sum += rows.at(i) + row-gutter
     }
 
     // if the end is after all rows, there is
@@ -1317,10 +1315,21 @@
 
 // -- drawing --
 
+#let parse-stroke(stroke) = {
+    if type(stroke) == "color" {
+        stroke + 1pt
+    } else if type(stroke) in ("length", "relative length", "ratio", "stroke") or stroke in (none, auto) {
+        stroke
+    } else {
+        panic("Invalid stroke '" + repr(stroke) + "'.")
+    }
+}
+
 #let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false) = {
     let start = hline.start
     let end = hline.end
     let stroke = default-if-auto(hline.stroke, stroke)
+    let stroke = parse-stroke(stroke)
 
     if start == end { return }
 
@@ -1345,6 +1354,7 @@
     let start = vline.start
     let end = vline.end
     let stroke = default-if-auto(vline.stroke, stroke)
+    let stroke = parse-stroke(stroke)
 
     if start == end { return }
 
@@ -1390,6 +1400,8 @@
     }
 
     let content = cell.content
+
+    let inset = default-if-auto(cell.inset, inset)
 
     // use default align (specified in
     // table 'align:')
@@ -1667,8 +1679,6 @@
             if is-tablex-cell(cell) {
                 // ensure row-spanned rows are in the same group
                 row_group_add_counter += calc.max(0, cell.rowspan - 1)
-
-                let inset = default-if-auto(cell.inset, inset)
 
                 let width = cell-width(cell.x, colspan: cell.colspan, inset: inset)
                 let height = cell-height(cell.y, rowspan: cell.rowspan, inset: inset)
