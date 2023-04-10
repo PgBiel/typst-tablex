@@ -35,7 +35,7 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 )
 ```
 
-![image](https://user-images.githubusercontent.com/9021226/230810678-3d60c0e1-f757-4ee9-a171-44bde0f464f8.png)
+![image](https://user-images.githubusercontent.com/9021226/230818397-2d599324-32a5-4184-973f-2fcfb6b62c84.png)
 
 You _might_ find issues in certain cases, especially when using _gutter_, which isn't fully implemented right now. However, for the most part, it should work.
 
@@ -198,8 +198,7 @@ For example:
 )
 ```
 
-![image](https://user-images.githubusercontent.com/9021226/230810948-fbccf096-7e28-4fbe-90f8-ca6a70238a4f.png)
-
+![image](https://user-images.githubusercontent.com/9021226/230818283-b3b636db-dbd0-47b8-bdd5-f61a07d58749.png)
 
 #### Bulk customization of cells
 
@@ -251,7 +250,7 @@ Example:
 )
 ```
 
-![image](https://user-images.githubusercontent.com/9021226/230810983-32136a1c-35fb-46cc-9935-399e680b4d5b.png)
+![image](https://user-images.githubusercontent.com/9021226/230818347-30b49154-f444-4744-9415-dd4030b29393.png)
 
 
 ## Reference
