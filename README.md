@@ -170,7 +170,7 @@ You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` a
 
 ### Customize every single cell
 
-Cells can be customized entirely. Instead of specifying content (e.g. \[text\]) as a table item, you can specify `cellx(property: a, property: b)[text]`, which allows you to customize properties, such as:
+Cells can be customized entirely. Instead of specifying content (e.g. `[text]`) as a table item, you can specify `cellx(property: a, property: b, ...)[text]`, which allows you to customize properties, such as:
 
 - `colspan: 2` (same as using `colspan(2, ...)[...]`)
 - `rowspan: 3` (same as using `rowspan(3, ...)[...]`)
@@ -180,7 +180,7 @@ Cells can be customized entirely. Instead of specifying content (e.g. \[text\]) 
 - `x: 5` (arbitrarily place the cell at the given column - may error if conflicts occur)
 - `y: 6` (arbitrarily place the cell at the given row - may error if conflicts occur)
 
-Additionally, instead of specifying content to the cell, you can specify a function `(column, row) => content`, allowing each cell to be aware of where its positioned. (Note that positions are recorded in the cell's `.x` and `.y` attributes, and start as `auto` unless you specify otherwise.)
+Additionally, instead of specifying content to the cell, you can specify a function `(column, row) => content`, allowing each cell to be aware of where it's positioned. (Note that positions are recorded in the cell's `.x` and `.y` attributes, and start as `auto` unless you specify otherwise.)
 
 For example:
 
@@ -191,7 +191,10 @@ For example:
     align: right,
     colspanx(2)[a], (),  [beeee],
     [c], rowspanx(2)[d], cellx(fill: blue, align: left)[e],
-    [f], (),             [g]
+    [f], (),             [g],
+
+    // place this cell at the first column, seventh row
+    cellx(colspan: 3, align: center, x: 0, y: 6)[hi I'm down here]
 )
 ```
 
@@ -204,7 +207,7 @@ To customize multiple cells at once, you have a few options:
 
 1. `map-cells: cell => cell` (given a cell, returns a new cell). You can use this to customize the cell's attributes, but also  to change its positions (however, avoid doing that as it can easily generate conflicts). You can access the cell's position with `cell.x` and `cell.y`. Use something like `(..cell, fill: blue)` for example to ensure the other properties are kept. (Calling `cellx` here is not necessary. If overriding content, use `content: [whatever]`).
 
-2. `map-rows: (row_index, cells) => cells` (given a row index and all cells in it, return a new array of cells). Allows customizing entire rows, but note that the cells in `cells` can be `none` if they're some position occupied by a colspan or rowspan of another cell. Ensure you return the cells in the order of modification. Also, ensure you do not change the row of any cell here, or it will error. You can change the cells' columns, but that will certainly generate conflicts if any col/rowspans are involved (in general, you cannot change col/rowspans here).
+2. `map-rows: (row_index, cells) => cells` (given a row index and all cells in it, return a new array of cells). Allows customizing entire rows, but note that the cells in `cells` can be `none` if they're some position occupied by a colspan or rowspan of another cell. Ensure you return the cells in the order you were given, including the `none`s, for best results. Also, you cannot move cells here to another row. You can change the cells' columns, but that will certainly generate conflicts if any col/rowspans are involved (in general, you cannot bulk-change col/rowspans without `map-cells`).
 
 3. `map-cols: (col_index, cells) => cells` (given a column index and all cells in it, return a new array of cells). Similar to `map-rows`, but for customizing columns. You cannot change the column of any cell here. (To do that, `map-cells` is required.)
 
@@ -217,18 +220,23 @@ Example:
     columns: 4,
     auto-vlines: true,
 
+    // make all cells italicized
     map-cells: cell => {
         (..cell, content: emph(cell.content))
     },
 
+    // add some arbitrary content to entire rows
     map-rows: (row, cells) => cells.map(c =>
         if c == none {
             c
         } else {
-            (..c, content: [#c.content])
+            (..c, content: [#c.content\ *R#row*])
         }
     ),
 
+    // color cells based on their columns
+    // (using 'fill: (column, row) => color' also works
+    // for this particular purpose)
     map-cols: (col, cells) => cells.map(c =>
         if c == none {
             c

@@ -190,25 +190,33 @@ s
     align: right,
     colspanx(2)[a], (),  [beeee],
     [c], rowspanx(2)[d], cellx(fill: blue, align: left)[e],
-    [f], (),             [g]
+    [f], (),             [g],
+
+    // place this cell at the first column, seventh row
+    cellx(colspan: 3, align: center, x: 0, y: 6)[hi I'm down here]
 )
 
 #tablex(
     columns: 4,
     auto-vlines: true,
 
+    // make all cells italicized
     map-cells: cell => {
         (..cell, content: emph(cell.content))
     },
 
+    // add some arbitrary content to entire rows
     map-rows: (row, cells) => cells.map(c =>
         if c == none {
             c
         } else {
-            (..c, content: [#c.content])
+            (..c, content: [#c.content\ *R#row*])
         }
     ),
 
+    // color cells based on their columns
+    // (using 'fill: (column, row) => color' also works
+    // for this particular purpose)
     map-cols: (col, cells) => cells.map(c =>
         if c == none {
             c
