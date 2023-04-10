@@ -11,7 +11,9 @@ More powerful and customizable tables in Typst
     * [Repeat header rows](#repeat-header-rows)
     * [Customize every single line](#customize-every-single-line)
     * [Customize every single cell](#customize-every-single-cell)
-* [Documentation](#documentation)
+* [Reference](#reference)
+    * [Basic types and functions](#basic-types-and-functions)
+    * [Gridx and Tablex](#gridx-and-tablex)
 * [0.1.0 Roadmap](#010-roadmap)
 
 ## Features
@@ -244,9 +246,191 @@ Example:
 ![image](https://user-images.githubusercontent.com/9021226/230810983-32136a1c-35fb-46cc-9935-399e680b4d5b.png)
 
 
-## Documentation
+## Reference
 
+### Basic types and functions
 
+1. `cellx`: Represents a table cell, and is initialized as follows:
+
+    ```js
+    #let cellx(content,
+        x: auto, y: auto,
+        rowspan: 1, colspan: 1,
+        fill: auto, align: auto,
+        inset: auto
+    ) = (
+        tablex-dict-type: "cell",
+        content: content,
+        rowspan: rowspan,
+        colspan: colspan,
+        align: align,
+        fill: fill,
+        inset: inset,
+        x: x,
+        y: y,
+    )
+    ```
+    where:
+
+    - `tablex-dict-type` is the type marker
+    - `content` is the cell's content (either `content` or a function with `(col, row) => content`)
+    - `rowspan` is how many rows this cell spans (default 1)
+    - `colspan` is how many columns this cell spans (default 1)
+    - `align` is this cell's align override, such as "center" (default `auto` to follow the rest of the table)
+    - `fill` is this cell's fill override, such as "blue" (default `auto` to follow the rest of the table)
+    - `inset` is this cell's inset override, such as `5pt` (default `auto` to follow the rest of the table)
+    - `x` is the cell's column index (0..len-1) - `auto` indicates it wasn't assigned yet
+    - `y` is the cell's row index (0..len-1) - `auto` indicates it wasn't assigned yet
+
+2. `hlinex`: represents a horizontal line:
+
+    ```js
+    #let hlinex(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+        tablex-dict-type: "hline",
+        start: start,
+        end: end,
+        y: y,
+        stroke: stroke,
+        stop-pre-gutter: stop-pre-gutter,
+        gutter-restrict: gutter-restrict,
+    )
+    ```
+
+    where:
+
+    - `tablex-dict-type` is the type marker
+    - `start` is the column index where the hline starts from (default `0`, a.k.a. the beginning)
+    - `end` is the last column the hline touches (default `auto`, a.k.a. all the way to the end)
+        - Note that hlines will *not* be drawn over cells with `colspan` larger than 1, even if their spans (`start`-`end`) include that cell.
+    - `y` is the index of the row at the top of which the hline is drawn. (Defaults to `auto`, a.k.a. depends on where you placed the `hline` among the table items - it's always on the top of the row below the current one.)
+    - `stroke` is the hline's stroke override (defaults to `auto`, a.k.a. follow the rest of the table).
+    - `stop-pre-gutter`: When `true`, the hline will not be drawn over gutter (which is the default behavior of tables). Defaults to `auto` which is essentially `false` (draw over gutter).
+    - `gutter-restrict`: Either `top`, `bottom`, or `none`. Has no effect if `row-gutter` is set to `none`. Otherwise, defines if this `hline` should be drawn only on the top of the row gutter (`top`); on the bottom (`bottom`); or on both the top and the bottom (`none`, the default). Note that `top` and `bottom` are alignment values (not strings).
+
+3. `vlinex`: represents a vertical line:
+
+    ```js
+    #let vlinex(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+        tablex-dict-type: "vline",
+        start: start,
+        end: end,
+        x: x,
+        stroke: stroke,
+        stop-pre-gutter: stop-pre-gutter,
+        gutter-restrict: gutter-restrict,
+    )
+    ```
+
+    where:
+
+    - `tablex-dict-type` is the type marker
+    - `start` is the row index where the vline starts from (default `0`, a.k.a. the top)
+    - `end` is the last row the vline touches (default `auto`, a.k.a. all the way to the bottom)
+        - Note that vlines will *not* be drawn over cells with `rowspan` larger than 1, even if their spans (`start`-`end`) include that cell.
+    - `x` is the index of the column to the left of which the vline is drawn. (Defaults to `auto`, a.k.a. depends on where you placed the `vline` among the table items.)
+        - For a `vline` to be placed after all columns, its `x` value will be equal to the amount of columns (which isn't a valid column index, but it's what is used here).
+    - `stroke` is the vline's stroke override (defaults to `auto`, a.k.a. follow the rest of the table).
+    - `stop-pre-gutter`: When `true`, the vline will not be drawn over gutter (which is the default behavior of tables). Defaults to `auto` which is essentially `false` (draw over gutter).
+    - `gutter-restrict`: Either `left`, `right`, or `none`. Has no effect if `column-gutter` is set to `none`. Otherwise, defines if this `vline` should be drawn only to the left of the column gutter (`left`); to the right (`right`); or on both the left and the right (`none`, the default). Note that `left` and `right` are alignment values (not strings).
+
+4. The `occupied` type is an internal type used to represent cell positions occupied by cells with `colspan` or `rowspan` greater than 1. 
+
+5. Use `is-tablex-cell`, `is-tablex-hline`, `is-tablex-vline` and `is-tablex-occupied` to check if a particular object has the corresponding type marker.
+
+6. `colspanx` and `rowspanx` are shorthands for setting the `colspan` and `rowspan` attributes of `cellx`. They can also be nested (one given as an argument to the other) to combine their properties (e.g., `colspanx(2)(rowspanx(3)[a])`). They accept all other cell properties with named arguments. For example, `colspanx(2, align: center)[b]` is equivalent to `cellx(colspan: 2, align: center)[b]`.
+
+### Gridx and Tablex
+
+1. `gridx` is equivalent to `tablex` with `auto-lines: false`; see below.
+
+2. `tablex:` The main function for creating a table with this library:
+
+    ```js
+    #let tablex(
+        columns: auto, rows: auto,
+        inset: 5pt,
+        align: auto,
+        fill: none,
+        stroke: auto,
+        column-gutter: auto, row-gutter: auto,
+        gutter: none,
+        repeat-header: false,
+        header-rows: 1,
+        header-hlines-have-priority: true,
+        auto-lines: true,
+        auto-hlines: auto,
+        auto-vlines: auto,
+        map-cells: none,
+        map-hlines: none,
+        map-vlines: none,
+        map-rows: none,
+        map-cols: none,
+        ..items
+    ) = {
+    // ...
+    }
+    ```
+
+    **Parameters:**
+
+    - `columns`: The sizes of each column. They work just like regular `table`'s columns, and can be:
+        - an array of lengths (`1pt`, `2em`, `100%`, ...), including fractional (`2fr`), to specify the width of each column
+            - `auto` may be specified to automatically resize the column based on the space available
+            - when specifying fractional columns, the available space is divided between them, weighted on the fraction value of each column
+                - For example, with `(1fr, 2fr)`, the available space will be divided by 3 (1 + 2), and the first column will have 1/3 of the space, while the second will have 2/3.
+        - a single length like above, to indicate the width of a single column (equivalent to just placing it inside a unit array)
+        - an integer (such as `4`), as a shorthand for `(auto,) * 4` (that many `auto` columns)
+    - `rows`: The sizes of each row. They follow the exact same format as `columns`, except that the "available space" is infinite.
+        - *Note:* support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
+    - `inset`: Inset/internal padding to give to each cell. Defaults to `5pt` (the `#table` default).
+    -  `fill`: Color with which to fill cells' backgrounds. Defaults to `none`, or no fill. Must be either a `color`, such as `blue`, or a function `(column, row) => color` (to customize for each individual cell).
+
+    - `stroke`: Indicates how to draw the table lines. Defaults to the current line styles in the document. For example: `5pt + red` to change the color and the thickness.
+ 
+    - `column-gutter`: optional separation (length) between columns (such as `5pt`). Defaults to `none` (disable). At the moment, looks a bit ugly if your table has a `hline` attempting to cross a `colspan`.
+
+    - `row-gutter`: optional separation (length) between rows. Defaults to `none` (disable). At the moment, looks a bit ugly if your table has a `vline` attempting to cross a `rowspan`.
+
+    - `gutter`: Sets a length to both `column-` and `row-gutter` at the same time (overridable by each).
+
+    - `repeat-header`: Controls header repetition. If set to `true`, the first row (or the amount of rows specified in `header-rows`), including its rowspans, is repeated across all pages this table spans. If set to `false` (default), the aforementioned header row is not repeated in any page. If set to an integer (such as `4`), repeats for that many pages after the first, then stops. If set to an array of integers (such as `(3, 4)`), repeats only on those pages _relative to the table's first page_ (page 1 here is where the table is, so adding `1` to said array has no effect).
+
+        - **Warning:** This currently does not work properly if your document has pages of different sizes.
+
+    - `header-rows`: minimum amount of rows for the repeatable
+    header. 1 by default. Automatically increases if
+    one of the cells is a rowspan that would go beyond the
+    given amount of rows. For example, if 3 is given,
+    then at least the first 3 rows will repeat.
+
+    - `header-hlines-have-priority`: if `true`, the horizontal
+    lines below the header being repeated take priority
+    over the rows they appear atop of on further pages.
+    If `false`, they draw their own horizontal lines.
+    Defaults to `true`.
+        - For example, if your header has a blue hline under it, that blue hline will display on all pages it is repeated on if this option is `true`. If this option is `false`, the header will repeat, but the blue hline will not.
+
+    - `auto-lines`: Shorthand to apply a boolean to both `auto-hlines` and `auto-vlines` at the same time (overridable by each). Defaults to `true`.
+
+    - `auto-hlines`: If `true`, draw a horizontal line on every line where you did not manually draw one; if `false`, no hlines other than the ones you specify (via `hlinex`) are drawn. Defaults to `auto` (follows `auto-lines`, which in turn defaults to `true`).
+
+    - `auto-vlines`: If `true`, draw a vertical line on every line where you did not manually draw one; if `false`, no vlines other than the ones you specify (via `vlinex`) are drawn. Defaults to `auto` (follows `auto-lines`, which in turn defaults to `true`).
+
+    - `map-cells`: A function which takes a single `cellx` and returns another `cellx`, or a `content` which is converted to `cellx` by `cellx[#content]`. You can customize the cell in pretty much any way using this function; just take care to avoid conflicting with already-placed cells if you move it.
+
+    - `map-hlines`: A function which takes each horizontal line object (`hlinex`) and returns another, optionally modifying its properties. You may also change its row position (`y`). Note that this is also applied to lines generated by `auto-hlines`.
+
+    - `map-vlines`: A function which takes each horizontal line object (`vlinex`) and returns another, optionally modifying its properties. You may also change its column position (`x`). Note that this is also applied to lines generated by `auto-vlines`.
+
+    - `map-rows`: A function mapping each row of cells to new values or modified properties.
+    Takes `(row_num, cell_array)` and returns
+    the modified `cell_array`. Note that, with your function, they
+    cannot be sent to another row. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
+
+    - `map-cols`: A function mapping each column of cells to new values or modified properties.
+    Takes `(col_num, cell_array)` and returns
+    the modified `cell_array`. Note that, with your function, they
+    cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## 0.1.0 Roadmap
 
