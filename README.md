@@ -28,6 +28,9 @@ More powerful and customizable tables in Typst
             - [X] `column-gutter`
             - [X] `row-gutter`
         - [ ] Hline, vline adaptations
+            - [X] `stop-pre-gutter`: Makes the hline/vline not transpose gutter
+            - [X] `gutter-restrict`: Makes the hline/vline not draw on both sides of a gutter boundary, and instead pick one (top/bottom; left/right)
+            - [ ] Properly work with gutters after colspans/rowspans
     - [X] `stroke`
         - [X] Basic support (change all lines, vline or hline, without override)
         - [X] `none` for no stroke
@@ -46,11 +49,11 @@ More powerful and customizable tables in Typst
         - [X] Reliably detect conflicts
     - [ ] Repeating headers
         - [X] Basic support (first row group repeats on every page)
-        - [ ] `repeat-header`: Control header repetition
-            - [ ] `true`: Repeat on all pages
-            - [ ] integer: Repeat for the next 'n' pages
-            - [ ] array of integers: Repeat on those (relative) pages
-            - [ ] `false` (default): Do not repeat
+        - [X] `repeat-header`: Control header repetition
+            - [X] `true`: Repeat on all pages
+            - [X] integer: Repeat for the next 'n' pages
+            - [X] array of integers: Repeat on those (relative) pages
+            - [X] `false` (default): Do not repeat
         - [ ] `header`: Indicate what to consider as a "header"
             - [ ] integer: At least first 'n' rows are a header (plus whatever rowspans show up there)
                 - [ ] Defaults to 1
@@ -68,9 +71,9 @@ More powerful and customizable tables in Typst
         - [X] `auto-hlines` - `true` to place on all lines without hlines, `false` otherwise
         - [X] `auto-vlines` - similar
         - [X] `auto-lines` - controls both simultaneously (defaults to `true`)
-    - [ ] Iteration attributes
-        - [ ] `map-cells` - Customize every single cell
-        - [ ] `map-hlines` - Customize each horizontal line
-        - [ ] `map-vlines` - Customize each vertical line
-        - [ ] `map-rows` - Customize entire rows of cells
-        - [ ] `map-cols` - Customize entire columns of cells
+    - [X] Iteration attributes
+        - [X] `map-cells` - Customize every single cell
+        - [X] `map-hlines` - Customize each horizontal line
+        - [X] `map-vlines` - Customize each vertical line
+        - [X] `map-rows` - Customize entire rows of cells
+        - [X] `map-cols` - Customize entire columns of cells
