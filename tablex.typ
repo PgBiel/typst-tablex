@@ -1540,10 +1540,14 @@
             let first_x = none
             let first_y = none
 
-            let tallest_box_h = 0pt
+            let row_heights = 0pt
 
             let first_row = true
             for row in group-rows {
+                if row.len() > 0 {
+                    let first_cell = row.at(0)
+                    row_heights += rows.at(first_cell.cell.y)
+                }
                 for cell_box in row {
                     let x = cell_box.cell.x
                     let y = cell_box.cell.y
@@ -1556,13 +1560,13 @@
                         dy: height-between(start: first_y, end: y) + added_header_height,
                         cell_box.box)
 
-                    let box_h = measure(cell_box.box, styles).height
-                    tallest_box_h = calc.max(tallest_box_h, box_h)
+                    // let box_h = measure(cell_box.box, styles).height
+                    // tallest_box_h = calc.max(tallest_box_h, box_h)
                 }
                 first_row = false
             }
 
-            let row_group_height = tallest_box_h + added_header_height + row_gutter_dy
+            let row_group_height = row_heights + added_header_height + row_gutter_dy
 
             let is_last_row = pos.y + row_group_height + row_gutter_dy >= max-pos.y
 
