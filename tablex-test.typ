@@ -171,6 +171,10 @@ s
     [f], (),             [g], [L],
 )
 
+.
+
+.
+
 #tablex(
     columns: 3,
     map-hlines: h => (..h, stroke: blue),
