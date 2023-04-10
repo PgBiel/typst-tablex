@@ -1653,6 +1653,7 @@
     header-hlines-have-priority: true,
     min-pos: none,
     max-pos: none,
+    header-rows: 1,
     table-loc: none,
 ) = {
     let col_len = columns.len()
@@ -1677,6 +1678,8 @@
 
     let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
     let current_row = 0
+    let header_rows_count = header-rows
+
     for row in range(0, row_len) {
         let hlines = hlines.filter(h => (
             h.y in (current_row, current_row + 1)
@@ -1722,11 +1725,12 @@
 
         current_row += 1
         row_group_add_counter += max_rowspan
-        row_group_add_counter -= 1  // one row added
+        row_group_add_counter = calc.max(0, row_group_add_counter - 1)  // one row added
+        header_rows_count = calc.max(0, header_rows_count - 1)  // ensure at least the amount of requested header rows was added
 
         // added all pertaining rows to the group
         // now we can draw it
-        if row_group_add_counter <= 0 {
+        if row_group_add_counter <= 0 and header_rows_count <= 0 {
             row_group_add_counter = 1
 
             let row_group = this_row_group
@@ -1953,7 +1957,21 @@
     (grid: grid, hlines: hlines, vlines: vlines)
 }
 
-#let validate-repeat-header(repeat-header) = {
+#let validate-header-rows(header-rows) = {
+    header-rows = default-if-auto(default-if-none(header-rows, 0), 1)
+
+    if type(header-rows) != "integer" or header-rows < 0 {
+        panic("Tablex error: 'header-rows' must be a (positive) integer.")
+    }
+
+    header-rows
+}
+
+#let validate-repeat-header(repeat-header, header-rows: none) = {
+    if header-rows == none or header-rows < 0 {
+        return false  // cannot repeat an empty header
+    }
+
     repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
 
     if type(repeat-header) not in ("boolean", "integer", "array") {
@@ -2006,6 +2024,12 @@
 // (where 1 is the first, so ignored); false = do not repeat
 // the first row group (default).
 //
+// header-rows: minimum amount of rows for the repeatable
+// header. 1 by default. Automatically increases if
+// one of the cells is a rowspan that would go beyond the
+// given amount of rows. For example, if 3 is given,
+// then at least the first 3 rows will repeat.
+//
 // header-hlines-have-priority: if true, the horizontal
 // lines below the header being repeated take priority
 // over the rows they appear atop of on further pages.
@@ -2057,6 +2081,7 @@
     column-gutter: auto, row-gutter: auto,
     gutter: none,
     repeat-header: false,
+    header-rows: 1,
     header-hlines-have-priority: true,
     auto-lines: true,
     auto-hlines: auto,
@@ -2072,7 +2097,8 @@
 
     get-page-dim-writer(page_dimensions)  // place it so it does its job
 
-    let repeat-header = validate-repeat-header(repeat-header)
+    let header-rows = validate-header-rows(header-rows)
+    let repeat-header = validate-repeat-header(repeat-header, header-rows: header-rows)
     let header-hlines-have-priority = validate-header-hlines-priority(header-hlines-have-priority)
     let map-cells = parse-map-func(map-cells)
     let map-hlines = parse-map-func(map-hlines)
@@ -2179,6 +2205,7 @@
             styles: styles,
             repeat-header: repeat-header,
             header-hlines-have-priority: header-hlines-have-priority,
+            header-rows: header-rows,
             min-pos: min_pos,
             max-pos: max_pos,
             table-loc: t_loc
