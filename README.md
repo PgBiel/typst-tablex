@@ -148,7 +148,7 @@ Here's a sample:
 )
 ```
 
-![image](https://user-images.githubusercontent.com/9021226/230810856-045f6c2c-05fb-4827-97de-e7af14df594f.png)
+![image](https://user-images.githubusercontent.com/9021226/230817335-8a908d44-77be-45d2-b98f-89e9ccf07dc7.png)
 
 #### Bulk line customization
 
