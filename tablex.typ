@@ -1682,6 +1682,9 @@
             h.y in (current_row, current_row + 1)
         ))  // keep online hlines above or below this row
 
+        // maximum cell total rowspan in this row
+        let max_rowspan = 0
+
         for column in range(0, col_len) {
             let cell = grid-at(grid, column, row)
             let lines_dict = v-and-hline-spans-for-cell(cell, hlines: hlines)
@@ -1690,7 +1693,7 @@
 
             if is-tablex-cell(cell) {
                 // ensure row-spanned rows are in the same group
-                row_group_add_counter += calc.max(0, cell.rowspan - 1)
+                max_rowspan = calc.max(max_rowspan, cell.rowspan - 1)
 
                 let width = cell-width(cell.x, colspan: cell.colspan)
                 let height = cell-height(cell.y, rowspan: cell.rowspan)
@@ -1718,6 +1721,7 @@
         }
 
         current_row += 1
+        row_group_add_counter += max_rowspan
         row_group_add_counter -= 1  // one row added
 
         // added all pertaining rows to the group
