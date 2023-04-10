@@ -1421,7 +1421,12 @@
         align(cell_align)[#content]
     }
 
-    box(width: width, height: height, inset: inset, fill: cell_fill,
+    box(
+        width: width, height: height,
+        inset: inset, fill: cell_fill,
+        // avoid #set problems
+        baseline: 0pt,
+        outset: 0pt, radius: 0pt, stroke: none,
         aligned_cell_content)
 }
 
@@ -1517,7 +1522,10 @@
         let page_turned = page not in header_pages
 
         // draw row group
-        block(breakable: false, {
+        block(
+            breakable: false,
+            fill: none, radius: 0pt, stroke: none,
+        {
             let added_header_height = 0pt  // if we added a header, move down
 
             // page turned => add header
