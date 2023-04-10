@@ -33,6 +33,8 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 )
 ```
 
+![image](https://user-images.githubusercontent.com/9021226/230810678-3d60c0e1-f757-4ee9-a171-44bde0f464f8.png)
+
 You _might_ find issues in certain cases, especially when using _gutter_, which isn't fully implemented right now. However, for the most part, it should work.
 
 ### colspan/rowspan
@@ -43,10 +45,12 @@ Your cells can now span more than one column and/or row at once, with `colspanx`
 #tablex(
     columns: 3,
     colspanx(2)[a], (),  [b],
-    [c], rowspanx(2)[d], [e],
+    [c], rowspanx(2)[d], [ed],
     [f], (),             [g]
 )
 ```
+
+![image](https://user-images.githubusercontent.com/9021226/230810720-fbdfdbe5-8568-42ed-b8a2-5eff332a89d6.png)
 
 Note that the empty parentheses there are just for organization, and are ignored (unless they come before the first cell - more on that later). They're useful to help us keep track of which cell positions are being used up by the spans because, if we try to add an actual cell at these spots, it will just push the others forward, which might seem unexpected.
 
@@ -89,6 +93,9 @@ Example:
     [Frog], [Animal], [6 $"cm"^3$], [Rodbert],
 )
 ```
+
+![image](https://user-images.githubusercontent.com/9021226/230810751-776a73c4-9c24-46ba-92cd-76292469ab7d.png)
+
 
 ### Customize every single line
 
@@ -139,6 +146,8 @@ Here's a sample:
 )
 ```
 
+![image](https://user-images.githubusercontent.com/9021226/230810856-045f6c2c-05fb-4827-97de-e7af14df594f.png)
+
 #### Bulk line customization
 
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. For example:
@@ -153,6 +162,9 @@ You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` a
     [f], (),             [g]
 )
 ```
+
+![image](https://user-images.githubusercontent.com/9021226/230810904-fde2ee5d-8f9e-4b8b-a981-0df7d3fad93f.png)
+
 
 ### Customize every single cell
 
@@ -180,6 +192,9 @@ For example:
     [f], (),             [g]
 )
 ```
+
+![image](https://user-images.githubusercontent.com/9021226/230810948-fbccf096-7e28-4fbe-90f8-ca6a70238a4f.png)
+
 
 #### Bulk customization of cells
 
@@ -225,6 +240,9 @@ Example:
     [f], (),             [g], [L],
 )
 ```
+
+![image](https://user-images.githubusercontent.com/9021226/230810983-32136a1c-35fb-46cc-9935-399e680b4d5b.png)
+
 
 ## Documentation
 
