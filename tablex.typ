@@ -1663,6 +1663,7 @@
     max-pos: none,
     header-rows: 1,
     table-loc: none,
+    table-id: none,
 ) = {
     let col_len = columns.len()
     let row_len = rows.len()
@@ -1679,7 +1680,7 @@
     // if one of their cells spans multiple rows.
     let first_row_group = none
 
-    let header_pages = state("tablex_tablex_header_pages", (table-loc.page(),))
+    let header_pages = state("tablex_tablex_header_pages__" + repr(table-id), (table-loc.page(),))
     let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
 
     let total_width = width-between(end: none)
@@ -2218,7 +2219,8 @@
             header-rows: header-rows,
             min-pos: min_pos,
             max-pos: max_pos,
-            table-loc: t_loc
+            table-loc: t_loc,
+            table-id: table_id
         )
 
         grid(columns: (auto,), rows: auto, ..row_groups)
