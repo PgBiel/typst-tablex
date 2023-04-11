@@ -224,9 +224,9 @@
     let colspan = if "colspan" in cell { cell.colspan } else { 1 }
 
     if rowspan < 1 {
-        panic("Cell rowspan must be 1 or greater (bad cell: ", (x, y), ")")
+        panic("Cell rowspan must be 1 or greater (bad cell: " + repr((x, y)) + ")")
     } else if colspan < 1 {
-        panic("Cell colspan must be 1 or greater (bad cell: ", (x, y), ")")
+        panic("Cell colspan must be 1 or greater (bad cell: " + repr((x, y)) + ")")
     }
 
     let max_x = x + colspan
@@ -600,7 +600,7 @@
         }
 
         if this_x == none or this_y == none {
-            panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: ", (prev_x, prev_y), ", new cell: ", cell, ")")
+            panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: " + repr((prev_x, prev_y)) + ", new cell: " + repr(cell) + ")")
         }
 
         cell.x = this_x
@@ -677,7 +677,7 @@
                 let index = grid-index-at(this_x, this_y)
 
                 if index > grid.items.len() {
-                    panic("Internal tablex error: Could not expand grid to include cell at ", (this_x, this_y))
+                    panic("Internal tablex error: Could not expand grid to include cell at " + repr((this_x, this_y)))
                 }
                 grid.items.at(index) = cell
                 items.at(i) = cell
@@ -956,7 +956,6 @@
                 remaining: remaining_size,
                 gutter: col-gutter
             )
-            // if remaining_size > 0pt { panic(frac_res, remaining_size, auto_cols_result, available_size, page_width) }
 
             columns = frac_res.tracks
             fixed-size-gutter = frac_res.gutter
@@ -1227,7 +1226,7 @@
     let parent_cell = get-parent-cell(cell, grid: grid)
 
     if parent_cell != cell and parent_cell.colspan <= 1 and parent_cell.rowspan <= 1 {
-        panic("Bad parent cell: ", (parent_cell.x, parent_cell.y), " cannot be a parent of ", (cell.x, cell.y), ": it only occupies one cell slot.")
+        panic("Bad parent cell: " + repr((parent_cell.x, parent_cell.y)) + " cannot be a parent of " + repr((cell.x, cell.y)) + ": it only occupies one cell slot.")
     }
 
     let hlines = hlines
