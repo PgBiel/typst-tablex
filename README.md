@@ -35,8 +35,8 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 #import "tablex.typ": tablex
 
 #tablex(
-    columns: (auto, 1em, 1fr, 1fr),  // 3 columns
-    rows: auto,  // at least 1 row of auto size,
+    columns: (auto, 1em, 1fr, 1fr),  // 4 columns
+    rows: auto,  // at least 1 row of auto size
     fill: red,
     align: center + horizon,
     stroke: green,
@@ -430,8 +430,9 @@ Example:
                 - For example, with `(1fr, 2fr)`, the available space will be divided by 3 (1 + 2), and the first column will have 1/3 of the space, while the second will have 2/3.
         - a single length like above, to indicate the width of a single column (equivalent to just placing it inside a unit array)
         - an integer (such as `4`), as a shorthand for `(auto,) * 4` (that many `auto` columns)
-    - `rows`: The sizes of each row. They follow the exact same format as `columns`, except that the "available space" is infinite.
-        - *Note:* support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
+    - `rows`: The sizes of each row. They follow the exact same format as `columns`, except that the "available space" is infinite (auto rows can expand as much as is needed, as the table can add rows over multiple pages).
+        - **Note:** If more rows than specified are added, the height for the **last row** will be the one assigned to all extra rows. (If the last row is `auto`, the extra ones will also be `auto`, for example.)
+        - **Warning:** support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
     - `inset`: Inset/internal padding to give to each cell. Defaults to `5pt` (the `#table` default).
     -  `fill`: Color with which to fill cells' backgrounds. Defaults to `none`, or no fill. Must be either a `color`, such as `blue`, or a function `(column, row) => color` (to customize for each individual cell).
 
