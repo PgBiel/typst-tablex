@@ -276,6 +276,11 @@ s
 #set page(width: 300pt, height: 1000pt)
 
 #tablex(
-    columns: 3,
+    columns: (1fr, 1fr, 1fr),
+    [a], [b], [c]
+)
+
+#table(
+    columns: (1fr, 1fr, 1fr),
     [a], [b], [c]
 )
