@@ -272,3 +272,10 @@ s
     [g], [h], [i],
     [f], [j], [e\ b\ c\ d],
 )
+
+#set page(width: 300pt, height: 1000pt)
+
+#tablex(
+    columns: 3,
+    [a], [b], [c]
+)
