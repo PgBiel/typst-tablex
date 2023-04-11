@@ -263,10 +263,12 @@ s
 )
 
 #v(35em)
-#set page(width: 200pt)
+#set page(width: auto, height: auto)
+
 #tablex(
-    columns: (1fr, 1fr, 1fr),
+    columns: 3,
     [a], [b], [c],
     [d], [e], [f],
-    [g], [h], [i]
+    [g], [h], [i],
+    [f], [j], [e\ b\ c\ d],
 )
