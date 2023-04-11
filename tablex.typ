@@ -999,7 +999,7 @@
 }
 
 // calculate the size of auto rows (based on the max height of their cells)
-#let determine-auto-rows(grid: (), styles: none, rows: none, inset: none) = {
+#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, inset: none) = {
     assert(styles != none, message: "Cannot measure auto rows without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -1029,7 +1029,7 @@
 
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
-                        let height = measure(pcell.content, styles).height + 2*cell_inset
+                        let height = measure(box(width: columns.at(pcell.x), pcell.content), styles).height + 2*cell_inset
                         let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows, inset: inset)
 
                         calc.max(max, height - fixed_size, 0pt)
@@ -1047,7 +1047,7 @@
     (total: total_auto_size, sizes: auto_sizes, rows: new_rows)
 }
 
-#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, rows: none, inset: none, row-gutter: none) = {
+#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
         if type(r) in ("length", "relative length", "ratio") {
             convert-length-to-pt(r, styles: styles, page_size: page_height)
@@ -1057,7 +1057,7 @@
     })
 
     let auto_rows_res = determine-auto-rows(
-        grid: grid, rows: rows, styles: styles, inset: inset
+        grid: grid, columns: columns, rows: rows, styles: styles, inset: inset
     )
 
     let auto_size = auto_rows_res.total
@@ -1118,7 +1118,9 @@
 
     let rows_res = determine-row-sizes(
         grid: grid,
-        page_height: page_height, styles: styles, rows: rows,
+        page_height: page_height, styles: styles,
+        columns: columns,  // so we consider available width
+        rows: rows,
         inset: inset,
         row-gutter: gutter.row
     )
@@ -1710,7 +1712,7 @@
 
             if is-tablex-cell(cell) {
                 // ensure row-spanned rows are in the same group
-                max_rowspan = calc.max(max_rowspan, cell.rowspan - 1)
+                row_group_add_counter = calc.max(row_group_add_counter, cell.rowspan)
 
                 let width = cell-width(cell.x, colspan: cell.colspan)
                 let height = cell-height(cell.y, rowspan: cell.rowspan)
@@ -1738,7 +1740,6 @@
         }
 
         current_row += 1
-        row_group_add_counter += max_rowspan
         row_group_add_counter = calc.max(0, row_group_add_counter - 1)  // one row added
         header_rows_count = calc.max(0, header_rows_count - 1)  // ensure at least the amount of requested header rows was added
 
