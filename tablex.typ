@@ -1,6 +1,10 @@
 // Welcome to tablex!
 // Feel free to contribute with any features you think are missing.
 
+// -- table counter --
+
+#let _tablex-table-counter = counter("_tablex-table-counter")
+
 // -- types --
 
 #let hlinex(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
@@ -1438,7 +1442,8 @@
 // considering the left and top margins.
 // Requires placing 'get-page-dim-writer(the_returned_state)' on the
 // document.
-#let get-page-dim-state() = state("tablex_tablex_page_dims", (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
+// The id is to differentiate the state for each table.
+#let get-page-dim-state(id) = state("tablex_tablex_page_dims__" + repr(id), (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
 
 // A little trick to get the page max width and max height.
 // Places a component on the page (or outer container)'s top left,
@@ -1451,7 +1456,10 @@
 // NOTE: This function cannot differentiate between the actual page
 // and a possible box or block where the component using this function
 // could be contained in.
-#let get-page-dim-writer(page_dim_state) = {
+#let get-page-dim-writer() = locate(w_loc => {
+    let table_id = _tablex-table-counter.at(w_loc)
+    let page_dim_state = get-page-dim-state(table_id)
+
     place(top + left, locate(loc => {
         page_dim_state.update(s => {
             if s.top_left != none {
@@ -1477,7 +1485,7 @@
             }
         })
     }))
-}
+})
 
 // Draws a row group using locate() and a block().
 #let draw-row-group(
@@ -2093,9 +2101,9 @@
     map-cols: none,
     ..items
 ) = {
-    let page_dimensions = get-page-dim-state()
+    _tablex-table-counter.step()
 
-    get-page-dim-writer(page_dimensions)  // place it so it does its job
+    get-page-dim-writer()  // get the current page's dimensions
 
     let header-rows = validate-header-rows(header-rows)
     let repeat-header = validate-repeat-header(repeat-header, header-rows: header-rows)
@@ -2107,6 +2115,8 @@
     let map-cols = parse-map-func(map-cols, uses-second-param: true)
 
     locate(t_loc => style(styles => {
+        let table_id = _tablex-table-counter.at(t_loc)
+        let page_dimensions = get-page-dim-state(table_id)
         let page_dim_at = page_dimensions.final(t_loc)
         let t_pos = t_loc.position()
 
