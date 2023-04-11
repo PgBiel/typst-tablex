@@ -817,7 +817,7 @@
 // sizes of the columns it spans, when those columns have fixed sizes.
 // Useful to subtract from the total width to find out how much more
 // should an auto column extend to have that cell fit in the table.
-#let get-colspan-fixed-size-covered(cell, columns: none, inset: none) = {
+#let get-colspan-fixed-size-covered(cell, columns: none) = {
     let cell_cols = range(cell.x, cell.x + cell.colspan)
     let size = 0pt
 
@@ -836,7 +836,7 @@
 // sizes of the rows it spans, when those rows have fixed sizes.
 // Useful to subtract from the total height to find out how much more
 // should an auto row extend to have that cell fit in the table.
-#let get-rowspan-fixed-size-covered(cell, rows: none, inset: none) = {
+#let get-rowspan-fixed-size-covered(cell, rows: none) = {
     let cell_rows = range(cell.y, cell.y + cell.rowspan)
     let size = 0pt
 
@@ -883,7 +883,7 @@
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
                         let width = measure(pcell.content, styles).width + 2*cell_inset
-                        let fixed_size = get-colspan-fixed-size-covered(pcell, columns: columns, inset: inset)
+                        let fixed_size = get-colspan-fixed-size-covered(pcell, columns: columns)
 
                         calc.max(max, width - fixed_size, 0pt)
                     } else {
@@ -900,7 +900,7 @@
     (total: total_auto_size, sizes: auto_sizes, columns: new_columns)
 }
 
-#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none, inset: none) = {
+#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
     let remaining = available
     let auto_cols_remaining = auto_cols.len()
 
@@ -979,8 +979,7 @@
                 columns = fit-auto-columns(
                     available: available_size,
                     auto_cols: auto_sizes,
-                    columns: columns,
-                    inset: inset
+                    columns: columns
                 )
             }
 
@@ -1043,8 +1042,10 @@
 
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
-                        let height = measure(box(width: columns.at(pcell.x), pcell.content), styles).height + 2*cell_inset
-                        let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows, inset: inset)
+                        let width = get-colspan-fixed-size-covered(pcell, columns: columns)
+
+                        let height = measure(box(width: width, pcell.content), styles).height + 2*cell_inset
+                        let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows)
 
                         calc.max(max, height - fixed_size, 0pt)
                     } else {
@@ -1515,7 +1516,7 @@
     header-pages-state: none,
     first-row-group: none,
     columns: none, rows: none,
-    inset: none, stroke: none,
+    stroke: none,
     gutter: none,
     repeat-header: false,
     styles: none,
@@ -1779,7 +1780,7 @@
                 header-pages-state: header_pages,
                 first-row-group: first_row_group,
                 columns: columns, rows: rows,
-                stroke: stroke, inset: inset,
+                stroke: stroke,
                 gutter: gutter,
                 repeat-header: repeat-header,
                 total-width: total_width,
