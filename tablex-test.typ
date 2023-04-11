@@ -236,6 +236,7 @@ s
     colspanx(2, rotate(30deg)[a]), rotate(30deg)[a], rotate(30deg)[a],rotate(30deg)[a],
 )
 
+#set page(width: 300pt)
 #pagebreak()
 #v(80%)
 
@@ -259,4 +260,13 @@ s
     [Frog], [Animal], [6 $"cm"^3$], [Robert],
     [Frog], [Animal], [6 $"cm"^3$], [Robert],
     [Frog], [Animal], [6 $"cm"^3$], [Rodbert],
+)
+
+#v(35em)
+#set page(width: 200pt)
+#tablex(
+    columns: (1fr, 1fr, 1fr),
+    [a], [b], [c],
+    [d], [e], [f],
+    [g], [h], [i]
 )
