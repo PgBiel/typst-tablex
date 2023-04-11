@@ -1,20 +1,29 @@
-# typst-tablex (BETA)
-More powerful and customizable tables in Typst
+# typst-tablex (v0.0.1)
+**More powerful and customizable tables in Typst.**
 
-**NOTE:** There are still several bugs with this library, but most of them shouldn't be noticeable (except for gutter things). *Please open an issue if you find a bug* and I'll get to it as soon as I can.
+**NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
 
 ## Table of Contents
 
+* [Usage](#usage)
 * [Features](#features)
     * [_Almost_ drop-in replacement for `#table`](#almost-drop-in-replacement-for-table)
-    * [colspan/rowspan](#colspanrowspan)
+    * [colspanx/rowspanx](#colspanxrowspanx)
     * [Repeat header rows](#repeat-header-rows)
     * [Customize every single line](#customize-every-single-line)
     * [Customize every single cell](#customize-every-single-cell)
+* [Known Issues](#known-issues)
 * [Reference](#reference)
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [0.1.0 Roadmap](#010-roadmap)
+
+## Usage
+
+To use this library, download the file `tablex.typ` from the latest release (or from the repository itself) and place it on the same folder as your own typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whatever other function you use from the library).
+
+This library should be compatible with (at least) Typst v0.1.0 and v0.2.0. (Previous versions weren't tested.)
+**Using the latest typst version (v0.2.0+) is recommended**, as it fixes certain minor layout issues, and also brings compilation speed improvements.
 
 ## Features
 
@@ -23,6 +32,8 @@ More powerful and customizable tables in Typst
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```js
+#import "tablex.typ": tablex
+
 #tablex(
     columns: (auto, 1em, 1fr, 1fr),  // 3 columns
     rows: auto,  // at least 1 row of auto size,
@@ -37,13 +48,15 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 
 ![image](https://user-images.githubusercontent.com/9021226/230818397-2d599324-32a5-4184-973f-2fcfb6b62c84.png)
 
-You _might_ find issues in certain cases, especially when using _gutter_, which isn't fully implemented right now. However, for the most part, it should work.
+You _might_ find issues in certain cases, especially when using gutter with colspans/rowspans. (See [Known Issues](#known-issues) for more info.) For the vast majority of cases, though, replacing `#tablex` by `#table` should work just fine. (Sometimes you can even replace `#grid` by `#gridx` - see the line customization section for more -, but not always, as the behavior is a bit different.)
 
-### colspan/rowspan
+### colspanx/rowspanx
 
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```js
+#import "tablex.typ": tablex, colspanx, rowspanx
+
 #tablex(
     columns: 3,
     colspanx(2)[a], (),  [b],
@@ -54,7 +67,7 @@ Your cells can now span more than one column and/or row at once, with `colspanx`
 
 ![image](https://user-images.githubusercontent.com/9021226/230810720-fbdfdbe5-8568-42ed-b8a2-5eff332a89d6.png)
 
-Note that the empty parentheses there are just for organization, and are ignored (unless they come before the first cell - more on that later). They're useful to help us keep track of which cell positions are being used up by the spans because, if we try to add an actual cell at these spots, it will just push the others forward, which might seem unexpected.
+Note that the empty parentheses there are just for organization, and are ignored (unless they come before the first cell - more on that later). They're useful to help us keep track of which cell positions are being used up by the spans, because, if we try to add an actual cell at these spots, it will just push the others forward, which might seem unexpected.
 
 Use `colspanx(2)(rowspanx(2)[d])` to colspan and rowspan at the same time. Be careful not to attempt to overwrite other cells' spans, as you will get a nasty error.
 
@@ -66,11 +79,13 @@ Note that you may wish to customize this. Use `repeat-header: 6` to repeat for 6
 
 Also, note that, by default, the horizontal lines below the header are transported to other pages, which may be an annoyance if you customize lines too much (see below). Use `header-hlines-have-priority: false` to ensure that the first row in each page will dictate the appearance of the horizontal lines above it (and not the header).
 
-**Warning:** This feature is currently _broken_ if you have **pages of different sizes** in your document. This should be improved in a future update, and will depend on changes in typst itself as well.
+**Note:** Please open a GitHub issue if you have any issues with this feature. Note that the table must be contained within pages of same dimensions and (top) margins for this to work properly (or, really, for most things in `tablex` to work properly).
 
 Example:
 
 ```js
+#import "tablex.typ": tablex, hlinex, vlinex, colspanx, rowspanx
+
 #pagebreak()
 #v(80%)
 
@@ -101,28 +116,33 @@ Example:
 
 ### Customize every single line
 
-Every single line in the table is either a `hlinex` (horizontal) or `vlinex` (vertical) instance. By default, there is one between every column and between every row - unless you specify a custom line for some column or row, in which case the automatic line for it will be removed. To disable this behavior, use `auto-lines: false`, which will remove _all_ automatic lines. You may also remove only automatic horizontal lines with `auto-hlines: false`, and only vertical with `auto-vlines: false`.
+Every single line in the table is either a `hlinex` (horizontal) or `vlinex` (vertical) instance. By default, there is one between every column and between every row - unless you specify a custom line for some column or row, in which case the automatic line for it will be removed (to allow you to freely customize it). To disable this behavior, use `auto-lines: false`, which will remove _all_ automatic lines. You may also remove only automatic horizontal lines with `auto-hlines: false`, and only vertical with `auto-vlines: false`.
 
 **Note:** `gridx` is an alias for `tablex` with `auto-lines: false`.
 
-For your custom lines, write `hlinex()` at any position and it will add a horizontal line below the current cell row (or at the top, if before any cell). You can use `hlinex(start: a, end: b)` to control the cells which that line spans (`a` is the first column number and `b` is the last column number). You can also specify its stroke with `hlinex(stroke: red + 5pt)` for example. To position it at an arbitrary row, use `hlinex(y: 6)` or similar. (Columns and rows are indexed starting from 0.)
+For your custom lines, write `hlinex()` at any position and it will add a horizontal line below the current cell row (or at the top, if before any cell). You can use `hlinex(start: a, end: b)` to control the cells which that line spans (`a` is the first column number and `b` is the last column number). You can also specify its stroke (color/thickness) with `hlinex(stroke: red + 5pt)` for example. To position it at an arbitrary row, use `hlinex(y: 6)` or similar. (Columns and rows are indexed starting from 0.)
 
 Something similar occurs for `vlinex()`, which has `start`, `end` (first row and last row it spans), and also `stroke`. They will, by default, be placed to the right of the current cell, and will span the entire table (top to bottom). To override the default placement, use `vlinex(x: 2)` or similar.
 
 **Note:** Only one hline or vline with the same span (same start/end) can be placed at once.
 
-**Note:** You can also place vlines before the first cell, in which case _they will be placed consecutively, each after the last `vlinex()`_. That is, if you place several of them in a row (*before the first cell* only), then it will not place all of them at one location (which is what happens if you place them anywhere after the first cell), but rather one after the other. With this behavior, you can specify `()` between each vline to _skip_ certain positions (again, only before the first cell - afterwards, all `()` are ignored).
+**Note:** You can also place vlines before the first cell, in which case _they will be placed consecutively, each after the last `vlinex()`_. That is, if you place several of them in a row (*before the first cell* only), then it will not place all of them at one location (which is normally what happens if you try to place multiple vlines at once), but rather one after the other. With this behavior, you can also specify `()` between each vline to _skip_ certain positions (again, only before the first cell - afterwards, all `()` are ignored). Note that you can also just ignore this entirely and use `vlinex(x: 0)`, `vlinex(x: 1)`, ..., `vlinex(x: columns.len())` for full control.
 
-Here's a sample:
+Here's some sample usage:
 
 ```js
+#import "tablex.typ": tablex, hlinex, vlinex, colspanx, rowspanx
+
 #tablex(
     columns: 4,
     auto-lines: false,
+
+    // skip a column here         vv
     vlinex(), vlinex(), vlinex(), (), vlinex(),
     colspanx(2)[a], (),  [b], [J],
     [c], rowspanx(2)[d], [e], [K],
     [f], (),             [g], [L],
+    //   ^^ '()' after the first cell are 100% ignored
 )
 
 #tablex(
@@ -155,6 +175,8 @@ Here's a sample:
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```
+#import "tablex.typ": tablex, colspanx, rowspanx
+
 #tablex(
     columns: 3,
     map-hlines: h => (..h, stroke: blue),
@@ -172,19 +194,21 @@ You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` a
 
 Cells can be customized entirely. Instead of specifying content (e.g. `[text]`) as a table item, you can specify `cellx(property: a, property: b, ...)[text]`, which allows you to customize properties, such as:
 
-- `colspan: 2` (same as using `colspan(2, ...)[...]`)
-- `rowspan: 3` (same as using `rowspan(3, ...)[...]`)
+- `colspan: 2` (same as using `colspanx(2, ...)[...]`)
+- `rowspan: 3` (same as using `rowspanx(3, ...)[...]`)
 - `align: center` (override whole-table alignment for this cell)
 - `fill: blue` (fill just this cell with that color)
-- `inset: 0pt` (override inset for this cell - note that this can look off unless you use auto columns and rows)
-- `x: 5` (arbitrarily place the cell at the given column - may error if conflicts occur)
-- `y: 6` (arbitrarily place the cell at the given row - may error if conflicts occur)
+- `inset: 0pt` (override inset/internal padding for this cell - note that this can look off unless you use auto columns and rows)
+- `x: 5` (arbitrarily place the cell at the given column, beginning at 0 - may error if conflicts occur)
+- `y: 6` (arbitrarily place the cell at the given row, beginning at 0 - may error if conflicts occur)
 
 Additionally, instead of specifying content to the cell, you can specify a function `(column, row) => content`, allowing each cell to be aware of where it's positioned. (Note that positions are recorded in the cell's `.x` and `.y` attributes, and start as `auto` unless you specify otherwise.)
 
 For example:
 
 ```js
+#import "tablex.typ": tablex, cellx, colspanx, rowspanx
+
 #tablex(
     columns: 3,
     fill: red,
@@ -204,17 +228,19 @@ For example:
 
 To customize multiple cells at once, you have a few options:
 
-1. `map-cells: cell => cell` (given a cell, returns a new cell). You can use this to customize the cell's attributes, but also  to change its positions (however, avoid doing that as it can easily generate conflicts). You can access the cell's position with `cell.x` and `cell.y`. Use something like `(..cell, fill: blue)` for example to ensure the other properties are kept. (Calling `cellx` here is not necessary. If overriding content, use `content: [whatever]`).
+1. `map-cells: cell => cell` (given a cell, returns a new cell). You can use this to customize the cell's attributes, but also  to change its positions (however, avoid doing that as it can easily generate conflicts). You can access the cell's position with `cell.x` and `cell.y`. All other attributes are also accessible and changeable (see the `Reference` further below for a list). Return something like `(..cell, fill: blue)`, for example, to ensure the other properties (including the cell type marker) are kept. (Calling `cellx` here is not necessary. If overriding the cell's content, use `content: [whatever]`). This is useful if you want to, for example, customize a cell's fill color based on its contents, or add some content to every cell, or something similar.
 
-2. `map-rows: (row_index, cells) => cells` (given a row index and all cells in it, return a new array of cells). Allows customizing entire rows, but note that the cells in `cells` can be `none` if they're some position occupied by a colspan or rowspan of another cell. Ensure you return the cells in the order you were given, including the `none`s, for best results. Also, you cannot move cells here to another row. You can change the cells' columns, but that will certainly generate conflicts if any col/rowspans are involved (in general, you cannot bulk-change col/rowspans without `map-cells`).
+2. `map-rows: (row_index, cells) => cells` (given a row index and all cells in it, return a new array of cells). Allows customizing entire rows, but note that the cells in the `cells` parameter can be `none` if they're some position occupied by a colspan or rowspan of another cell. Ensure you return the cells in the order you were given, including the `none`s, for best results. Also, you cannot move cells here to another row. You can change the cells' columns (by changing their `x` property), but that will certainly generate conflicts if any col/rowspans are involved (in general, you cannot bulk-change col/rowspans without `map-cells`).
 
-3. `map-cols: (col_index, cells) => cells` (given a column index and all cells in it, return a new array of cells). Similar to `map-rows`, but for customizing columns. You cannot change the column of any cell here. (To do that, `map-cells` is required.)
+3. `map-cols: (col_index, cells) => cells` (given a column index and all cells in it, return a new array of cells). Similar to `map-rows`, but for customizing columns. You cannot change the column of any cell here. (To do that, `map-cells` is required.) You can, however, change its row (with `y`, but do that sparingly), and, of course, all other properties.
 
-**Note:** Execution order is `map-cells` => `map-cols` => `map-rows`.
+**Note:** Execution order is `map-cells` => `map-rows` => `map-cols`.
 
 Example:
 
 ```js
+#import "tablex.typ": tablex, colspanx, rowspanx
+
 #tablex(
     columns: 4,
     auto-vlines: true,
@@ -227,7 +253,7 @@ Example:
     // add some arbitrary content to entire rows
     map-rows: (row, cells) => cells.map(c =>
         if c == none {
-            c
+            c  // keeping 'none' is important
         } else {
             (..c, content: [#c.content\ *R#row*])
         }
@@ -252,6 +278,19 @@ Example:
 
 ![image](https://user-images.githubusercontent.com/9021226/230818347-30b49154-f444-4744-9415-dd4030b29393.png)
 
+## Known Issues
+
+- Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
+
+- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional height work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
+
+- By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
+
+- `tablex` can potentially be slower and/or take longer to compile than the default `table`. **Please use the latest typst version (v0.2.0+) to reduce this problem** (it brought great optimizations to some internal things). Still, we are looking for ways to better optimize the library (PRs are open!). However, re-compilation is usually fine thanks to typst's built-in memoization.
+
+- The internals of the library still aren't very well documented; I plan on adding more info about this eventually.
+
+- **Please open a GitHub issue for anything weird you come across** (make sure others haven't reported it first).
 
 ## Reference
 
@@ -292,7 +331,9 @@ Example:
 2. `hlinex`: represents a horizontal line:
 
     ```js
-    #let hlinex(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+    #let hlinex(
+        start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none
+    ) = (
         tablex-dict-type: "hline",
         start: start,
         end: end,
@@ -317,7 +358,9 @@ Example:
 3. `vlinex`: represents a vertical line:
 
     ```js
-    #let vlinex(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+    #let vlinex(
+        start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none
+    ) = (
         tablex-dict-type: "vline",
         start: start,
         end: end,
@@ -442,7 +485,7 @@ Example:
 ## 0.1.0 Roadmap
 
 - [ ] General
-    - [ ] More docs
+    - [X] More docs
     - [ ] Code cleanup
 - [ ] `#table` parity
     - [X] `columns:`, `rows:`
