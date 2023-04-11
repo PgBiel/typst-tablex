@@ -340,6 +340,10 @@
             panic("Cannot convert fraction to pt ('frac_total' not specified).")
         }
 
+        if frac_amount <= 0 {
+            return 0pt
+        }
+
         let len_per_frac = frac_total / frac_amount
 
         (len_per_frac * (len / 1fr)) + 0pt
@@ -899,6 +903,11 @@
 #let fit-auto-columns(available: 0pt, auto_cols: none, columns: none, inset: none) = {
     let remaining = available
     let auto_cols_remaining = auto_cols.len()
+
+    if auto_cols_remaining <= 0 {
+        return columns
+    }
+
     let fair_share = remaining / auto_cols_remaining
 
     for i_col in auto_cols {
@@ -906,6 +915,11 @@
         let col = i_col.at(1)
 
         auto_cols_remaining -= 1
+
+        if auto_cols_remaining <= 0 {
+            return columns  // no more to share
+        }
+
         if col < fair_share {  // ok, keep your size, it's less than the limit
             remaining -= col
             fair_share = remaining / auto_cols_remaining
