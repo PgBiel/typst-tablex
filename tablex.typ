@@ -941,7 +941,9 @@
 
     let available_size = page_width - total_fixed_size
 
-    if available_size >= 0pt {
+    // page_width == 0pt => page width is 'auto'
+    // so we don't have to restrict our table's size
+    if available_size >= 0pt or page_width == 0pt {
         let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset)
         let total_auto_size = auto_cols_result.total
         let auto_sizes = auto_cols_result.sizes
@@ -959,12 +961,16 @@
             columns = frac_res.tracks
             fixed-size-gutter = frac_res.gutter
         } else {
-            columns = fit-auto-columns(
-                available: available_size,
-                auto_cols: auto_sizes,
-                columns: columns,
-                inset: inset
-            )
+            // don't shrink on width 'auto'
+            if page_width != 0pt {
+                columns = fit-auto-columns(
+                    available: available_size,
+                    auto_cols: auto_sizes,
+                    columns: columns,
+                    inset: inset
+                )
+            }
+
             columns = columns.map(c => {
                 if type(c) == "fraction" {
                     0pt  // no space left to be divided
