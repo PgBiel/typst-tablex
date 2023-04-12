@@ -477,8 +477,6 @@ Another example (summing columns):
 
     - `repeat-header`: Controls header repetition. If set to `true`, the first row (or the amount of rows specified in `header-rows`), including its rowspans, is repeated across all pages this table spans. If set to `false` (default), the aforementioned header row is not repeated in any page. If set to an integer (such as `4`), repeats for that many pages after the first, then stops. If set to an array of integers (such as `(3, 4)`), repeats only on those pages _relative to the table's first page_ (page 1 here is where the table is, so adding `1` to said array has no effect).
 
-        - **Warning:** This currently does not work properly if your document has pages of different sizes.
-
     - `header-rows`: minimum amount of rows for the repeatable
     header. 1 by default. Automatically increases if
     one of the cells is a rowspan that would go beyond the
