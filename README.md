@@ -48,7 +48,9 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 
 ![image](https://user-images.githubusercontent.com/9021226/230818397-2d599324-32a5-4184-973f-2fcfb6b62c84.png)
 
-There are still a few oddities in the library (see [Known Issues](#known-issues) for more info), but, for the vast majority of cases, though, replacing `#tablex` by `#table` should work just fine. (Sometimes you can even replace `#grid` by `#gridx` - see the line customization section for more -, but not always, as the behavior is a bit different.)
+There are still a few oddities in the library (see [Known Issues](#known-issues) for more info), but, for the vast majority of cases, replacing `#tablex` by `#table` should work just fine. (Sometimes you can even replace `#grid` by `#gridx` - see the line customization section for more -, but not always, as the behavior is a bit different.)
+
+This is mostly a word of caution in case anything I haven't anticipated happens, but, based on my tests (and after tons of bug-fixing commits), the vast majority of tables (that don't face one of the listed known issues) should work just fine under the library.
 
 ### colspanx/rowspanx
 
