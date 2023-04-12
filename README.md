@@ -280,6 +280,33 @@ Example:
 
 ![image](https://user-images.githubusercontent.com/9021226/230818347-30b49154-f444-4744-9415-dd4030b29393.png)
 
+Another example (summing columns):
+
+```js
+#gridx(
+  columns: 3,
+  rows: 6,
+  fill: (col, row) => (blue, red, green).at(calc.mod(row + col - 1, 3)),
+  map-cols: (col, cells) => {
+    let last = cells.last()
+    last.content = [
+      #cells.slice(0, cells.len() - 1).fold(0, (acc, c) => if c != none { acc + eval(c.content.text) } else { acc })
+    ]
+    last.fill = aqua
+    cells.last() = last
+    cells
+  },
+  [0], [5], [10],
+  [1], [6], [11],
+  [2], [7], [12],
+  [3], [8], [13],
+  [4], [9], [14],
+  [s], [s], [s]
+)
+```
+
+![image](https://user-images.githubusercontent.com/9021226/231343813-bf06872b-59ac-4221-b6ed-940d73e6a9c4.png)
+
 ## Known Issues
 
 - **(High-priority)** Using strokes larger than 1pt will look off. Even more so if the cell has fill (as the fill background will be placed partially above horizontal lines).
