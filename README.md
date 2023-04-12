@@ -131,7 +131,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```js
-#import "tablex.typ": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "tablex.typ": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
     columns: 4,
