@@ -734,6 +734,61 @@
 
 // -- col/row size functions --
 
+// Makes a cell's box, using the given options
+// cell - The cell data (including content)
+// width, height - The cell's dimensions
+// inset - The table's inset
+// align_default - The default alignment if the cell doesn't specify one
+// fill_default - The default fill color / etc if the cell doesn't specify one
+#let make-cell-box(
+        cell,
+        width: 0pt, height: 0pt, inset: 5pt,
+        align_default: left,
+        fill_default: none) = {
+
+    let align_default = if type(align_default) == "function" {
+        align_default(cell.x, cell.y)  // column, row
+    } else {
+        align_default
+    }
+
+    let fill_default = if type(fill_default) == "function" {
+        fill_default(cell.x, cell.y)  // row, column
+    } else {
+        fill_default
+    }
+
+    let content = cell.content
+
+    let inset = default-if-auto(cell.inset, inset)
+
+    // use default align (specified in
+    // table 'align:')
+    // when the cell align is 'auto'
+    let cell_align = default-if-auto(cell.align, align_default)
+
+    // same here for fill
+    let cell_fill = default-if-auto(cell.fill, fill_default)
+
+    if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
+        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
+    }
+
+    let aligned_cell_content = if cell_align == auto {
+        [#content]
+    } else {
+        align(cell_align)[#content]
+    }
+
+    box(
+        width: width, height: height,
+        inset: inset, fill: cell_fill,
+        // avoid #set problems
+        baseline: 0pt,
+        outset: 0pt, radius: 0pt, stroke: none,
+        aligned_cell_content)
+}
+
 // Sums the sizes of fixed-size tracks (cols/rows). Anything else
 // (auto, 1fr, ...) is ignored.
 #let sum-fixed-size-tracks(tracks) = {
@@ -1012,7 +1067,7 @@
 }
 
 // calculate the size of auto rows (based on the max height of their cells)
-#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, inset: none) = {
+#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none) = {
     assert(styles != none, message: "Cannot measure auto rows without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -1037,14 +1092,23 @@
                     // and only the amount necessary that isn't already
                     // covered by fixed size rows.
                     if last_auto_row == i {
+                        let width = get-colspan-fixed-size-covered(pcell, columns: columns)
+
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
-                        let width = get-colspan-fixed-size-covered(pcell, columns: columns)
+                        let cell-box = make-cell-box(
+                            pcell,
+                            width: width, height: auto,
+                            inset: cell_inset, align_default: align
+                        )
 
-                        let height = measure(box(width: width, pcell.content), styles).height + 2*cell_inset
+                        // measure the cell's actual height,
+                        // with its calculated width
+                        // and with other constraints
+                        let height = measure(cell-box, styles).height// + 2*cell_inset (box already considers inset)
                         let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows)
 
                         calc.max(max, height - fixed_size, 0pt)
@@ -1062,7 +1126,7 @@
     (total: total_auto_size, sizes: auto_sizes, rows: new_rows)
 }
 
-#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, inset: none, row-gutter: none) = {
+#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
         if type(r) in ("length", "relative length", "ratio") {
             convert-length-to-pt(r, styles: styles, page_size: page_height)
@@ -1072,7 +1136,7 @@
     })
 
     let auto_rows_res = determine-auto-rows(
-        grid: grid, columns: columns, rows: rows, styles: styles, inset: inset
+        grid: grid, columns: columns, rows: rows, styles: styles, align: align, inset: inset
     )
 
     let auto_size = auto_rows_res.total
@@ -1118,7 +1182,8 @@
     page_width: 0pt, page_height: 0pt,
     styles: none,
     columns: none, rows: none,
-    inset: none, gutter: none
+    inset: none, gutter: none,
+    align: auto,
 ) = {
     let inset = convert-length-to-pt(inset, styles: styles)
 
@@ -1137,6 +1202,7 @@
         columns: columns,  // so we consider available width
         rows: rows,
         inset: inset,
+        align: align,
         row-gutter: gutter.row
     )
     rows = rows_res.rows
@@ -1399,61 +1465,6 @@
     } else {
         line(start: start, end: end)
     }
-}
-
-// Makes a cell's box, using the given options
-// cell - The cell data (including content)
-// width, height - The cell's dimensions
-// inset - The table's inset
-// align_default - The default alignment if the cell doesn't specify one
-// fill_default - The default fill color / etc if the cell doesn't specify one
-#let make-cell-box(
-        cell,
-        width: 0pt, height: 0pt, inset: 5pt,
-        align_default: left,
-        fill_default: none) = {
-
-    let align_default = if type(align_default) == "function" {
-        align_default(cell.x, cell.y)  // column, row
-    } else {
-        align_default
-    }
-
-    let fill_default = if type(fill_default) == "function" {
-        fill_default(cell.x, cell.y)  // row, column
-    } else {
-        fill_default
-    }
-
-    let content = cell.content
-
-    let inset = default-if-auto(cell.inset, inset)
-
-    // use default align (specified in
-    // table 'align:')
-    // when the cell align is 'auto'
-    let cell_align = default-if-auto(cell.align, align_default)
-
-    // same here for fill
-    let cell_fill = default-if-auto(cell.fill, fill_default)
-
-    if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
-        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
-    }
-
-    let aligned_cell_content = if cell_align == auto {
-        [#content]
-    } else {
-        align(cell_align)[#content]
-    }
-
-    box(
-        width: width, height: height,
-        inset: inset, fill: cell_fill,
-        // avoid #set problems
-        baseline: 0pt,
-        outset: 0pt, radius: 0pt, stroke: none,
-        aligned_cell_content)
 }
 
 // -- end: drawing
@@ -2219,7 +2230,7 @@
             page_width: page_width, page_height: page_height,
             styles: styles,
             columns: columns, rows: rows,
-            inset: inset,
+            inset: inset, align: align,
             gutter: gutter
         )
 
