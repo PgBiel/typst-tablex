@@ -282,6 +282,8 @@ Example:
 
 ## Known Issues
 
+- **(High-priority)** Using strokes larger than 1pt will look off. Even more so if the cell has fill (as the fill background will be placed partially above horizontal lines).
+
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
 - Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
