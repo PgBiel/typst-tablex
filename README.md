@@ -48,7 +48,7 @@ In most cases, you should be able to replace `#table` with `#tablex` and be good
 
 ![image](https://user-images.githubusercontent.com/9021226/230818397-2d599324-32a5-4184-973f-2fcfb6b62c84.png)
 
-You _might_ find issues in certain cases, especially when using gutter with colspans/rowspans. (See [Known Issues](#known-issues) for more info.) For the vast majority of cases, though, replacing `#tablex` by `#table` should work just fine. (Sometimes you can even replace `#grid` by `#gridx` - see the line customization section for more -, but not always, as the behavior is a bit different.)
+There are still a few oddities in the library (see [Known Issues](#known-issues) for more info), but, for the vast majority of cases, though, replacing `#tablex` by `#table` should work just fine. (Sometimes you can even replace `#grid` by `#gridx` - see the line customization section for more -, but not always, as the behavior is a bit different.)
 
 ### colspanx/rowspanx
 
@@ -282,7 +282,7 @@ Example:
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
-- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional height work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
+- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
 
 - By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
 
