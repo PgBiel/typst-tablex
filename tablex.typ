@@ -1720,7 +1720,7 @@
 
     let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
     let current_row = 0
-    let header_rows_count = header-rows
+    let header_rows_count = calc.min(row_len, header-rows)
 
     for row in range(0, row_len) {
         let hlines = hlines.filter(h => (
