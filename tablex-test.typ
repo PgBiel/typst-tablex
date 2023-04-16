@@ -20,7 +20,7 @@ deeteeeeereeeedetteeeee
     hlinex(start: 0, end: 1),
     cellx(colspan: 2, rowspan: 2)[a], [b\ c],
     hlinex(),
-    () , (), [cefdsrdeefffeereeeeedeeeeeeerd],
+    () , (), [cefdsrdeefffeerddeeeeeedeeeeeeerd],
     hlinex(),
     [a], [b], [xyz],
     hlinex(end: 1),
@@ -234,6 +234,15 @@ s
     columns: 4,
     fill: blue,
     colspanx(2, rotate(30deg)[a]), rotate(30deg)[a], rotate(30deg)[a],rotate(30deg)[a],
+)
+
+#tablex(
+    columns: 4,
+    stroke: 5pt,
+    fill: blue,
+    (), vlinex(expand: (-2%, 4pt)),
+    [a], [b], [c], [d],
+    [e], [f], [g], [h]
 )
 
 #set page(width: 300pt)

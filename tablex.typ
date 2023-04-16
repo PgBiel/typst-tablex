@@ -7,7 +7,13 @@
 
 // -- types --
 
-#let hlinex(start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+#let hlinex(
+    start: 0, end: auto, y: auto,
+    stroke: auto,
+    stop-pre-gutter: auto, gutter-restrict: none,
+    stroke-expand: true,
+    expand: none
+) = (
     tablex-dict-type: "hline",
     start: start,
     end: end,
@@ -15,9 +21,18 @@
     stroke: stroke,
     stop-pre-gutter: stop-pre-gutter,
     gutter-restrict: gutter-restrict,
+    stroke-expand: stroke-expand,
+    expand: expand,
+    parent: none,  // if hline was broken into multiple
 )
 
-#let vlinex(start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none) = (
+#let vlinex(
+    start: 0, end: auto, x: auto,
+    stroke: auto,
+    stop-pre-gutter: auto, gutter-restrict: none,
+    stroke-expand: true,
+    expand: none
+) = (
     tablex-dict-type: "vline",
     start: start,
     end: end,
@@ -25,6 +40,9 @@
     stroke: stroke,
     stop-pre-gutter: stop-pre-gutter,
     gutter-restrict: gutter-restrict,
+    stroke-expand: stroke-expand,
+    expand: expand,
+    parent: none,
 )
 
 #let cellx(content,
@@ -276,6 +294,13 @@
 // Default 'x' to a certain value if it is auto
 #let default-if-auto(x, default) = default-if-not(x, default, if_isnt: auto)
 
+// Default 'x' to a certain value if it is auto or none
+#let default-if-auto-or-none(x, default) = if x in (auto, none) {
+    default
+} else {
+    x
+}
+
 // The max between a, b, or the other one if either is 'none'.
 #let max-if-not-none(a, b) = if a in (none, auto) {
     b
@@ -301,6 +326,19 @@
     }
 
     new-arr
+}
+
+// Gets the topmost parent of a line.
+#let get-top-parent(line) = {
+    let previous = none
+    let current = line
+
+    while current != none {
+        previous = current
+        current = previous.parent
+    }
+
+    previous
 }
 
 // Convert a certain (non-relative) length to pt
@@ -381,6 +419,27 @@
         }
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
+    }
+}
+
+// Convert a stroke to its thickness
+#let stroke-len(stroke, stroke-auto: 1pt) = {
+    let stroke = default-if-auto(stroke, stroke-auto)
+    if type(stroke) in ("length", "relative length") {
+        stroke
+    } else if type(stroke) == "color" {
+        1pt
+    } else if type(stroke) == "stroke" {  // 2em + blue
+        let r = regex("^\\d+(?:em|pt|cm|in|%)")
+        let s = repr(stroke).find(r)
+
+        if s == none {
+        1pt
+        } else {
+        eval(s)
+        }
+    } else {
+        1pt
     }
 }
 
@@ -1272,7 +1331,8 @@
     (
         ..v_or_hline,
         start: start,
-        end: end
+        end: end,
+        parent: v_or_hline  // the one that generated this
     )
 }
 
@@ -1403,6 +1463,18 @@
         and a.gutter-restrict == b.gutter-restrict
 )
 
+#let _largest-stroke-among-lines(lines, stroke-auto: 1pt) = (
+    calc.max(0pt, ..lines.map(l => stroke-len(l.stroke, stroke-auto: stroke-auto)))
+)
+
+#let _largest-stroke-among-hlines-at-y(y, hlines: none, stroke-auto: 1pt) = {
+    _largest-stroke-among-lines(hlines.filter(h => h.y == y), stroke-auto: stroke-auto)
+}
+
+#let _largest-stroke-among-vlines-at-x(x, vlines: none, stroke-auto: 1pt) = {
+    _largest-stroke-among-lines(vlines.filter(v => v.x == x), stroke-auto: stroke-auto)
+}
+
 // -- end: width/height utilities --
 
 // -- drawing --
@@ -1417,21 +1489,77 @@
     }
 }
 
-#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false) = {
+// How much should this line expand?
+// If it's not at the edge of the parent line => don't expand
+// spanned-tracks-len: row_len (if vline), col_len (if hline)
+#let get-actual-expansion(line, spanned-tracks-len: 0) = {
+    // TODO: better handle negative expansion
+    if line.expand in (none, (none, none), auto, (auto, auto)) {
+        return (none, none)
+    }
+    if type(line.expand) != "array" {
+        line.expand = (line.expand, line.expand)
+    }
+
+    let parent = get-top-parent(line)
+    let parent-start = default-if-auto-or-none(parent.start, 0)
+    let parent-end = default-if-auto-or-none(parent.end, spanned-tracks-len)
+
+    let start = default-if-auto-or-none(line.start, 0)
+    let end = default-if-auto-or-none(line.end, spanned-tracks-len)
+
+    let expansion = (none, none)
+
+    if start == parent-start {  // starts where its parent starts
+        expansion.at(0) = default-if-auto(line.expand.at(0), 0pt)  // => expand to the left
+    }
+
+    if end == parent-end {  // ends where its parent ends
+        expansion.at(1) = default-if-auto(line.expand.at(1), 0pt)  // => expand to the right
+    }
+
+    expansion
+}
+
+#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false) = {
     let start = hline.start
     let end = hline.end
+    let stroke-auto = parse-stroke(stroke)
     let stroke = default-if-auto(hline.stroke, stroke)
     let stroke = parse-stroke(stroke)
 
-    if start == end { return }
+    if default-if-auto-or-none(start, 0) == default-if-auto-or-none(end, columns.len()) { return }
 
     if (pre-gutter and hline.gutter-restrict == bottom) or (not pre-gutter and hline.gutter-restrict == top) {
         return
     }
 
+    let expand = get-actual-expansion(hline, spanned-tracks-len: columns.len())
+    let left-expand = default-if-auto-or-none(expand.at(0), 0pt)
+    let right-expand = default-if-auto-or-none(expand.at(1), 0pt)
+
+    if default-if-auto(hline.stroke-expand, true) == true {
+        let largest-stroke = _largest-stroke-among-vlines-at-x.with(vlines: vlines, stroke-auto: stroke-auto)
+        left-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // expand to the left to close stroke gap
+        right-expand += largest-stroke(default-if-auto-or-none(end, columns.len())) / 2  // close stroke gap to the right
+    }
+
     let y = height-between(start: initial_y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
-    let start = (width-between(start: initial_x, end: start, columns: columns, gutter: gutter, pre-gutter: false), y)
-    let end = (width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true), y)
+    let start_x = width-between(start: initial_x, end: start, columns: columns, gutter: gutter, pre-gutter: false) - left-expand
+    let end_x = width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true) + right-expand
+
+    if end_x - start_x < 0pt {
+        return  // negative length
+    }
+
+    let start = (
+        start_x,
+        y
+    )
+    let end = (
+        end_x,
+        y
+    )
 
     if stroke != auto {
         if stroke != none {
@@ -1442,21 +1570,45 @@
     }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, pre-gutter: false, stop-before-row-gutter: false) = {
+#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false) = {
     let start = vline.start
     let end = vline.end
+    let stroke-auto = parse-stroke(stroke)
     let stroke = default-if-auto(vline.stroke, stroke)
     let stroke = parse-stroke(stroke)
 
-    if start == end { return }
+    if default-if-auto-or-none(start, 0) == default-if-auto-or-none(end, rows.len()) { return }
 
     if (pre-gutter and vline.gutter-restrict == right) or (not pre-gutter and vline.gutter-restrict == left) {
         return
     }
 
+    let expand = get-actual-expansion(vline, spanned-tracks-len: rows.len())
+    let top-expand = default-if-auto-or-none(expand.at(0), 0pt)
+    let bottom-expand = default-if-auto-or-none(expand.at(1), 0pt)
+
+    if default-if-auto(vline.stroke-expand, true) == true {
+        let largest-stroke = _largest-stroke-among-hlines-at-y.with(hlines: hlines, stroke-auto: stroke-auto)
+        top-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // close stroke gap to the top
+        bottom-expand += largest-stroke(default-if-auto-or-none(end, rows.len())) / 2  // close stroke gap to the bottom
+    }
+
     let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
-    let start = (x, height-between(start: initial_y, end: start, rows: rows, gutter: gutter))
-    let end = (x, height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter or vline.stop-pre-gutter == true))
+    let start_y = height-between(start: initial_y, end: start, rows: rows, gutter: gutter) - top-expand
+    let end_y = height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter or vline.stop-pre-gutter == true) + bottom-expand
+
+    if end_y - start_y < 0pt {
+        return  // negative length
+    }
+
+    let start = (
+        x,
+        start_y
+    )
+    let end = (
+        x,
+        end_y
+    )
 
     if stroke != auto {
         if stroke != none {
@@ -1536,11 +1688,13 @@
     header-hlines-have-priority: true,
     table-loc: none,
     total-width: none,
+    global-hlines: (),
+    global-vlines: (),
 ) = {
     let width-between = width-between.with(columns: columns, gutter: gutter)
     let height-between = height-between.with(rows: rows, gutter: gutter)
-    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
-    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, vlines: global-vlines)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, hlines: global-hlines)
 
     let group-rows = row-group.rows
     let hlines = row-group.hlines
@@ -1800,6 +1954,8 @@
                 min-pos: min-pos,
                 max-pos: max-pos,
                 styles: styles,
+                global-hlines: hlines,
+                global-vlines: vlines,
             )
 
             if is_header {  // this is now the header group.
@@ -1817,6 +1973,42 @@
 // -- end: main functions
 
 // option parsing functions
+
+#let _parse-lines(
+    hlines, vlines,
+    page-width: none, page-height: none,
+    styles: none
+) = {
+    let parse-func(line, page-size: none) = {
+        line.stroke-expand = line.stroke-expand == true
+        line.expand = default-if-auto(line.expand, none)
+        if type(line.expand) != "array" and line.expand != none {
+            line.expand = (line.expand, line.expand)
+        }
+        line.expand = if line.expand == none {
+            none
+        } else {
+            line.expand.slice(0, 2).map(e => {
+                if e == none {
+                    e
+                } else {
+                    e = default-if-auto(e, 0pt)
+                    if type(e) not in ("length", "relative length", "ratio") {
+                        panic("'expand' argument to lines must be a pair (length, length).")
+                    }
+
+                    convert-length-to-pt(e, styles: styles, page_size: page-size)
+                }
+            })
+        }
+
+        line
+    }
+    (
+        hlines: hlines.map(parse-func.with(page-size: page-width)),
+        vlines: vlines.map(parse-func.with(page-size: page-height))
+    )
+}
 
 // Parses 'auto-lines', generating the corresponding lists of
 // new hlines and vlines
@@ -2210,6 +2402,10 @@
         hlines += auto_lines_res.new_hlines
         vlines += auto_lines_res.new_vlines
 
+        let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
+        hlines = parsed_lines.hlines
+        vlines = parsed_lines.vlines
+
         let mapped_grid = apply-maps(
             grid: table_grid,
             hlines: hlines,
@@ -2223,6 +2419,11 @@
         table_grid = mapped_grid.grid
         hlines = mapped_grid.hlines
         vlines = mapped_grid.vlines
+
+        // re-parse just in case
+        let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
+        hlines = parsed_lines.hlines
+        vlines = parsed_lines.vlines
 
         // convert auto to actual size
         let updated_cols_rows = determine-auto-column-row-sizes(
