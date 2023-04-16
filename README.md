@@ -16,6 +16,9 @@
 * [Reference](#reference)
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
+* [Changelog](#changelog)
+    * [Unreleased](#unreleased)
+    * [v0.0.1](#v001)
 * [0.1.0 Roadmap](#010-roadmap)
 
 ## Usage
@@ -310,6 +313,7 @@ Another example (summing columns):
 ## Known Issues
 
 - **(High-priority)** Using strokes larger than 1pt will look off. Even more so if the cell has fill (as the fill background will be placed partially above horizontal lines).
+    - The first part of this issue (of larger strokes looking off) is fixed on `main` (yet unreleased).
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
@@ -511,6 +515,22 @@ Another example (summing columns):
     Takes `(col_num, cell_array)` and returns
     the modified `cell_array`. Note that, with your function, they
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
+
+## Changelog
+
+### Unreleased
+
+- Fixed strokes - now lines will expand to not look weird when strokes are larger.
+    - You can disable this behavior by setting `stroke-expand: false` on your lines.
+- You can now arbitrarily change your lines' sizes at either end with the option `expand: (length, length)`; e.g. `expand: (5pt, 10pt)` will increase your horizontal line 5pt to the left and 10pt to the right (or, for a vertical line, 5pt to the top and 10pt to the bottom).
+    - Support for negative expand lengths is limited (so far, only reduces length in the first cell the line spans).
+
+### v0.0.1
+
+Initial release.
+
+- Added types `tablex`, `cellx`, `hlinex`, `vlinex`
+- Added type aliases `gridx`, `rowspanx`, `colspanx`
 
 ## 0.1.0 Roadmap
 
