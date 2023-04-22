@@ -1749,7 +1749,7 @@
                 first_row = false
             }
 
-            let row_group_height = row_heights + added_header_height + row_gutter_dy
+            let row_group_height = row_heights + added_header_height + (row_gutter_dy * group-rows.len())
 
             let is_last_row = pos.y + row_group_height + row_gutter_dy >= max-pos.y
 
