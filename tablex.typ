@@ -1366,40 +1366,31 @@
 //             |  ||
 //             ----   <--- sample cell
 #let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
-    let parent_cell = get-parent-cell(cell, grid: grid)
-
-    if parent_cell != cell and parent_cell.colspan <= 1 and parent_cell.rowspan <= 1 {
-        panic("Bad parent cell: " + repr((parent_cell.x, parent_cell.y)) + " cannot be a parent of " + repr((cell.x, cell.y)) + ": it only occupies one cell slot.")
+    // only draw lines from the parent cell
+    if is-tablex-occupied(cell) {
+        return (
+            hlines: (),
+            vlines: ()
+        );
     }
 
     let hlines = hlines
         .filter(h => {
             let y = h.y
 
-            let in_top_bottom_or_limit = y in (cell.y, cell.y + 1, y_limit)
-
-            // only show top line if parent cell isn't strictly above
-            let top_not_in_middle_of_rowspan = not (y == cell.y and parent_cell.y < cell.y)
-
-            let bottom_rowspan_y = parent_cell.y + parent_cell.rowspan - 1
-
-            // only show bottom line if this is the cell in the bottom-most height of the rowspan (to the bottom)
-            // that is, if the end of the rowspan isn't strictly below
-            let bottom_not_in_middle_of_rowspan = not (y == cell.y + 1 and y <= bottom_rowspan_y)
+            let in_top_or_bottom = y in (cell.y, cell.y + cell.rowspan)
 
             let hline_hasnt_already_ended = (
                 h.end in (auto, none)  // always goes towards the right
-                or h.end >= cell.x + 1  // ends at or after this cell
+                or h.end >= cell.x + cell.colspan  // ends at or after this cell
             )
 
-            (in_top_bottom_or_limit
-                and top_not_in_middle_of_rowspan
-                and bottom_not_in_middle_of_rowspan
+            (in_top_or_bottom
                 and hline_hasnt_already_ended)
         })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + 1, limit: x_limit)
+            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + cell.colspan, limit: x_limit)
 
             if span == none {  // no intersection!
                 none
@@ -1413,30 +1404,19 @@
         .filter(v => {
             let x = v.x
 
-            let at_left_right_or_limit = x in (cell.x, cell.x + 1, x_limit)
-
-            // only show left line if parent cell isn't strictly to the left
-            let left_not_in_middle_of_colspan = not (x == cell.x and parent_cell.x < cell.x)
-
-            let right_colspan_x = parent_cell.x + parent_cell.colspan - 1
-
-            // only show right line if this is the cell in the right-most column of the colspan
-            // that is, if the end of the colspan isn't strictly to the right
-            let right_not_in_middle_of_colspan = not (x == cell.x + 1 and x <= right_colspan_x)
+            let at_left_or_right = x in (cell.x, cell.x + cell.colspan)
 
             let vline_hasnt_already_ended = (
                 v.end in (auto, none)  // always goes towards the bottom
-                or v.end >= cell.y + 1  // ends at or after this cell
+                or v.end >= cell.y + cell.rowspan  // ends at or after this cell
             )
 
-            (at_left_right_or_limit
-                and left_not_in_middle_of_colspan
-                and right_not_in_middle_of_colspan
+            (at_left_or_right
                 and vline_hasnt_already_ended)
         })
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + 1, limit: y_limit)
+            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + cell.rowspan, limit: y_limit)
 
             if span == none {  // no intersection!
                 none
@@ -1783,6 +1763,23 @@
             let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
 
+            let header_last_y = if first-row-group != none {
+                first-row-group.row_group.y_span.at(1)
+            } else {
+                none
+            }
+            // if this is the second row, and the header's hlines
+            // do not have priority (thus are not drawn by them,
+            // otherwise they'd repeat on every page), then
+            // we draw its hlines for the header, below it.
+            let hlines = if not header-hlines-have-priority and not is-header and start-y == header_last_y + 1 {
+                let hlines_below_header = first-row-group.row_group.hlines.filter(h => h.y == header_last_y + 1)
+
+                hlines + hlines_below_header
+            } else {
+                hlines
+            }
+
             for hline in hlines {
                 // only draw the top hline
                 // if header's wasn't already drawn
@@ -1807,6 +1804,7 @@
                         or (gutter.row != none and hline.gutter-restrict == top)) {
                         continue  // the next row group should draw this
                     }
+
                     // normally, only draw the bottom hlines
                     draw-hline(hline, pre-gutter: true)
 
@@ -1877,10 +1875,6 @@
     let header_rows_count = calc.min(row_len, header-rows)
 
     for row in range(0, row_len) {
-        let hlines = hlines.filter(h => (
-            h.y in (current_row, current_row + 1)
-        ))  // keep online hlines above or below this row
-
         // maximum cell total rowspan in this row
         let max_rowspan = 0
 
@@ -1904,19 +1898,19 @@
                     fill_default: fill)
 
                 this_row_group.rows.last().push((cell: cell, box: cell_box))
+
+                let hlines = hlines
+                    .filter(h =>
+                        this_row_group.hlines
+                            .filter(is-same-hline.with(h))
+                            .len() == 0)
+
+                let vlines = vlines
+                    .filter(v => v not in this_row_group.vlines)
+
+                this_row_group.hlines += hlines
+                this_row_group.vlines += vlines
             }
-
-            let hlines = hlines
-                .filter(h =>
-                    this_row_group.hlines
-                        .filter(is-same-hline.with(h))
-                        .len() == 0)
-
-            let vlines = vlines
-                .filter(v => v not in this_row_group.vlines)
-
-            this_row_group.hlines += hlines
-            this_row_group.vlines += vlines
         }
 
         current_row += 1
