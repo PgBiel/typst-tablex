@@ -180,7 +180,7 @@ s
     [f], (),             [g]
 ))
 
-#tablex(
+#block(breakable: false, tablex(
     columns: 3,
     fill: red,
     align: right,
@@ -190,7 +190,7 @@ s
 
     // place this cell at the first column, seventh row
     cellx(colspan: 3, align: center, x: 0, y: 6)[hi I'm down here]
-)
+))
 
 #tablex(
     columns: 4,
