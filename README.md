@@ -1,4 +1,4 @@
-# typst-tablex (v0.0.1)
+# typst-tablex (v0.0.2)
 **More powerful and customizable tables in Typst.**
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
@@ -17,7 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.2](#v002)
     * [v0.0.1](#v001)
 * [0.1.0 Roadmap](#010-roadmap)
 
@@ -25,7 +25,7 @@
 
 To use this library, download the file `tablex.typ` from the latest release (or from the repository itself) and place it on the same folder as your own typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whatever other function you use from the library).
 
-This library should be compatible with (at least) Typst v0.1.0 and v0.2.0. (Previous versions weren't tested.)
+This library should be compatible with Typst v0.1.0, v0.2.0 and v0.3.0. (Previous versions weren't tested.)
 **Using the latest typst version (v0.2.0+) is recommended**, as it fixes certain minor layout issues, and also brings compilation speed improvements.
 
 ## Features
@@ -312,8 +312,8 @@ Another example (summing columns):
 
 ## Known Issues
 
-- **(High-priority)** Using strokes larger than 1pt will look off. Even more so if the cell has fill (as the fill background will be placed partially above horizontal lines).
-    - The first part of this issue (of larger strokes looking off) is fixed on `main` (yet unreleased).
+- Filled cells will partially overlap with horizontal lines above them.
+    - To be fixed in a future rework of the table drawing process.
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
@@ -321,7 +321,7 @@ Another example (summing columns):
 
 - By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
 
-- `tablex` can potentially be slower and/or take longer to compile than the default `table`. **Please use the latest typst version (v0.2.0+) to reduce this problem** (it brought great optimizations to some internal things). Still, we are looking for ways to better optimize the library (PRs are open!). However, re-compilation is usually fine thanks to typst's built-in memoization.
+- `tablex` can potentially be slower and/or take longer to compile than the default `table` (especially when the table spans a lot of pages). **Please use the latest typst version (v0.2.0+) to reduce this problem** (it brought great optimizations to some internal things). Still, we are looking for ways to better optimize the library (PRs are open!). However, re-compilation is usually fine thanks to typst's built-in memoization.
 
 - The internals of the library still aren't very well documented; I plan on adding more info about this eventually.
 
@@ -367,7 +367,11 @@ Another example (summing columns):
 
     ```js
     #let hlinex(
-        start: 0, end: auto, y: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none
+        start: 0, end: auto, y: auto,
+        stroke: auto,
+        stop-pre-gutter: auto, gutter-restrict: none,
+        stroke-expand: true,
+        expand: none
     ) = (
         tablex-dict-type: "hline",
         start: start,
@@ -376,6 +380,9 @@ Another example (summing columns):
         stroke: stroke,
         stop-pre-gutter: stop-pre-gutter,
         gutter-restrict: gutter-restrict,
+        stroke-expand: stroke-expand,
+        expand: expand,
+        parent: none,
     )
     ```
 
@@ -389,12 +396,19 @@ Another example (summing columns):
     - `stroke` is the hline's stroke override (defaults to `auto`, a.k.a. follow the rest of the table).
     - `stop-pre-gutter`: When `true`, the hline will not be drawn over gutter (which is the default behavior of tables). Defaults to `auto` which is essentially `false` (draw over gutter).
     - `gutter-restrict`: Either `top`, `bottom`, or `none`. Has no effect if `row-gutter` is set to `none`. Otherwise, defines if this `hline` should be drawn only on the top of the row gutter (`top`); on the bottom (`bottom`); or on both the top and the bottom (`none`, the default). Note that `top` and `bottom` are alignment values (not strings).
+    - `stroke-expand`: When `true`, the hline will be extended as necessary to cover the stroke of the vlines going through either end of the line. Defaults to `true`.
+    - `expand`: Optionally extend the hline by an arbitrary length. When `none`, it is not expanded. When a length (such as `5pt`), it is expanded by that length on both ends. When an array of two lengths (such as `(5pt, 10pt)`), it is expanded to the left by the first length (in this case, `5pt`) and to the right by the second (in this case, `10pt`). Defaults to `none`.
+    - `parent`: An internal attribute determined when splitting lines among cells. (It should always be `none` on user-facing interfaces.)
 
 3. `vlinex`: represents a vertical line:
 
     ```js
     #let vlinex(
-        start: 0, end: auto, x: auto, stroke: auto, stop-pre-gutter: auto, gutter-restrict: none
+        start: 0, end: auto, x: auto,
+        stroke: auto,
+        stop-pre-gutter: auto, gutter-restrict: none,
+        stroke-expand: true,
+        expand: none
     ) = (
         tablex-dict-type: "vline",
         start: start,
@@ -403,6 +417,9 @@ Another example (summing columns):
         stroke: stroke,
         stop-pre-gutter: stop-pre-gutter,
         gutter-restrict: gutter-restrict,
+        stroke-expand: stroke-expand,
+        expand: expand,
+        parent: none,
     )
     ```
 
@@ -417,6 +434,9 @@ Another example (summing columns):
     - `stroke` is the vline's stroke override (defaults to `auto`, a.k.a. follow the rest of the table).
     - `stop-pre-gutter`: When `true`, the vline will not be drawn over gutter (which is the default behavior of tables). Defaults to `auto` which is essentially `false` (draw over gutter).
     - `gutter-restrict`: Either `left`, `right`, or `none`. Has no effect if `column-gutter` is set to `none`. Otherwise, defines if this `vline` should be drawn only to the left of the column gutter (`left`); to the right (`right`); or on both the left and the right (`none`, the default). Note that `left` and `right` are alignment values (not strings).
+    - `stroke-expand`: When `true`, the vline will be extended as necessary to cover the stroke of the hlines going through either end of the line. Defaults to `true`.
+    - `expand`: Optionally extend the vline by an arbitrary length. When `none`, it is not expanded. When a length (such as `5pt`), it is expanded by that length on both ends. When an array of two lengths (such as `(5pt, 10pt)`), it is expanded towards the top by the first length (in this case, `5pt`) and towards the bottom by the second (in this case, `10pt`). Defaults to `none`.
+    - `parent`: An internal attribute determined when splitting lines among cells. (It should always be `none` on user-facing interfaces.)
 
 4. The `occupied` type is an internal type used to represent cell positions occupied by cells with `colspan` or `rowspan` greater than 1. 
 
@@ -518,12 +538,14 @@ Another example (summing columns):
 
 ## Changelog
 
-### Unreleased
+### v0.0.2
 
+- Added support for Typst v0.3.0.
 - Fixed strokes - now lines will expand to not look weird when strokes are larger.
     - You can disable this behavior by setting `stroke-expand: false` on your lines.
 - You can now arbitrarily change your lines' sizes at either end with the option `expand: (length, length)`; e.g. `expand: (5pt, 10pt)` will increase your horizontal line 5pt to the left and 10pt to the right (or, for a vertical line, 5pt to the top and 10pt to the bottom).
     - Support for negative expand lengths is limited (so far, only reduces length in the first cell the line spans).
+- Added some gutter fixes (not all gutter issues were fixed yet).
 
 ### v0.0.1
 
