@@ -10,7 +10,7 @@
 #let hlinex(
     start: 0, end: auto, y: auto,
     stroke: auto,
-    stop-pre-gutter: auto, gutter-restrict: none,
+    stop-pre-gutter: auto, gutter-restrict: auto,
     stroke-expand: true,
     expand: none
 ) = (
@@ -29,7 +29,7 @@
 #let vlinex(
     start: 0, end: auto, x: auto,
     stroke: auto,
-    stop-pre-gutter: auto, gutter-restrict: none,
+    stop-pre-gutter: auto, gutter-restrict: auto,
     stroke-expand: true,
     expand: none
 ) = (
@@ -1365,7 +1365,7 @@
 // (hline) ----====---      (= and || indicate intersection)
 //             |  ||
 //             ----   <--- sample cell
-#let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
+#let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: (), gutter: (col: none, row: none)) = {
     // only draw lines from the parent cell
     if is-tablex-occupied(cell) {
         return (
@@ -1395,7 +1395,19 @@
             if span == none {  // no intersection!
                 none
             } else {
-                v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+                let spanned_h = v-or-hline-with-span(h, start: span.at(0), end: span.at(1))
+
+                if spanned_h.gutter-restrict == auto and gutter.row != none {
+                    spanned_h.gutter-restrict = if spanned_h.y == cell.y {
+                        bottom  // at the top of the cell => bottom of gutter
+                    } else if spanned_h.y == cell.y + cell.rowspan {
+                        top  // at the bottom of cell => top of gutter
+                    } else {
+                        auto
+                    }
+                }
+
+                spanned_h
             }
         })
         .filter(x => x != none)
@@ -1421,7 +1433,19 @@
             if span == none {  // no intersection!
                 none
             } else {
-                v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+                let spanned_v = v-or-hline-with-span(v, start: span.at(0), end: span.at(1))
+
+                if spanned_v.gutter-restrict == auto and gutter.col != none {
+                    spanned_v.gutter-restrict = if spanned_v.x == cell.x {
+                        right  // to the left of the cell => to the right of gutter
+                    } else if spanned_v.x == cell.x + cell.colspan {
+                        left  // to the right of the cell => to the left of gutter
+                    } else {
+                        auto
+                    }
+                }
+
+                spanned_v
             }
         })
         .filter(x => x != none)
@@ -1510,6 +1534,7 @@
 
     if default-if-auto-or-none(start, 0) == default-if-auto-or-none(end, columns.len()) { return }
 
+
     if (pre-gutter and hline.gutter-restrict == bottom) or (not pre-gutter and hline.gutter-restrict == top) {
         return
     }
@@ -1528,8 +1553,14 @@
     let start_x = width-between(start: initial_x, end: start, columns: columns, gutter: gutter, pre-gutter: false) - left-expand
     let end_x = width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true) + right-expand
 
-    if end_x - start_x < 0pt {
+    if end_x - start_x <= 0pt {
         return  // negative length
+    }
+
+    if "amogus" in hline {
+        y += 5pt
+        stroke = blue + 20pt
+        // panic(hline, gutter, pre-gutter, start_x, end_x, y, "|", initial_x, start, end, "|", left-expand, right-expand, "|", columns, "|", width-between(start: 0, end: 2, columns: columns, gutter: (col: none, row: none), pre-gutter: true))
     }
 
     let start = (
@@ -1854,7 +1885,7 @@
     let row_len = rows.len()
 
     // specialize some functions for the given grid, columns and rows
-    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid)
+    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid, gutter: gutter)
     let cell-width = cell-width.with(columns: columns, gutter: gutter)
     let cell-height = cell-height.with(rows: rows, gutter: gutter)
     let width-between = width-between.with(columns: columns, gutter: gutter)
