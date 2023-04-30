@@ -192,7 +192,7 @@ You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` a
 )
 ```
 
-![image](https://user-images.githubusercontent.com/9021226/230810904-fde2ee5d-8f9e-4b8b-a981-0df7d3fad93f.png)
+![image](https://user-images.githubusercontent.com/9021226/235371652-48e7e526-1eb0-43c3-a6f4-3ed81840cffc.png)
 
 
 ### Customize every single cell
