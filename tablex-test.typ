@@ -293,3 +293,15 @@ s
     columns: (1fr, 1fr, 1fr),
     [a], [b], [c]
 )
+
+#tablex(
+    columns: (10%, 10%, 10%, 10%, 10%),
+    // map-hlines: h => (..h, stop-pre-gutter: default-if-auto(h.stop-pre-gutter, true)),
+    // map-vlines: v => (..v, stop-pre-gutter: default-if-auto(v.stop-pre-gutter, true)),
+    gutter: 15pt,
+    [a], [b], [c], [d], [e],
+    hlinex(stroke: blue),
+    [f], rowspanx(2, colspanx(2)[ggggoprdeetet\ eeeeeee]), (), [i], [j],
+    [k], (), (), [n], [o],
+    [p], [q], [r], [s], [t]
+)
