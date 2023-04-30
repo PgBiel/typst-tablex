@@ -5,6 +5,14 @@
 
 #let _tablex-table-counter = counter("_tablex-table-counter")
 
+// -- compat --
+
+#let calc-mod(a, b) = {
+  calc.floor(a) - calc.floor(b * calc.floor(a / b))
+}
+
+// ------------
+
 // -- types --
 
 #let hlinex(
@@ -220,7 +228,7 @@
 
     let new_items = ()
 
-    let is_at_first_column(grid_len) = calc.mod(grid_len, col_len) == 0
+    let is_at_first_column(grid_len) = calc-mod(grid_len, col_len) == 0
 
     while not is_at_first_column(get-expected-grid-len(items + new_items, col_len: col_len)) {  // fix incomplete rows
         new_items.push(cellx[])
@@ -438,6 +446,8 @@
         } else {
         eval(s)
         }
+    } else if type(stroke) == "dictionary" and "thickness" in stroke {
+        stroke.thickness
     } else {
         1pt
     }
@@ -460,7 +470,7 @@
 #let grid-index-at(x, y, grid: none, width: none) = {
     width = default-if-none(grid, (width: width)).width
     width = calc.floor(width)
-    (y * width) + calc.mod(x, width)
+    (y * width) + calc-mod(x, width)
 }
 
 // Gets the cell at the given grid x, y position.
@@ -489,7 +499,7 @@
 
 // Converts a grid array index to (x, y)
 #let grid-index-to-pos(grid, index) = (
-    (calc.mod(index, grid.width), calc.floor(index / grid.width))   
+    (calc-mod(index, grid.width), calc.floor(index / grid.width))   
 )
 
 // Fetches an entire row of cells (all positions with the given y).
@@ -776,7 +786,7 @@
     }
 
     // while there are incomplete rows for some reason, add empty cells
-    while calc.mod(grid.items.len(), grid.width) != 0 {
+    while calc-mod(grid.items.len(), grid.width) != 0 {
         grid.items.push(new_empty_cell(grid))
     }
 
@@ -1462,7 +1472,7 @@
 #let parse-stroke(stroke) = {
     if type(stroke) == "color" {
         stroke + 1pt
-    } else if type(stroke) in ("length", "relative length", "ratio", "stroke") or stroke in (none, auto) {
+    } else if type(stroke) in ("length", "relative length", "ratio", "stroke", "dictionary") or stroke in (none, auto) {
         stroke
     } else {
         panic("Invalid stroke '" + repr(stroke) + "'.")
