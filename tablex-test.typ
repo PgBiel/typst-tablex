@@ -171,18 +171,14 @@ s
     [f], (),             [g], [L],
 )
 
-.
-
-.
-
-#tablex(
+#block(breakable: false, tablex(
     columns: 3,
     map-hlines: h => (..h, stroke: blue),
     map-vlines: v => (..v, stroke: green + 2pt),
     colspanx(2)[a], (),  [b],
     [c], rowspanx(2)[d], [ed],
     [f], (),             [g]
-)
+))
 
 #tablex(
     columns: 3,
