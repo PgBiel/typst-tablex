@@ -571,10 +571,10 @@ Initial release.
         - [X] Shrink `auto` columns based on available space
     - [X] `fill`
         - [X] Basic support (`color` for general fill)
-        - [X] Accept a function (`(row, column) => color`)
+        - [X] Accept a function (`(column, row) => color`)
     - [X] `align`
         - [X] Basic support (`alignment` and `2d alignment` apply to all cells)
-        - [X] Accept a function (`(row, column) => alignment/2d alignment`)
+        - [X] Accept a function (`(column, row) => alignment/2d alignment`)
     - [X] `inset`
     - [ ] `gutter`
         - [X] Basic support
