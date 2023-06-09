@@ -1044,11 +1044,12 @@
         let i = i_col.at(0)
         let col = i_col.at(1)
 
-        auto_cols_remaining -= 1
-
         if auto_cols_remaining <= 0 {
             return columns  // no more to share
         }
+
+        // subtract AFTER the check!!! (Avoid off-by-one error)
+        auto_cols_remaining -= 1
 
         if col < fair_share {  // ok, keep your size, it's less than the limit
             remaining -= col
