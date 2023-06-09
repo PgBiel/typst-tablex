@@ -184,7 +184,7 @@
     if type(columns) != "array" {
         columns = (columns,)
     }
-    
+
     if type(rows) != "array" {
         rows = (rows,)
     }
@@ -499,7 +499,7 @@
 
 // Converts a grid array index to (x, y)
 #let grid-index-to-pos(grid, index) = (
-    (calc-mod(index, grid.width), calc.floor(index / grid.width))   
+    (calc-mod(index, grid.width), calc.floor(index / grid.width))
 )
 
 // Fetches an entire row of cells (all positions with the given y).
@@ -2135,7 +2135,7 @@
         }) {
             panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-rows'.")
         }
-    
+
         for i_cell in cells {
             let cell = i_cell.at(1)
             grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
@@ -2183,7 +2183,7 @@
         }) {
             panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-cols'.")
         }
-    
+
         for i_cell in cells {
             let cell = i_cell.at(1)
             cell.content = [#cell.content]
@@ -2241,7 +2241,7 @@
 // or a single size for 1 column)
 //
 // rows: row sizes (same format as columns)
-// align: how to align cells (alignment or 
+// align: how to align cells (alignment or
 // a function (col, row) => alignment)
 //
 // items: The table items, as specified by the columns
