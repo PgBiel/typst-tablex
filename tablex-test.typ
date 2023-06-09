@@ -301,3 +301,8 @@ s
     [k], (), (), [n], [o],
     [p], [q], [r], [s], [t]
 )
+
+#tablex(
+    columns: (auto, 1fr),
+    rowspanx(2, [a\ a\ a\ a\ a]), "dfjasdfjdaskfjdsaklfj", "height should be correct here"
+)
