@@ -542,6 +542,7 @@ Another example (summing columns):
 ### Unreleased
 
 - Fixed the calculation of the size of `auto` rows and columns when a rowspan or colspan was used (https://github.com/PgBiel/typst-tablex/issues/11).
+- Fixed the calculation of the size of the last `auto` column when it was too long (https://github.com/PgBiel/typst-tablex/issues/6).
 
 ### v0.0.2
 
