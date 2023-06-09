@@ -1007,7 +1007,13 @@
                         let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
                         let width = measure(pcell.content, styles).width + 2*cell_inset
-                        let fixed_size = get-colspan-fixed-size-covered(pcell, columns: columns)
+
+                        // here, we are excluding from the width of this cell
+                        // at this column all width that was already covered by
+                        // previous columns, so we need to specify 'new_columns'
+                        // instead of 'columns' as the previous auto columns
+                        // also have a fixed size now (we know their width).
+                        let fixed_size = get-colspan-fixed-size-covered(pcell, columns: new_columns)
 
                         calc.max(max, width - fixed_size, 0pt)
                     } else {
@@ -1178,7 +1184,13 @@
                         // with its calculated width
                         // and with other constraints
                         let height = measure(cell-box, styles).height// + 2*cell_inset (box already considers inset)
-                        let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: rows)
+
+                        // here, we are excluding from the height of this cell
+                        // at this row all height that was already covered by
+                        // other rows, so we need to specify 'new_rows' instead
+                        // of 'rows' as the previous auto rows also have a fixed
+                        // size now (we know their height).
+                        let fixed_size = get-rowspan-fixed-size-covered(pcell, rows: new_rows)
 
                         calc.max(max, height - fixed_size, 0pt)
                     } else {
