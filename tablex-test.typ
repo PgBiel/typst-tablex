@@ -77,7 +77,7 @@ deeteeeeereeeedetteeeee
     hlinex(),
     [a], colspanx(2, rowspanx(2)[bcccccccc\ c\ c\ c]), [d],
     [a], (), (), [d],
-    [a], (x, y) => text(size: 7pt, [#(x, y)]), [f], [dee],
+    [a], (x, y) => text(size: 7pt)[#(x, y)], [f], [dee],
     [a], [b], [c], [dee],
 )
 
@@ -114,7 +114,7 @@ s
     vlinex(stop-pre-gutter: true, start: 2, end: 3, gutter-restrict: right),
     colspanx(2, rowspanx(2)[bcccccccc\ c\ c\ c]), [d],
     [a], (), (), [d],
-    [a], (x, y) => text(size: 7pt, [#(x, y)]), [f], [dee],
+    [a], (x, y) => text(size: 7pt)[#(x, y)], [f], [dee],
     [a], [b], [c], [dee],
 )
 
@@ -305,4 +305,10 @@ s
 #tablex(
     columns: (auto, 1fr),
     rowspanx(2, [a\ a\ a\ a\ a]), "dfjasdfjdaskfjdsaklfj", "height should be correct here"
+)
+
+This table should be contained within the page's width:
+#tablex(
+    columns: (auto, auto),
+    [#lorem(40)], [#lorem(100)]
 )
