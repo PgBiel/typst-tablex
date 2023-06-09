@@ -17,6 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [Unreleased](#unreleased)
     * [v0.0.2](#v002)
     * [v0.0.1](#v001)
 * [0.1.0 Roadmap](#010-roadmap)
@@ -438,7 +439,7 @@ Another example (summing columns):
     - `expand`: Optionally extend the vline by an arbitrary length. When `none`, it is not expanded. When a length (such as `5pt`), it is expanded by that length on both ends. When an array of two lengths (such as `(5pt, 10pt)`), it is expanded towards the top by the first length (in this case, `5pt`) and towards the bottom by the second (in this case, `10pt`). Defaults to `none`.
     - `parent`: An internal attribute determined when splitting lines among cells. (It should always be `none` on user-facing interfaces.)
 
-4. The `occupied` type is an internal type used to represent cell positions occupied by cells with `colspan` or `rowspan` greater than 1. 
+4. The `occupied` type is an internal type used to represent cell positions occupied by cells with `colspan` or `rowspan` greater than 1.
 
 5. Use `is-tablex-cell`, `is-tablex-hline`, `is-tablex-vline` and `is-tablex-occupied` to check if a particular object has the corresponding type marker.
 
@@ -492,7 +493,7 @@ Another example (summing columns):
     -  `fill`: Color with which to fill cells' backgrounds. Defaults to `none`, or no fill. Must be either a `color`, such as `blue`, or a function `(column, row) => color` (to customize for each individual cell).
 
     - `stroke`: Indicates how to draw the table lines. Defaults to the current line styles in the document. For example: `5pt + red` to change the color and the thickness.
- 
+
     - `column-gutter`: optional separation (length) between columns (such as `5pt`). Defaults to `none` (disable). At the moment, looks a bit ugly if your table has a `hline` attempting to cross a `colspan`.
 
     - `row-gutter`: optional separation (length) between rows. Defaults to `none` (disable). At the moment, looks a bit ugly if your table has a `vline` attempting to cross a `rowspan`.
@@ -537,6 +538,10 @@ Another example (summing columns):
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## Changelog
+
+### Unreleased
+
+- Fixed the calculation of the size of `auto` rows and columns when a rowspan or colspan was used (https://github.com/PgBiel/typst-tablex/issues/11).
 
 ### v0.0.2
 
