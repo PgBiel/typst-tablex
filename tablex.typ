@@ -859,6 +859,10 @@
         }
     }
 
+    if cell_fill != none and type(cell_fill) != "color" {
+        panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
+    }
+
     if type(cell_align) == "array" {
         let align_len = cell_align.len()
 
