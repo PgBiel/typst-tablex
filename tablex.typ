@@ -2299,14 +2299,15 @@
 //
 // rows: row sizes (same format as columns)
 //
-// align: how to align cells (alignment, array of alignments,
-// or a function (col, row) => alignment)
+// align: how to align cells (alignment, array of alignments
+// (one for each column), or a function
+// (col, row) => alignment)
 //
 // items: The table items, as specified by the columns
 // and rows. Can also be cellx, hlinex and vlinex objects.
 //
-// fill: how to fill cells (color or
-// a function (col, row) => color)
+// fill: how to fill cells (color/none, array of colors
+// (one for each column), or a function (col, row) => color)
 //
 // stroke: how to draw the table lines (stroke)
 // column-gutter: optional separation (length) between columns
