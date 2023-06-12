@@ -327,3 +327,19 @@ Empty array inherits from outside:
     [a], [b], [d], [e], [f],
     [cccc], [cccfdd], [esdfsd], [ffeff\ erfad], [adspfp]
 ))
+
+Accept array for fill:
+#tablex(
+    columns: 5,
+    fill: (red, blue, green),
+    [a], [b], [c], [d], [e],
+    [dddd], [eeee], [ffff], [ggggg], [hhhhhh]
+)
+
+Empty fill array is no-op:
+#tablex(
+    columns: 5,
+    fill: (),
+    [a], [b], [c], [d], [e],
+    [dddd], [eeee], [ffff], [ggggg], [hhhhhh]
+)
