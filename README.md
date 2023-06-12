@@ -490,7 +490,10 @@ Another example (summing columns):
         - **Note:** If more rows than specified are added, the height for the **last row** will be the one assigned to all extra rows. (If the last row is `auto`, the extra ones will also be `auto`, for example.)
         - **Warning:** support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
     - `inset`: Inset/internal padding to give to each cell. Defaults to `5pt` (the `#table` default).
-    -  `fill`: Color with which to fill cells' backgrounds. Defaults to `none`, or no fill. Must be either a `color`, such as `blue`, or a function `(column, row) => color` (to customize for each individual cell).
+
+    - `align`: How to align text in the cells. Defaults to `auto`, which inherits alignment from the outer context. Must be either `auto`, an `alignment` (such as `left` or `top`), a `2d alignment` (such as `left + top`), an `array` of alignment/2d alignment (one for each column in the table - if there are more columns than alignment values, they will alternate); or a function `(column, row) => alignment/2d alignment` (to customize for each individual cell).
+
+    - `fill`: Color with which to fill cells' backgrounds. Defaults to `none`, or no fill. Must be either a `color`, such as `blue`; an `array` of colors (one for each column in the table - if there are more columns than colors, they will alternate); or a function `(column, row) => color` (to customize for each individual cell).
 
     - `stroke`: Indicates how to draw the table lines. Defaults to the current line styles in the document. For example: `5pt + red` to change the color and the thickness.
 
@@ -541,6 +544,9 @@ Another example (summing columns):
 
 ### Unreleased
 
+- Added support for Typst v0.4.0 and v0.5.0.
+    - The tablex options `fill:` and `align:` now accept arrays of values for each column (https://github.com/PgBiel/typst-tablex/issues/13).
+        - For example, `fill: (red, blue)` would fill the first column with red, the second column with blue, and any further columns would alternate between the two fill colors.
 - Fixed the calculation of the size of `auto` rows and columns when a rowspan or colspan was used (https://github.com/PgBiel/typst-tablex/issues/11).
 - Fixed the calculation of the size of the last `auto` column when it was too long (https://github.com/PgBiel/typst-tablex/issues/6).
 
@@ -578,9 +584,11 @@ Initial release.
     - [X] `fill`
         - [X] Basic support (`color` for general fill)
         - [X] Accept a function (`(column, row) => color`)
+        - [X] Accept an array of colors (one for each column)
     - [X] `align`
         - [X] Basic support (`alignment` and `2d alignment` apply to all cells)
         - [X] Accept a function (`(column, row) => alignment/2d alignment`)
+        - [X] Accept an array of alignment values (one for each column)
     - [X] `inset`
     - [ ] `gutter`
         - [X] Basic support
