@@ -343,3 +343,15 @@ Empty fill array is no-op:
     [a], [b], [c], [d], [e],
     [dddd], [eeee], [ffff], [ggggg], [hhhhhh]
 )
+
+Align and fill function tests:
+#tablex(
+    columns: 5,
+    align: (column, row) => (
+        (top, bottom).at(row)
+        + (left, right).at(calc-mod(column, 2))
+    ),
+    fill: (column, row) => (red, blue).at(row).lighten((50%, 10%).at(calc-mod(column, 2))),
+    [a\ b], [b], [c], [d], [e],
+    [dddd\ eapdsfp], [eeee\ eapdlf], [ffff], [ggggg], [hhhhhh]
+)
