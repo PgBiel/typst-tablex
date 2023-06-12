@@ -839,8 +839,28 @@
     // same here for fill
     let cell_fill = default-if-auto(cell.fill, fill_default)
 
+    if type(cell_align) == "array" {
+        let align_len = cell_align.len()
+
+        if align_len == 0 or cell.x == auto {
+            // no alignment values specified
+            // => inherit from outside
+            cell_align = auto
+        } else if cell.x == auto {
+            // for some reason the cell x wasn't yet
+            // determined => just take the last
+            // alignment value
+            cell_align = cell_align.last()
+        } else {
+            // use mod to make the align value pattern
+            // repeat if there are more columns than
+            // align values.
+            cell_align = cell_align.at(calc-mod(cell.x, align_len))
+        }
+    }
+
     if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
-        panic("Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, or 'auto').")
+        panic("Tablex error: Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
     let aligned_cell_content = if cell_align == auto {
@@ -2254,8 +2274,9 @@
 // or a single size for 1 column)
 //
 // rows: row sizes (same format as columns)
-// align: how to align cells (alignment or
-// a function (col, row) => alignment)
+//
+// align: how to align cells (alignment, array of alignments,
+// or a function (col, row) => alignment)
 //
 // items: The table items, as specified by the columns
 // and rows. Can also be cellx, hlinex and vlinex objects.
