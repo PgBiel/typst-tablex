@@ -312,3 +312,18 @@ This table should be contained within the page's width:
     columns: (auto, auto),
     [#lorem(40)], [#lorem(100)]
 )
+
+Accept array of column alignments:
+#block(breakable: false, tablex(
+    columns: 5,
+    align: (right + top, center + bottom, left + horizon),
+    [a], [b], [d], [e], [f],
+    [cccc], [cccfdd], [esdfsd], [ffeff\ erfad], [adspfp]
+))
+Empty array inherits from outside:
+#block(breakable: false, tablex(
+    columns: 5,
+    align: (),
+    [a], [b], [d], [e], [f],
+    [cccc], [cccfdd], [esdfsd], [ffeff\ erfad], [adspfp]
+))
