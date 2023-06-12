@@ -884,7 +884,7 @@
     }
 
     if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
-        panic("Tablex error: Invalid alignment specified (must be either a function (row, column) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
+        panic("Tablex error: Invalid alignment specified (must be either a function (column, row) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
     let aligned_cell_content = if cell_align == auto {
