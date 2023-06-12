@@ -839,6 +839,26 @@
     // same here for fill
     let cell_fill = default-if-auto(cell.fill, fill_default)
 
+    if type(cell_fill) == "array" {
+        let fill_len = cell_fill.len()
+
+        if fill_len == 0 {
+            // no fill values specified
+            // => no fill
+            cell_fill = none
+        } else if cell.x == auto {
+            // for some reason the cell x wasn't yet
+            // determined => just take the last
+            // fill value
+            cell_fill = cell_fill.last()
+        } else {
+            // use mod to make the fill value pattern
+            // repeat if there are more columns than
+            // fill values.
+            cell_fill = cell_fill.at(calc-mod(cell.x, fill_len))
+        }
+    }
+
     if type(cell_align) == "array" {
         let align_len = cell_align.len()
 
