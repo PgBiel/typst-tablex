@@ -842,7 +842,7 @@
     if type(cell_align) == "array" {
         let align_len = cell_align.len()
 
-        if align_len == 0 or cell.x == auto {
+        if align_len == 0 {
             // no alignment values specified
             // => inherit from outside
             cell_align = auto
