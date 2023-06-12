@@ -1,4 +1,4 @@
-# typst-tablex (v0.0.2)
+# typst-tablex (v0.0.3)
 **More powerful and customizable tables in Typst.**
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
@@ -17,7 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.3](#v003)
     * [v0.0.2](#v002)
     * [v0.0.1](#v001)
 * [0.1.0 Roadmap](#010-roadmap)
@@ -26,7 +26,7 @@
 
 To use this library, download the file `tablex.typ` from the latest release (or from the repository itself) and place it on the same folder as your own typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whatever other function you use from the library).
 
-This library should be compatible with Typst v0.1.0, v0.2.0 and v0.3.0. (Previous versions weren't tested.)
+This library should be compatible with Typst v0.1.0, v0.2.0, v0.3.0, v0.4.0 and v0.5.0. (Previous versions weren't tested.)
 **Using the latest typst version (v0.2.0+) is recommended**, as it fixes certain minor layout issues, and also brings compilation speed improvements.
 
 ## Features
@@ -542,7 +542,7 @@ Another example (summing columns):
 
 ## Changelog
 
-### Unreleased
+### v0.0.3
 
 - Added support for Typst v0.4.0 and v0.5.0.
     - The tablex options `fill:` and `align:` now accept arrays of values for each column (https://github.com/PgBiel/typst-tablex/issues/13).
