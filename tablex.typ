@@ -1097,7 +1097,10 @@
 
         if col < fair_share {  // ok, keep your size, it's less than the limit
             remaining -= col
-            fair_share = remaining / auto_cols_remaining
+
+            if auto_cols_remaining > 0 {
+                fair_share = remaining / auto_cols_remaining
+            }
         } else {  // you surpassed the limit!!!
             remaining -= fair_share
             columns.at(i) = fair_share
