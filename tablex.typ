@@ -226,15 +226,7 @@
         rows += (rows.last(),) * missing_rows
     }
 
-    let new_items = ()
-
-    let is_at_first_column(grid_len) = calc-mod(grid_len, col_len) == 0
-
-    while not is_at_first_column(get-expected-grid-len(items + new_items, col_len: col_len)) {  // fix incomplete rows
-        new_items.push(cellx[])
-    }
-
-    (columns: columns, rows: rows, items: new_items)
+    (columns: columns, rows: rows, items: ())
 }
 
 // -- end: type checks and validators --
