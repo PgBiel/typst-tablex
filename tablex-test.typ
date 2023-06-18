@@ -363,3 +363,10 @@ Test division by zero bug:
 	[Name],[Entität],[Eigenschaft],
 	[GammaTaurus],[ThisIsASuperlongSymbolicName which is similar important as Supercalifragilistic],[],
 )
+
+Test superfluous row bug:
+#tablex(
+  columns: 3,
+  [a],
+  cellx(y: 2)[a]
+)
