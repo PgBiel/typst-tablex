@@ -17,6 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [Unreleased](#unreleased)
     * [v0.0.3](#v003)
     * [v0.0.2](#v002)
     * [v0.0.1](#v001)
@@ -541,6 +542,10 @@ Another example (summing columns):
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## Changelog
+
+### Unreleased
+
+- Fixed a division by zero regression from v0.0.3 (https://github.com/PgBiel/typst-tablex/issues/19).
 
 ### v0.0.3
 
