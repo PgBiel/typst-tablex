@@ -355,3 +355,11 @@ Align and fill function tests:
     [a\ b], [b], [c], [d], [e],
     [dddd\ eapdsfp], [eeee\ eapdlf], [ffff], [ggggg], [hhhhhh]
 )
+
+Test division by zero bug:
+#tablex(
+	columns: 3,
+
+	[Name],[Entität],[Eigenschaft],
+	[GammaTaurus],[ThisIsASuperlongSymbolicName which is similar important as Supercalifragilistic],[],
+)
