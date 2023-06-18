@@ -546,6 +546,7 @@ Another example (summing columns):
 ### Unreleased
 
 - Fixed a division by zero regression from v0.0.3 (https://github.com/PgBiel/typst-tablex/issues/19).
+- Fixed a bug where cells placed in arbitrary positions could force an extra empty row to appear (https://github.com/PgBiel/typst-tablex/issues/16).
 
 ### v0.0.3
 
