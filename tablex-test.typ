@@ -381,3 +381,14 @@ Test gutter restrict top:
     hlinex(gutter-restrict: bottom),
     [d], [e], [f]
 )
+
+Test gutter restrict without gutter:
+#tablex(
+    columns: 3,
+    auto-lines: false,
+    [a], [b], [c],
+    hlinex(gutter-restrict: top),
+    [e], [f], [g],
+    hlinex(gutter-restrict: bottom),
+    [d], vlinex(gutter-restrict: left), [e], vlinex(gutter-restrict: right), [f]
+)
