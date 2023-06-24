@@ -1572,7 +1572,7 @@
 
     if default-if-auto-or-none(start, 0) == default-if-auto-or-none(end, columns.len()) { return }
 
-    if (pre-gutter and hline.gutter-restrict == bottom) or (not pre-gutter and hline.gutter-restrict == top) {
+    if gutter != none and gutter.row != none and ((pre-gutter and hline.gutter-restrict == bottom) or (not pre-gutter and hline.gutter-restrict == top)) {
         return
     }
 
@@ -1621,7 +1621,7 @@
 
     if default-if-auto-or-none(start, 0) == default-if-auto-or-none(end, rows.len()) { return }
 
-    if (pre-gutter and vline.gutter-restrict == right) or (not pre-gutter and vline.gutter-restrict == left) {
+    if gutter != none and gutter.col != none and ((pre-gutter and vline.gutter-restrict == right) or (not pre-gutter and vline.gutter-restrict == left)) {
         return
     }
 
