@@ -1851,10 +1851,27 @@
                     } else {
                         none
                     }
+                    // pre-gutter is always false here, as we assume
+                    // hlines at the top of this row are handled
+                    // at pre-gutter by the preceding row,
+                    // and at post-gutter by this (the following) row.
+                    // these if's are to check if we should indeed
+                    // draw this hline, or if the previous row /
+                    // the header should take care of it.
                     if not header-hlines-have-priority and not is-header and start-y == header_last_y + 1 {
                         // second row (after header, and it has no hline priority).
                         draw-hline(hline, pre-gutter: false)
-                    } else if hline.y == 0 or (gutter.row != none and hline.gutter-restrict == top) {
+                    } else if hline.y == 0 {
+                        // hline at the very top of the table.
+                        draw-hline(hline, pre-gutter: false)
+                    } else if not page_turned and gutter.row != none and hline.gutter-restrict == bottom {
+                        // this hline, at the top of this row group,
+                        // is restricted to a post-gutter position,
+                        // so let's draw it right above us.
+                        // The page turn check is important:
+                        // the hline should not be drawn if the header
+                        // was repeated and its own hlines have
+                        // priority.
                         draw-hline(hline, pre-gutter: false)
                     } else if page_turned and (added_header_height == 0pt or not header-hlines-have-priority) {
                         draw-hline(hline, pre-gutter: false)
@@ -1863,11 +1880,22 @@
                 } else {
                     if hline.y == end-y + 1 and (
                         (is-header and not header-hlines-have-priority)
-                        or (gutter.row != none and hline.gutter-restrict == top)) {
-                        continue  // the next row group should draw this
+                        or (gutter.row != none and hline.gutter-restrict == bottom)) {
+                        // this hline is after all cells
+                        // in the row group, and either
+                        // this is the header and its hlines
+                        // don't have priority (=> the row
+                        // groups below it - if repeated -
+                        // should draw the hlines above them),
+                        // or the hline is restricted to
+                        // post-gutter => let the next
+                        // row group draw it.
+                        continue
                     }
 
                     // normally, only draw the bottom hlines
+                    // (and both their pre-gutter and
+                    // post-gutter variations)
                     draw-hline(hline, pre-gutter: true)
 
                     // don't draw the post-row gutter hline
