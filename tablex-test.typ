@@ -370,3 +370,14 @@ Test superfluous row bug:
   [a],
   cellx(y: 2)[a]
 )
+
+Test gutter restrict top:
+#tablex(
+    columns: 3,
+    auto-lines: false,
+    row-gutter: 5pt,
+    [a], [b], [c],
+    hlinex(gutter-restrict: top),
+    hlinex(gutter-restrict: bottom),
+    [d], [e], [f]
+)
