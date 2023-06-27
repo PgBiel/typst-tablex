@@ -414,3 +414,14 @@ Test gutter split between pages:
     [a], [b], [c],
     [a], [b], [c],
 )
+
+Small gutter test:
+
+#tablex(
+    columns: 4,
+    gutter: 10pt,
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+)
