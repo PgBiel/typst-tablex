@@ -1899,9 +1899,13 @@
                     draw-hline(hline, pre-gutter: true)
 
                     // don't draw the post-row gutter hline
-                    // if this is the last row in the page
-                    // or the last row in the whole table
-                    if gutter.row != none and hline.y < rows.len() and not is_last_row {
+                    // if this is the last row in the page,
+                    // the last row in the row group
+                    // (=> the next row group will
+                    // place the hline above it, so that
+                    // lines break properly between pages),
+                    // or the last row in the whole table.
+                    if gutter.row != none and hline.y < rows.len() and hline.y < end-y + 1 and not is_last_row {
                         draw-hline(hline, pre-gutter: false)
                     }
                 }
