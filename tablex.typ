@@ -1864,9 +1864,9 @@
                     } else if hline.y == 0 {
                         // hline at the very top of the table.
                         draw-hline(hline, pre-gutter: false)
-                    } else if not page_turned and gutter.row != none and hline.gutter-restrict == bottom {
+                    } else if not page_turned and gutter.row != none and hline.gutter-restrict != top {
                         // this hline, at the top of this row group,
-                        // is restricted to a post-gutter position,
+                        // isn't restricted to a pre-gutter position,
                         // so let's draw it right above us.
                         // The page turn check is important:
                         // the hline should not be drawn if the header
