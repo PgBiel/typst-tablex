@@ -549,6 +549,7 @@ Another example (summing columns):
 - Fixed a bug where cells placed in arbitrary positions could force an extra empty row to appear (https://github.com/PgBiel/typst-tablex/issues/16).
 - Fixed `hlinex(gutter-restrict: top)` causing the hline to just disappear (https://github.com/PgBiel/typst-tablex/issues/20).
 - Fixed certain `gutter-restrict` lines disappearing when there's no gutter (https://github.com/PgBiel/typst-tablex/issues/21).
+- Fixed row gutter lines not properly splitting across pages (https://github.com/PgBiel/typst-tablex/issues/23).
 
 ### v0.0.3
 
