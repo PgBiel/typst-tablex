@@ -392,3 +392,25 @@ Test gutter restrict without gutter:
     hlinex(gutter-restrict: bottom),
     [d], vlinex(gutter-restrict: left), [e], vlinex(gutter-restrict: right), [f]
 )
+
+#pagebreak(weak: true)
+
+#v(80%)
+
+Test gutter split between pages:
+
+#tablex(
+    columns: 3,
+    auto-vlines: false,
+    row-gutter: 5pt,
+    [a], [b], [c],
+    [a], [b], [c],
+    [a], [b], [c],
+    [a], [b], [c],
+    [a], [b], [c],
+    [a], [b], [c],
+    [a], [b], [c],
+    hlinex(stroke: blue),
+    [a], [b], [c],
+    [a], [b], [c],
+)
