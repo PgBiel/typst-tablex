@@ -1,4 +1,4 @@
-# typst-tablex (v0.0.3)
+# typst-tablex (v0.0.4)
 **More powerful and customizable tables in Typst.**
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
@@ -17,7 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.4](#v004)
     * [v0.0.3](#v003)
     * [v0.0.2](#v002)
     * [v0.0.1](#v001)
@@ -543,8 +543,9 @@ Another example (summing columns):
 
 ## Changelog
 
-### Unreleased
+### v0.0.4
 
+- Added `typst.toml` to support Typst v0.6.0's soon-to-be-released package manager (see https://github.com/PgBiel/typst-tablex/issues/22).
 - Fixed a division by zero regression from v0.0.3 (https://github.com/PgBiel/typst-tablex/issues/19).
 - Fixed a bug where cells placed in arbitrary positions could force an extra empty row to appear (https://github.com/PgBiel/typst-tablex/issues/16).
 - Fixed `hlinex(gutter-restrict: top)` causing the hline to just disappear (https://github.com/PgBiel/typst-tablex/issues/20).
