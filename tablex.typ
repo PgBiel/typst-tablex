@@ -1,5 +1,6 @@
 // Welcome to tablex!
 // Feel free to contribute with any features you think are missing.
+// Version: v0.0.4
 
 // -- table counter --
 
