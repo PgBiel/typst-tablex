@@ -635,6 +635,7 @@ Initial release.
 - [ ] General
     - [X] More docs
     - [ ] Code cleanup
+    - [ ] Table drawing rework
 - [ ] `#table` parity
     - [X] `columns:`, `rows:`
         - [X] Basic support
