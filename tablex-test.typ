@@ -124,10 +124,13 @@ s
     columns: 4,
     align: center + horizon,
     auto-vlines: false,
-    repeat-header: true,
+
+    // indicate the first two rows are the header
+    // (in case we need to eventually
+    // enable repeating the header across pages)
     header-rows: 2,
 
-    // color the last row's cells
+    // color the last column's cells
     // based on the written number
     map-cells: cell => {
         if cell.x == 3 and cell.y > 1 {
