@@ -119,6 +119,48 @@ s
 )
 
 == Examples from the docs
+\
+#tablex(
+    columns: 4,
+    align: center + horizon,
+    auto-vlines: false,
+
+    // indicate the first two rows are the header
+    // (in case we need to eventually
+    // enable repeating the header across pages)
+    header-rows: 2,
+
+    // color the last column's cells
+    // based on the written number
+    map-cells: cell => {
+        if cell.x == 3 and cell.y > 1 {
+            cell.content = {
+                let value = int(cell.content.text)
+                let text-color = if value < 10 {
+                    red.lighten(30%)
+                } else if value < 15 {
+                    yellow.darken(13%)
+                } else {
+                    green
+                }
+                set text(text-color)
+                strong(cell.content)
+            }
+        }
+        cell
+    },
+
+    /* --- header --- */
+    rowspanx(2)[*Username*], colspanx(2)[*Data*], (), rowspanx(2)[*Score*],
+    (),                 [*Location*], [*Height*], (),
+    /* -------------- */
+
+    [John], [Second St.], [180 cm], [5],
+    [Wally], [Third Av.], [160 cm], [10],
+    [Jason], [Some St.], [150 cm], [15],
+    [Robert], [123 Av.], [190 cm], [20],
+    [Other], [Unknown St.], [170 cm], [25],
+)
 
 #tablex(
     columns: (auto, 1em, 1fr, 1fr),  // 3 columns
@@ -157,7 +199,7 @@ s
     [f], (),             [g], [L],
 )
 
-#gridx(
+#block(breakable: false, gridx(
     columns: 4,
     (), (), vlinex(end: 2),
     hlinex(stroke: yellow + 2pt),
@@ -169,7 +211,7 @@ s
     [c], rowspanx(2)[d], [e], [K],
     hlinex(start: 2),
     [f], (),             [g], [L],
-)
+))
 
 #block(breakable: false, tablex(
     columns: 3,

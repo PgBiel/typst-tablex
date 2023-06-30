@@ -22,13 +22,67 @@
     * [v0.0.2](#v002)
     * [v0.0.1](#v001)
 * [0.1.0 Roadmap](#010-roadmap)
+* [License](#license)
 
 ## Usage
 
-To use this library, download the file `tablex.typ` from the latest release (or from the repository itself) and place it on the same folder as your own typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whatever other function you use from the library).
+To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.4": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
 
-This library should be compatible with Typst v0.1.0, v0.2.0, v0.3.0, v0.4.0 and v0.5.0. (Previous versions weren't tested.)
-**Using the latest typst version (v0.2.0+) is recommended**, as it fixes certain minor layout issues, and also brings compilation speed improvements.
+For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
+
+This library should be compatible with Typst v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.5.0 and v0.6.0. (Previous versions weren't tested.)
+**Using the latest Typst version is recommended (v0.6.0+)**, as it fixes certain bugs which made it almost impossible to use references and citations from within tablex tables (and also brings the package manager, making using tablex even easier!).
+
+Here's an example of what `tablex` can do:
+
+![image](https://github.com/PgBiel/typst-tablex/assets/9021226/355c527a-7296-4264-bac7-4ec991b15a18)
+
+Here's the code for that table:
+```js
+#import "@preview/tablex:0.0.4": tablex, rowspanx, colspanx
+
+#tablex(
+  columns: 4,
+  align: center + horizon,
+  auto-vlines: false,
+
+  // indicate the first two rows are the header
+  // (in case we need to eventually
+  // enable repeating the header across pages)
+  header-rows: 2,
+
+  // color the last column's cells
+  // based on the written number
+  map-cells: cell => {
+    if cell.x == 3 and cell.y > 1 {
+      cell.content = {
+        let value = int(cell.content.text)
+        let text-color = if value < 10 {
+          red.lighten(30%)
+        } else if value < 15 {
+          yellow.darken(13%)
+        } else {
+          green
+        }
+        set text(text-color)
+        strong(cell.content)
+      }
+    }
+    cell
+  },
+
+  /* --- header --- */
+  rowspanx(2)[*Username*], colspanx(2)[*Data*], (), rowspanx(2)[*Score*],
+  (),                 [*Location*], [*Height*], (),
+  /* -------------- */
+
+  [John], [Second St.], [180 cm], [5],
+  [Wally], [Third Av.], [160 cm], [10],
+  [Jason], [Some St.], [150 cm], [15],
+  [Robert], [123 Av.], [190 cm], [20],
+  [Other], [Unknown St.], [170 cm], [25],
+)
+```
 
 ## Features
 
@@ -37,17 +91,17 @@ This library should be compatible with Typst v0.1.0, v0.2.0, v0.3.0, v0.4.0 and 
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```js
-#import "tablex.typ": tablex
+#import "@preview/tablex:0.0.4": tablex
 
 #tablex(
-    columns: (auto, 1em, 1fr, 1fr),  // 4 columns
-    rows: auto,  // at least 1 row of auto size
-    fill: red,
-    align: center + horizon,
-    stroke: green,
-    [a], [b], [c], [d],
-    [e], [f], [g], [h],
-    [i], [j], [k], [l]
+  columns: (auto, 1em, 1fr, 1fr),  // 4 columns
+  rows: auto,  // at least 1 row of auto size
+  fill: red,
+  align: center + horizon,
+  stroke: green,
+  [a], [b], [c], [d],
+  [e], [f], [g], [h],
+  [i], [j], [k], [l]
 )
 ```
 
@@ -62,13 +116,13 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```js
-#import "tablex.typ": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.4": tablex, colspanx, rowspanx
 
 #tablex(
-    columns: 3,
-    colspanx(2)[a], (),  [b],
-    [c], rowspanx(2)[d], [ed],
-    [f], (),             [g]
+  columns: 3,
+  colspanx(2)[a], (),  [b],
+  [c], rowspanx(2)[d], [ed],
+  [f], (),             [g]
 )
 ```
 
@@ -91,30 +145,30 @@ Also, note that, by default, the horizontal lines below the header are transport
 Example:
 
 ```js
-#import "tablex.typ": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.4": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
 #v(80%)
 
 #tablex(
-    columns: 4,
-    align: center + horizon,
-    auto-vlines: false,
-    repeat-header: true,
+  columns: 4,
+  align: center + horizon,
+  auto-vlines: false,
+  repeat-header: true,
 
-    /* --- header --- */
-    rowspanx(2)[*Names*], colspanx(2)[*Properties*], (), rowspanx(2)[*Creators*],
-    (),                 [*Type*], [*Size*], (),
-    /* -------------- */
+  /* --- header --- */
+  rowspanx(2)[*Names*], colspanx(2)[*Properties*], (), rowspanx(2)[*Creators*],
+  (),                 [*Type*], [*Size*], (),
+  /* -------------- */
 
-    [Machine], [Steel], [5 $"cm"^3$], [John p& Kate],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Robert],
-    [Frog], [Animal], [6 $"cm"^3$], [Rodbert],
+  [Machine], [Steel], [5 $"cm"^3$], [John p& Kate],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Robert],
+  [Frog], [Animal], [6 $"cm"^3$], [Rodbert],
 )
 ```
 
@@ -138,40 +192,40 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```js
-#import "tablex.typ": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.4": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
-    columns: 4,
-    auto-lines: false,
+  columns: 4,
+  auto-lines: false,
 
-    // skip a column here         vv
-    vlinex(), vlinex(), vlinex(), (), vlinex(),
-    colspanx(2)[a], (),  [b], [J],
-    [c], rowspanx(2)[d], [e], [K],
-    [f], (),             [g], [L],
-    //   ^^ '()' after the first cell are 100% ignored
+  // skip a column here         vv
+  vlinex(), vlinex(), vlinex(), (), vlinex(),
+  colspanx(2)[a], (),  [b], [J],
+  [c], rowspanx(2)[d], [e], [K],
+  [f], (),             [g], [L],
+  //   ^^ '()' after the first cell are 100% ignored
 )
 
 #tablex(
-    columns: 4,
-    auto-vlines: false,
-    colspanx(2)[a], (),  [b], [J],
-    [c], rowspanx(2)[d], [e], [K],
-    [f], (),             [g], [L],
+  columns: 4,
+  auto-vlines: false,
+  colspanx(2)[a], (),  [b], [J],
+  [c], rowspanx(2)[d], [e], [K],
+  [f], (),             [g], [L],
 )
 
 #gridx(
-    columns: 4,
-    (), (), vlinex(end: 2),
-    hlinex(stroke: yellow + 2pt),
-    colspanx(2)[a], (),  [b], [J],
-    hlinex(start: 0, end: 1, stroke: yellow + 2pt),
-    hlinex(start: 1, end: 2, stroke: green + 2pt),
-    hlinex(start: 2, end: 3, stroke: red + 2pt),
-    hlinex(start: 3, end: 4, stroke: blue.lighten(50%) + 2pt),
-    [c], rowspanx(2)[d], [e], [K],
-    hlinex(start: 2),
-    [f], (),             [g], [L],
+  columns: 4,
+  (), (), vlinex(end: 2),
+  hlinex(stroke: yellow + 2pt),
+  colspanx(2)[a], (),  [b], [J],
+  hlinex(start: 0, end: 1, stroke: yellow + 2pt),
+  hlinex(start: 1, end: 2, stroke: green + 2pt),
+  hlinex(start: 2, end: 3, stroke: red + 2pt),
+  hlinex(start: 3, end: 4, stroke: blue.lighten(50%) + 2pt),
+  [c], rowspanx(2)[d], [e], [K],
+  hlinex(start: 2),
+  [f], (),             [g], [L],
 )
 ```
 
@@ -181,16 +235,16 @@ Here's some sample usage:
 
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
-```
-#import "tablex.typ": tablex, colspanx, rowspanx
+```js
+#import "@preview/tablex:0.0.4": tablex, colspanx, rowspanx
 
 #tablex(
-    columns: 3,
-    map-hlines: h => (..h, stroke: blue),
-    map-vlines: v => (..v, stroke: green + 2pt),
-    colspanx(2)[a], (),  [b],
-    [c], rowspanx(2)[d], [ed],
-    [f], (),             [g]
+  columns: 3,
+  map-hlines: h => (..h, stroke: blue),
+  map-vlines: v => (..v, stroke: green + 2pt),
+  colspanx(2)[a], (),  [b],
+  [c], rowspanx(2)[d], [ed],
+  [f], (),             [g]
 )
 ```
 
@@ -214,18 +268,18 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 For example:
 
 ```js
-#import "tablex.typ": tablex, cellx, colspanx, rowspanx
+#import "@preview/tablex:0.0.4": tablex, cellx, colspanx, rowspanx
 
 #tablex(
-    columns: 3,
-    fill: red,
-    align: right,
-    colspanx(2)[a], (),  [beeee],
-    [c], rowspanx(2)[d], cellx(fill: blue, align: left)[e],
-    [f], (),             [g],
+  columns: 3,
+  fill: red,
+  align: right,
+  colspanx(2)[a], (),  [beeee],
+  [c], rowspanx(2)[d], cellx(fill: blue, align: left)[e],
+  [f], (),             [g],
 
-    // place this cell at the first column, seventh row
-    cellx(colspan: 3, align: center, x: 0, y: 6)[hi I'm down here]
+  // place this cell at the first column, seventh row
+  cellx(colspan: 3, align: center, x: 0, y: 6)[hi I'm down here]
 )
 ```
 
@@ -246,40 +300,40 @@ To customize multiple cells at once, you have a few options:
 Example:
 
 ```js
-#import "tablex.typ": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.4": tablex, colspanx, rowspanx
 
 #tablex(
-    columns: 4,
-    auto-vlines: true,
+  columns: 4,
+  auto-vlines: true,
 
-    // make all cells italicized
-    map-cells: cell => {
-        (..cell, content: emph(cell.content))
-    },
+  // make all cells italicized
+  map-cells: cell => {
+    (..cell, content: emph(cell.content))
+  },
 
-    // add some arbitrary content to entire rows
-    map-rows: (row, cells) => cells.map(c =>
-        if c == none {
-            c  // keeping 'none' is important
-        } else {
-            (..c, content: [#c.content\ *R#row*])
-        }
-    ),
+  // add some arbitrary content to entire rows
+  map-rows: (row, cells) => cells.map(c =>
+    if c == none {
+      c  // keeping 'none' is important
+    } else {
+      (..c, content: [#c.content\ *R#row*])
+    }
+  ),
 
-    // color cells based on their columns
-    // (using 'fill: (column, row) => color' also works
-    // for this particular purpose)
-    map-cols: (col, cells) => cells.map(c =>
-        if c == none {
-            c
-        } else {
-            (..c, fill: if col < 2 { blue } else { yellow })
-        }
-    ),
+  // color cells based on their columns
+  // (using 'fill: (column, row) => color' also works
+  // for this particular purpose)
+  map-cols: (col, cells) => cells.map(c =>
+    if c == none {
+      c
+    } else {
+      (..c, fill: if col < 2 { blue } else { yellow })
+    }
+  ),
 
-    colspanx(2)[a], (),  [b], [J],
-    [c], rowspanx(2)[dd], [e], [K],
-    [f], (),             [g], [L],
+  colspanx(2)[a], (),  [b], [J],
+  [c], rowspanx(2)[dd], [e], [K],
+  [f], (),             [g], [L],
 )
 ```
 
@@ -314,7 +368,7 @@ Another example (summing columns):
 
 ## Known Issues
 
-- Filled cells will partially overlap with horizontal lines above them.
+- Filled cells will partially overlap with horizontal lines above them (see https://github.com/PgBiel/typst-tablex/issues/4).
     - To be fixed in a future rework of the table drawing process.
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
@@ -323,7 +377,7 @@ Another example (summing columns):
 
 - By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
 
-- `tablex` can potentially be slower and/or take longer to compile than the default `table` (especially when the table spans a lot of pages). **Please use the latest typst version (v0.2.0+) to reduce this problem** (it brought great optimizations to some internal things). Still, we are looking for ways to better optimize the library (PRs are open!). However, re-compilation is usually fine thanks to typst's built-in memoization.
+- `tablex` can potentially be slower and/or take longer to compile than the default `table` (especially when the table spans a lot of pages). **Please use the latest Typst version to reduce this problem** (each version has been bringing further improvements in this sense). Still, we are looking for ways to better optimize the library (see more discussion at https://github.com/PgBiel/typst-tablex/issues/5 - feel free to give some input!). However, re-compilation is usually fine thanks to Typst's built-in memoization.
 
 - The internals of the library still aren't very well documented; I plan on adding more info about this eventually.
 
@@ -337,20 +391,20 @@ Another example (summing columns):
 
     ```js
     #let cellx(content,
-        x: auto, y: auto,
-        rowspan: 1, colspan: 1,
-        fill: auto, align: auto,
-        inset: auto
+      x: auto, y: auto,
+      rowspan: 1, colspan: 1,
+      fill: auto, align: auto,
+      inset: auto
     ) = (
-        tablex-dict-type: "cell",
-        content: content,
-        rowspan: rowspan,
-        colspan: colspan,
-        align: align,
-        fill: fill,
-        inset: inset,
-        x: x,
-        y: y,
+      tablex-dict-type: "cell",
+      content: content,
+      rowspan: rowspan,
+      colspan: colspan,
+      align: align,
+      fill: fill,
+      inset: inset,
+      x: x,
+      y: y,
     )
     ```
     where:
@@ -369,22 +423,22 @@ Another example (summing columns):
 
     ```js
     #let hlinex(
-        start: 0, end: auto, y: auto,
-        stroke: auto,
-        stop-pre-gutter: auto, gutter-restrict: none,
-        stroke-expand: true,
-        expand: none
+      start: 0, end: auto, y: auto,
+      stroke: auto,
+      stop-pre-gutter: auto, gutter-restrict: none,
+      stroke-expand: true,
+      expand: none
     ) = (
-        tablex-dict-type: "hline",
-        start: start,
-        end: end,
-        y: y,
-        stroke: stroke,
-        stop-pre-gutter: stop-pre-gutter,
-        gutter-restrict: gutter-restrict,
-        stroke-expand: stroke-expand,
-        expand: expand,
-        parent: none,
+      tablex-dict-type: "hline",
+      start: start,
+      end: end,
+      y: y,
+      stroke: stroke,
+      stop-pre-gutter: stop-pre-gutter,
+      gutter-restrict: gutter-restrict,
+      stroke-expand: stroke-expand,
+      expand: expand,
+      parent: none,
     )
     ```
 
@@ -406,22 +460,22 @@ Another example (summing columns):
 
     ```js
     #let vlinex(
-        start: 0, end: auto, x: auto,
-        stroke: auto,
-        stop-pre-gutter: auto, gutter-restrict: none,
-        stroke-expand: true,
-        expand: none
+      start: 0, end: auto, x: auto,
+      stroke: auto,
+      stop-pre-gutter: auto, gutter-restrict: none,
+      stroke-expand: true,
+      expand: none
     ) = (
-        tablex-dict-type: "vline",
-        start: start,
-        end: end,
-        x: x,
-        stroke: stroke,
-        stop-pre-gutter: stop-pre-gutter,
-        gutter-restrict: gutter-restrict,
-        stroke-expand: stroke-expand,
-        expand: expand,
-        parent: none,
+      tablex-dict-type: "vline",
+      start: start,
+      end: end,
+      x: x,
+      stroke: stroke,
+      stop-pre-gutter: stop-pre-gutter,
+      gutter-restrict: gutter-restrict,
+      stroke-expand: stroke-expand,
+      expand: expand,
+      parent: none,
     )
     ```
 
@@ -454,25 +508,25 @@ Another example (summing columns):
 
     ```js
     #let tablex(
-        columns: auto, rows: auto,
-        inset: 5pt,
-        align: auto,
-        fill: none,
-        stroke: auto,
-        column-gutter: auto, row-gutter: auto,
-        gutter: none,
-        repeat-header: false,
-        header-rows: 1,
-        header-hlines-have-priority: true,
-        auto-lines: true,
-        auto-hlines: auto,
-        auto-vlines: auto,
-        map-cells: none,
-        map-hlines: none,
-        map-vlines: none,
-        map-rows: none,
-        map-cols: none,
-        ..items
+      columns: auto, rows: auto,
+      inset: 5pt,
+      align: auto,
+      fill: none,
+      stroke: auto,
+      column-gutter: auto, row-gutter: auto,
+      gutter: none,
+      repeat-header: false,
+      header-rows: 1,
+      header-hlines-have-priority: true,
+      auto-lines: true,
+      auto-hlines: auto,
+      auto-vlines: auto,
+      map-cells: none,
+      map-hlines: none,
+      map-vlines: none,
+      map-rows: none,
+      map-cols: none,
+      ..items
     ) = {
     // ...
     }
@@ -581,6 +635,7 @@ Initial release.
 - [ ] General
     - [X] More docs
     - [ ] Code cleanup
+    - [ ] Table drawing rework
 - [ ] `#table` parity
     - [X] `columns:`, `rows:`
         - [X] Basic support
@@ -655,3 +710,7 @@ Initial release.
         - [X] `map-vlines` - Customize each vertical line
         - [X] `map-rows` - Customize entire rows of cells
         - [X] `map-cols` - Customize entire columns of cells
+
+## License
+
+MIT license (see the `LICENSE` file).
