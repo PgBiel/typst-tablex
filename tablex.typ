@@ -1389,7 +1389,7 @@
     height-between(start: y, end: y + rowspan, rows: rows, gutter: gutter, pre-gutter: true)
 }
 
-// overide start and end for vlines and hlines (keep styling options and stuff)
+// override start and end for vlines and hlines (keep styling options and stuff)
 #let v-or-hline-with-span(v_or_hline, start: none, end: none) = {
     (
         ..v_or_hline,
