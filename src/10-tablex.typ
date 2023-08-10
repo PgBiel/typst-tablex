@@ -1,3 +1,5 @@
+// The tablex function, which is the entry point for the library.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

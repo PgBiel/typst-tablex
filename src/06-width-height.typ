@@ -1,3 +1,6 @@
+// Utility functions for calculating width and height between parts of the table,
+// and also for breaking down lines to their intersections with cells.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

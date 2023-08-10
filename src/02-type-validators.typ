@@ -1,3 +1,5 @@
+// Type validators, and also rowspanx and colspanx.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

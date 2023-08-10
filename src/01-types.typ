@@ -1,3 +1,5 @@
+// Basic types for tablex.
+
 #let hlinex(
     start: 0, end: auto, y: auto,
     stroke: auto,

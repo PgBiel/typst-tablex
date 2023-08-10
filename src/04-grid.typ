@@ -1,3 +1,10 @@
+// Functions related to tablex's internal grid generation.
+// The internal grid is the table's internal representation,
+// a.k.a. a matrix of cells, flattened into an 1D array
+// for efficiency
+// (which is fine since the number of columns is fixed:
+// there is one row at every '# of columns' cells).
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

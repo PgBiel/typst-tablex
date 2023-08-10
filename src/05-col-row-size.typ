@@ -1,3 +1,5 @@
+// Functions related to the calculation of the sizes of columns and rows.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

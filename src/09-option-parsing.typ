@@ -1,3 +1,5 @@
+// Parsers and validators of tablex options.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

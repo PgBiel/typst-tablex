@@ -1,3 +1,5 @@
+// General Typst and table utilities.
+
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)

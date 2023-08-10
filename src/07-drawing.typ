@@ -1,3 +1,5 @@
+// Functions used to draw lines.
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *

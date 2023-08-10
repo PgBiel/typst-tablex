@@ -1,3 +1,7 @@
+// Main rendering functions:
+// 1. Calculator of page dimensions.
+// 2. Generation and rendering of row groups (rowspans and header).
+
 // -- tablex imports --
 #import "00-common.typ": *
 #import "01-types.typ": *
