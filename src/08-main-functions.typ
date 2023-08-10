@@ -1,12 +1,12 @@
 // -- tablex imports --
-#import "0-common.typ": *
-#import "1-types.typ": *
-#import "2-type-validators.typ": *
-#import "3-utilities.typ": *
-#import "4-grid.typ": *
-#import "5-col-row-size.typ": *
-#import "6-width-height.typ": *
-#import "7-drawing.typ": *
+#import "00-common.typ": *
+#import "01-types.typ": *
+#import "02-type-validators.typ": *
+#import "03-utilities.typ": *
+#import "04-grid.typ": *
+#import "05-col-row-size.typ": *
+#import "06-width-height.typ": *
+#import "07-drawing.typ": *
 // -- end imports --
 
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),

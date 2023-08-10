@@ -1,9 +1,9 @@
 // -- tablex imports --
-#import "0-common.typ": *
-#import "1-types.typ": *
-#import "2-type-validators.typ": *
-#import "3-utilities.typ": *
-#import "4-grid.typ": *
+#import "00-common.typ": *
+#import "01-types.typ": *
+#import "02-type-validators.typ": *
+#import "03-utilities.typ": *
+#import "04-grid.typ": *
 // -- end imports --
 
 // Makes a cell's box, using the given options
