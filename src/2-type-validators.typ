@@ -1,6 +1,6 @@
 // -- tablex imports --
-#import "0-common.typ"
-#import "1-types.typ"
+#import "0-common.typ": *
+#import "1-types.typ": *
 // -- end imports --
 
 // Is this a valid dict created by this library?
