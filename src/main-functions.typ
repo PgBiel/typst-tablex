@@ -1,16 +1,17 @@
+// #08
 // Main rendering functions:
 // 1. Calculator of page dimensions.
 // 2. Generation and rendering of row groups (rowspans and header).
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
-#import "04-grid.typ": *
-#import "05-col-row-size.typ": *
-#import "06-width-height.typ": *
-#import "07-drawing.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
+#import "grid.typ": *
+#import "col-row-size.typ": *
+#import "width-height.typ": *
+#import "drawing.typ": *
 // -- end imports --
 
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),

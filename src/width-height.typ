@@ -1,11 +1,12 @@
+// #06
 // Utility functions for calculating width and height between parts of the table,
 // and also for breaking down lines to their intersections with cells.
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
 // -- end imports --
 
 #let width-between(start: 0, end: none, columns: (), gutter: none, pre-gutter: false) = {

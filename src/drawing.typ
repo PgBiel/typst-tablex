@@ -1,13 +1,14 @@
+// #07
 // Functions used to draw lines.
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
-#import "04-grid.typ": *
-#import "05-col-row-size.typ": *
-#import "06-width-height.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
+#import "grid.typ": *
+#import "col-row-size.typ": *
+#import "width-height.typ": *
 // -- end imports --
 
 #let parse-stroke(stroke) = {

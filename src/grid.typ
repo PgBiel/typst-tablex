@@ -1,3 +1,4 @@
+// #04
 // Functions related to tablex's internal grid generation.
 // The internal grid is the table's internal representation,
 // a.k.a. a matrix of cells, flattened into an 1D array
@@ -6,10 +7,10 @@
 // there is one row at every '# of columns' cells).
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
 // -- end imports --
 
 #let create-grid(width, initial_height) = (

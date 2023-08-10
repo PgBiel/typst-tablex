@@ -1,11 +1,12 @@
+// #05
 // Functions related to the calculation of the sizes of columns and rows.
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
-#import "04-grid.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
+#import "grid.typ": *
 // -- end imports --
 
 // Makes a cell's box, using the given options

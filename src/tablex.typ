@@ -1,16 +1,17 @@
+// #10
 // The tablex function, which is the entry point for the library.
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
-#import "02-type-validators.typ": *
-#import "03-utilities.typ": *
-#import "04-grid.typ": *
-#import "05-col-row-size.typ": *
-#import "06-width-height.typ": *
-#import "07-drawing.typ": *
-#import "08-main-functions.typ": *
-#import "09-option-parsing.typ": *
+#import "common.typ": *
+#import "types.typ": *
+#import "type-validators.typ": *
+#import "utilities.typ": *
+#import "grid.typ": *
+#import "col-row-size.typ": *
+#import "width-height.typ": *
+#import "drawing.typ": *
+#import "main-functions.typ": *
+#import "option-parsing.typ": *
 // -- end imports --
 
 // Creates a table.

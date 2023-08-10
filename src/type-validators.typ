@@ -1,8 +1,9 @@
+// #02
 // Type validators, and also rowspanx and colspanx.
 
 // -- tablex imports --
-#import "00-common.typ": *
-#import "01-types.typ": *
+#import "common.typ": *
+#import "types.typ": *
 // -- end imports --
 
 // Is this a valid dict created by this library?
