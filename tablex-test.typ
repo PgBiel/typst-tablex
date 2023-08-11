@@ -518,3 +518,28 @@ Test fractional columns in an auto-sized block:
     )
   )
 )
+
+*Nested tables from issue \#28:*
+
+#let mycell = [
+  #tablex(
+    columns: (1fr, 1fr),
+    [A],[A]
+  )
+]
+
+= table inside a table
+#tablex(
+  columns: (1fr, 1fr),
+  mycell, mycell
+)
+
+= following table fails
+*Problem/Observation*:  just one column "C"
+
+*Expected Outcome*: Two columns
+
+#tablex(
+  columns: (1fr, 1fr),
+  [C],[C]
+)
