@@ -602,7 +602,7 @@ Another example (summing columns):
 
 - ⚠️ **Minimum Typst version raised to v0.2.0**
 - Improved calculation of page/container dimensions by using the `layout()` function.
-  - Fixes tables with fractional columns not displaying properly in blocks with `auto` widths (https://github.com/PgBiel/typst-tablex/issues/44)
+  - Fixes tables with fractional columns not displaying properly in blocks with `auto` width (https://github.com/PgBiel/typst-tablex/issues/44)
   - Fixes some nested tables overflowing the page width (https://github.com/PgBiel/typst-tablex/issues/41)
   - Fixes nested tables with fractional columns not displaying properly (https://github.com/PgBiel/typst-tablex/issues/28)
 
