@@ -467,3 +467,54 @@ Small gutter test:
     [a], [b], [c], [d],
     [a], [b], [c], [d],
 )
+
+Test fractional columns in an auto-sized block:
+
+#block(tablex(
+    columns: (auto, 1fr, 1fr),
+    [a], [b], [c],
+    [d], [e], [f],
+    [g], [h], [i]
+))
+
+*Using the examples from issue \#44:*
+
+1.
+#table(columns: 1fr, [1A. table])
+#tablex(columns: 1fr, [1B. tablex])
+
+2.
+#block(table(columns: 1fr, [2A. table plain block]))
+#block(tablex(columns: 1fr, [2B. tablex plain block]))
+
+3.
+#block(breakable: true, table(columns: 1fr, [3A. table breakable: true]))
+#block(breakable: true, tablex(columns: 1fr, [3B. tablex breakable: true]))
+
+4.
+#block(breakable: false, table(columns: 1fr, [4A. table breakable: false]))
+#block(breakable: false, tablex(columns: 1fr, [4B. tablex breakable: false]))
+
+*Nested tables from issue \#41:*
+
+- Triple-nested tables.
+
+#tablex(
+  tablex(
+    tablex(
+      lorem(10)
+    )
+  )
+)
+
+- Quadruple-nested tables.
+
+#tablex(
+  tablex(
+    tablex(
+      tablex(
+        lorem(20)
+      )
+    )
+  )
+)
