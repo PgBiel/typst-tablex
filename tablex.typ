@@ -1,6 +1,6 @@
 // Welcome to tablex!
 // Feel free to contribute with any features you think are missing.
-// Version: v0.0.4
+// Version: v0.0.5
 
 // -- table counter --
 
@@ -2430,15 +2430,15 @@
     let map-rows = parse-map-func(map-rows, uses-second-param: true)
     let map-cols = parse-map-func(map-cols, uses-second-param: true)
 
-    locate(t_loc => style(styles => {
+    layout(size => locate(t_loc => style(styles => {
         let table_id = _tablex-table-counter.at(t_loc)
         let page_dimensions = get-page-dim-state(table_id)
         let page_dim_at = page_dimensions.final(t_loc)
         let t_pos = t_loc.position()
 
         // Subtract the max width/height from current width/height to disregard margin/etc.
-        let page_width = page_dim_at.width
-        let page_height = page_dim_at.height
+        let page_width = size.width
+        let page_height = size.height
 
         let max_pos = default-if-none(page_dim_at.bottom_right, (x: t_pos.x + page_width, y: t_pos.y + page_height))
         let min_pos = default-if-none(page_dim_at.top_left, t_pos)
@@ -2548,7 +2548,7 @@
         )
 
         grid(columns: (auto,), rows: auto, ..row_groups)
-    }))
+    })))
 }
 
 // Same as table but defaults to lines off
