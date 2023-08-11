@@ -605,6 +605,7 @@ Another example (summing columns):
   - Fixes tables with fractional columns not displaying properly in blocks with `auto` width (https://github.com/PgBiel/typst-tablex/issues/44)
   - Fixes some nested tables overflowing the page width (https://github.com/PgBiel/typst-tablex/issues/41)
   - Fixes nested tables with fractional columns not displaying properly (https://github.com/PgBiel/typst-tablex/issues/28)
+- Added the tablex version number as a comment in the source file (as requested in https://github.com/PgBiel/typst-tablex/issues/25).
 
 ### v0.0.4
 
