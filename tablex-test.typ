@@ -5,6 +5,7 @@
 test
 
 deeteeeeereeeedetteeeee
+// vvvv causes the dreaded warning (alongside another table downwards)
 #tablex(
     columns: (auto, auto, auto), // rows: ((1em, 1em, 1em),) eeee
     rows: (auto,),
@@ -352,6 +353,25 @@ s
     columns: (auto, 1fr, 1fr),
     [a], [b], [c],
     [c], [d], [e]
+)
+
+#table(
+    columns: 4,
+    gutter: 10pt,
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+)
+
+// vvv causes the dreaded warning (alongside the first table in the file)
+#tablex(
+    columns: 4,
+    gutter: 10pt,
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
+    [a], [b], [c], [d],
 )
 
 #set page(width: 300pt, height: 1000pt)
