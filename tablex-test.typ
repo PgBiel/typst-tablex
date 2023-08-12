@@ -312,12 +312,46 @@ s
 #v(35em)
 #set page(width: auto, height: auto)
 
+*Auto page tests (infinite dimensions):*
+
+#table(
+    columns: 3,
+    [a], [b], [c],
+    [d], [e], [f],
+    [g], [h], [i],
+    [f], [j], [e\ b\ c\ d],
+)
+
 #tablex(
     columns: 3,
     [a], [b], [c],
     [d], [e], [f],
     [g], [h], [i],
     [f], [j], [e\ b\ c\ d],
+)
+
+#table(
+    columns: (99%, auto),
+    [a], [b],
+    [c], [d]
+)
+
+#tablex(
+    columns: (99%, auto),
+    [a], [b],
+    [c], [d]
+)
+
+#table(
+    columns: (auto, 1fr, 1fr),
+    [a], [b], [c],
+    [c], [d], [e]
+)
+
+#tablex(
+    columns: (auto, 1fr, 1fr),
+    [a], [b], [c],
+    [c], [d], [e]
 )
 
 #set page(width: 300pt, height: 1000pt)
