@@ -170,6 +170,11 @@
     len
 }
 
+// Check if this length is infinite.
+#let is-infinite-len(len) = {
+    type(len) in ("ratio", "fraction", "relative length", "length") and "inf" in repr(len)
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == "integer" {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
@@ -201,17 +206,17 @@
     }
 
     let col_row_is_valid(col_row) = (
-        col_row == auto or type(col_row) in (
+        (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
             "fraction", "length", "relative length", "ratio"
-            )
+            ))
     )
 
     if not columns.all(col_row_is_valid) {
-        panic("Invalid column sizes (must all be 'auto' or a valid length specifier).")
+        panic("Invalid column sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
     if not rows.all(col_row_is_valid) {
-        panic("Invalid row sizes (must all be 'auto' or a valid length specifier).")
+        panic("Invalid row sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
     let col_len = columns.len()
@@ -233,11 +238,6 @@
 // -- end: type checks and validators --
 
 // -- utility functions --
-
-// Check if this length is infinite.
-#let is-infinite-len(len) = {
-    type(len) in ("ratio", "fraction", "relative length", "length") and "inf" in repr(len)
-}
 
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
@@ -895,6 +895,10 @@
         [#content]
     } else {
         align(cell_align)[#content]
+    }
+
+    if is-infinite-len(inset) {
+        panic("Tablex error: inset must not be infinite")
     }
 
     box(
