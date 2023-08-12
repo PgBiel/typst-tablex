@@ -234,6 +234,11 @@
 
 // -- utility functions --
 
+// Check if this length is infinite.
+#let is-infinite-len(len) = {
+    type(len) in ("relative length", "length") and "inf" in repr(len)
+}
+
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
@@ -354,7 +359,9 @@
 ) = {
     page_size = 0pt + page_size
 
-    if type(len) == "length" {
+    if is-infinite-len(len) {
+        0pt  // avoid the destruction of the universe
+    } else if type(len) == "length" {
         if "em" in repr(len) {
             if styles == none {
                 panic("Cannot convert length to pt ('styles' not specified).")
@@ -369,6 +376,10 @@
             panic("Cannot convert ratio to pt ('page_size' not specified).")
         }
 
+        if is-infinite-len(page_size) {
+            return 0pt  // page has 'auto' size => % should return 0
+        }
+
         ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
     } else if type(len) == "fraction" {
         if frac_amount == none {
@@ -379,7 +390,7 @@
             panic("Cannot convert fraction to pt ('frac_total' not specified).")
         }
 
-        if frac_amount <= 0 {
+        if frac_amount <= 0 or is-infinite-len(frac_total) {
             return 0pt
         }
 
@@ -407,7 +418,7 @@
 
             let other_part = len - ratio_part  // get the (2em + 5pt) part
 
-            let ratio_part_pt = ((ratio_part / 1%) / 100) * page_size
+            let ratio_part_pt = if is-infinite-len(page_size) { 0pt } else { ((ratio_part / 1%) / 100) * page_size }
             let other_part_pt = 0pt
 
             if other_part < 0pt {
@@ -918,7 +929,7 @@
         amount-frac += (gutter / 1fr) * (tracks.len() - 1)
     }
 
-    let frac-width = if amount-frac > 0 {
+    let frac-width = if amount-frac > 0 and not is-infinite-len(remaining) {
         remaining / amount-frac
     } else {
         0pt
@@ -1068,6 +1079,11 @@
 }
 
 #let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
+    if is-infinite-len(available) {
+        // infinite space available => don't modify columns
+        return columns
+    }
+
     let remaining = available
     let auto_cols_remaining = auto_cols.len()
 
@@ -1814,7 +1830,7 @@
 
             let row_group_height = row_heights + added_header_height + (row_gutter_dy * group-rows.len())
 
-            let is_last_row = pos.y + row_group_height + row_gutter_dy >= max-pos.y
+            let is_last_row = not is-infinite-len(max-pos.y) and pos.y + row_group_height + row_gutter_dy >= max-pos.y
 
             if is_last_row {
                 row_group_height -= row_gutter_dy
