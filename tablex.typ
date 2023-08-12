@@ -236,7 +236,7 @@
 
 // Check if this length is infinite.
 #let is-infinite-len(len) = {
-    type(len) in ("relative length", "length") and "inf" in repr(len)
+    type(len) in ("ratio", "fraction", "relative length", "length") and "inf" in repr(len)
 }
 
 // Which positions does a cell occupy
