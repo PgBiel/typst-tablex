@@ -597,3 +597,17 @@ Test fractional columns in an auto-sized block:
   columns: (1fr, 1fr),
   [C],[C]
 )
+
+*Exotic strokes from issue \#49:*
+
+#tablex(
+    stroke: 1em,
+    [C], [C]
+)
+
+// Uncomment after minimum typst version is raised enough for this
+// #let s = rect(stroke: (thickness: 1em, miter-limit: 5.0)).stroke
+// #tablex(
+//     stroke: s,
+//     [C], [C]
+// )
