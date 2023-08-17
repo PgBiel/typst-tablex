@@ -435,10 +435,13 @@
 }
 
 // Convert a stroke to its thickness
-#let stroke-len(stroke, stroke-auto: 1pt) = {
+#let stroke-len(stroke, stroke-auto: 1pt, styles: none) = {
+    let no-ratio-error = "Tablex error: Stroke cannot be a ratio or relative length (i.e. have a percentage like '53%'). Try using the layout() function (or similar) to convert the percentage to 'pt' instead."
     let stroke = default-if-auto(stroke, stroke-auto)
-    if type(stroke) in ("length", "relative length") {
-        stroke
+    if type(stroke) == "length" {
+        convert-length-to-pt(stroke, styles: styles)
+    } else if type(stroke) in ("relative length", "ratio") {
+        panic(no-ratio-error)
     } else if type(stroke) == "color" {
         1pt
     } else if type(stroke) == "stroke" {  // 2em + blue
@@ -446,9 +449,24 @@
         let s = repr(stroke).find(r)
 
         if s == none {
-        1pt
+            // for more complex strokes, built through dictionaries
+            // => "thickness: 5pt" field
+            // note: on typst v0.7.0 or later, can just use 's.thickness'
+            let r = regex("thickness: (\\d+(?:em|pt|cm|in|%))")
+            s = repr(stroke).match(r).captures.first()
+        }
+
+        if s == none {
+            1pt  // okay it's probably just a color then
         } else {
-        eval(s)
+            let len = eval(s)
+            if type(len) == "length" {
+                convert-length-to-pt(len, styles: styles)
+            } else if type(len) in ("relative length", "ratio") {
+                panic(no-ratio-error)
+            } else {
+                1pt  // should be unreachable
+            }
         }
     } else if type(stroke) == "dictionary" and "thickness" in stroke {
         stroke.thickness
@@ -1526,16 +1544,16 @@
         and a.gutter-restrict == b.gutter-restrict
 )
 
-#let _largest-stroke-among-lines(lines, stroke-auto: 1pt) = (
-    calc.max(0pt, ..lines.map(l => stroke-len(l.stroke, stroke-auto: stroke-auto)))
+#let _largest-stroke-among-lines(lines, stroke-auto: 1pt, styles: none) = (
+    calc.max(0pt, ..lines.map(l => stroke-len(l.stroke, stroke-auto: stroke-auto, styles: styles)))
 )
 
-#let _largest-stroke-among-hlines-at-y(y, hlines: none, stroke-auto: 1pt) = {
-    _largest-stroke-among-lines(hlines.filter(h => h.y == y), stroke-auto: stroke-auto)
+#let _largest-stroke-among-hlines-at-y(y, hlines: none, stroke-auto: 1pt, styles: none) = {
+    _largest-stroke-among-lines(hlines.filter(h => h.y == y), stroke-auto: stroke-auto, styles: styles)
 }
 
-#let _largest-stroke-among-vlines-at-x(x, vlines: none, stroke-auto: 1pt) = {
-    _largest-stroke-among-lines(vlines.filter(v => v.x == x), stroke-auto: stroke-auto)
+#let _largest-stroke-among-vlines-at-x(x, vlines: none, stroke-auto: 1pt, styles: none) = {
+    _largest-stroke-among-lines(vlines.filter(v => v.x == x), stroke-auto: stroke-auto, styles: styles)
 }
 
 // -- end: width/height utilities --
@@ -1584,7 +1602,11 @@
     expansion
 }
 
-#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false) = {
+#let draw-hline(
+    hline,
+    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
+    styles: none,
+) = {
     let start = hline.start
     let end = hline.end
     let stroke-auto = parse-stroke(stroke)
@@ -1602,7 +1624,7 @@
     let right-expand = default-if-auto-or-none(expand.at(1), 0pt)
 
     if default-if-auto(hline.stroke-expand, true) == true {
-        let largest-stroke = _largest-stroke-among-vlines-at-x.with(vlines: vlines, stroke-auto: stroke-auto)
+        let largest-stroke = _largest-stroke-among-vlines-at-x.with(vlines: vlines, stroke-auto: stroke-auto, styles: styles)
         left-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // expand to the left to close stroke gap
         right-expand += largest-stroke(default-if-auto-or-none(end, columns.len())) / 2  // close stroke gap to the right
     }
@@ -1633,7 +1655,12 @@
     }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false) = {
+#let draw-vline(
+    vline,
+    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto,
+    gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false,
+    styles: none
+) = {
     let start = vline.start
     let end = vline.end
     let stroke-auto = parse-stroke(stroke)
@@ -1651,7 +1678,7 @@
     let bottom-expand = default-if-auto-or-none(expand.at(1), 0pt)
 
     if default-if-auto(vline.stroke-expand, true) == true {
-        let largest-stroke = _largest-stroke-among-hlines-at-y.with(hlines: hlines, stroke-auto: stroke-auto)
+        let largest-stroke = _largest-stroke-among-hlines-at-y.with(hlines: hlines, stroke-auto: stroke-auto, styles: styles)
         top-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // close stroke gap to the top
         bottom-expand += largest-stroke(default-if-auto-or-none(end, rows.len())) / 2  // close stroke gap to the bottom
     }
@@ -1756,8 +1783,8 @@
 ) = {
     let width-between = width-between.with(columns: columns, gutter: gutter)
     let height-between = height-between.with(rows: rows, gutter: gutter)
-    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, vlines: global-vlines)
-    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, hlines: global-hlines)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, vlines: global-vlines, styles: styles)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, hlines: global-hlines, styles: styles)
 
     let group-rows = row-group.rows
     let hlines = row-group.hlines
