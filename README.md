@@ -606,6 +606,7 @@ Another example (summing columns):
   - Fixes some nested tables overflowing the page width (https://github.com/PgBiel/typst-tablex/issues/41)
   - Fixes nested tables with fractional columns not displaying properly (https://github.com/PgBiel/typst-tablex/issues/28)
 - Added some guards for infinite lengths and `auto`-sized pages (https://github.com/PgBiel/typst-tablex/issues/47).
+- Fixed tablex crashes/improper behavior with `em` strokes and other types of strokes (https://github.com/PgBiel/typst-tablex/issues/49).
 - Added the tablex version number as a comment in the source file (as requested in https://github.com/PgBiel/typst-tablex/issues/25).
 
 ### v0.0.4
