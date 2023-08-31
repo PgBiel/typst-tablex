@@ -611,3 +611,11 @@ Test fractional columns in an auto-sized block:
 //     stroke: s,
 //     [C], [C]
 // )
+
+*Stroke parsing regression from issue \#55:*
+
+#let s = rect(stroke: red).stroke
+#tablex(
+    stroke: s,
+    [a]
+)

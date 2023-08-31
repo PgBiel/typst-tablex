@@ -1,6 +1,6 @@
 // Welcome to tablex!
 // Feel free to contribute with any features you think are missing.
-// Version: v0.0.5
+// Version: v0.0.6
 
 // -- table counter --
 
@@ -453,7 +453,10 @@
             // => "thickness: 5pt" field
             // note: on typst v0.7.0 or later, can just use 's.thickness'
             let r = regex("thickness: (\\d+(?:em|pt|cm|in|%))")
-            s = repr(stroke).match(r).captures.first()
+            s = repr(stroke).match(r)
+            if s != none {
+                s = s.captures.first();  // get the first match (the thickness)
+            }
         }
 
         if s == none {
