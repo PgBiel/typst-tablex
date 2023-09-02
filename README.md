@@ -378,6 +378,10 @@ Another example (summing columns):
 
 - By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
 
+- Rotation (via Typst's `#rotate`) of text only affects the visual appearance of the text on the page, but does not change its dimensions as they factor into the layout.
+  This leads to rotated text potentially overflowing the cell height without being hyphenated or, inversely, being hyphenated although there is enough space vertically.
+  As a workaround, hyphenation can be prevented by setting `#text(hyphenate: false, ...)`, e.g., `#rowspanx(7, text(hyphenate: false, rotate(-90deg, [*donothyphenatethis*])))`, as also discussed in https://github.com/PgBiel/typst-tablex/issues/59.
+
 - `tablex` can potentially be slower and/or take longer to compile than the default `table` (especially when the table spans a lot of pages). **Please use the latest Typst version to reduce this problem** (each version has been bringing further improvements in this sense). Still, we are looking for ways to better optimize the library (see more discussion at https://github.com/PgBiel/typst-tablex/issues/5 - feel free to give some input!). However, re-compilation is usually fine thanks to Typst's built-in memoization.
 
 - The internals of the library still aren't very well documented; I plan on adding more info about this eventually.
