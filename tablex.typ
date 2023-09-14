@@ -1048,6 +1048,19 @@
     size
 }
 
+// Checks if a cell spans a fractional column.
+// If so, it shouldn't expand auto columns if it
+// needs space, since it will already take all space
+// available.
+#let check-colspan-spans-fractional(cell, columns: none) = {
+    let cell_cols = range(cell.x, cell.x + cell.colspan)
+
+    // enumerate: get indices to be able to tell the column numbers
+    // filter: only columns in the cell's colspan
+    // any: only fractional values larger than 0fr
+    return enumerate(columns).filter(i_col => i_col.at(0) in cell_cols).any(len => type(len.at(1)) == "fraction" and (len.at(1) / 1fr) > 0)
+}
+
 // calculate the size of auto columns (based on the max width of their cells)
 #let determine-auto-columns(grid: (), styles: none, columns: none, inset: none) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
@@ -1073,7 +1086,9 @@
                     // only expand the last auto column of a colspan,
                     // and only the amount necessary that isn't already
                     // covered by fixed size columns.
-                    if last_auto_col == i {
+                    // Also, do not expand if the cell spans a fractional column
+                    // (that column will already adapt to the remaining space).
+                    if last_auto_col == i and not check-colspan-spans-fractional(pcell, columns: columns) {
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 

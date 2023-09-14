@@ -619,3 +619,73 @@ Test fractional columns in an auto-sized block:
     stroke: s,
     [a]
 )
+
+*Colspans over 1fr shouldn't prompt auto columns to expand*
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    colspanx(3)[Hello world! Hello!],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+*but these should*
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    colspanx(2)[Hello world! Hello!], [hi],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+#tablex(
+    columns: (auto, auto, auto),
+    colspanx(3)[Hello world! Hello!],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+*but also consider*
+#tablex(
+    columns: (auto, auto, 0.1fr, 1fr),
+    colspanx(3)[Hello world! Hello!], [Hugehuge],
+    [A], [BC], [D], [Hugehugehugehuge],
+    [A], [BC], [D], [Long],
+    [A], [BC], [D], [Not long]
+)
+
+#pagebreak(weak: true)
+
+*Rowspans over 1fr shouldn't prompt auto rows to expand*
+
+#tablex(
+    columns: 3,
+    rows: (auto, auto, 1fr),
+    [A], [BC], rowspanx(3)[D\ D\ D\ D\ D\ D],
+    [A], [BC], (),
+    [A], [BC], (),
+)
+
+#pagebreak(weak: true)
+
+#tablex(
+    columns: 3,
+    rows: (auto, auto, 1fr),
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+)
