@@ -39,7 +39,7 @@ Here's an example of what `tablex` can do:
 ![image](https://github.com/PgBiel/typst-tablex/assets/9021226/355c527a-7296-4264-bac7-4ec991b15a18)
 
 Here's the code for that table:
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, rowspanx, colspanx
 
 #tablex(
@@ -91,7 +91,7 @@ Here's the code for that table:
 
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex
 
 #tablex(
@@ -116,7 +116,7 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
 
 #tablex(
@@ -145,7 +145,7 @@ Also, note that, by default, the horizontal lines below the header are transport
 
 Example:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
@@ -192,7 +192,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 
 Here's some sample usage:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
@@ -236,7 +236,7 @@ Here's some sample usage:
 
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
 
 #tablex(
@@ -268,7 +268,7 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 
 For example:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, cellx, colspanx, rowspanx
 
 #tablex(
@@ -300,7 +300,7 @@ To customize multiple cells at once, you have a few options:
 
 Example:
 
-```js
+```typ
 #import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
 
 #tablex(
@@ -342,7 +342,7 @@ Example:
 
 Another example (summing columns):
 
-```js
+```typ
 #gridx(
   columns: 3,
   rows: 6,
@@ -397,7 +397,7 @@ Another example (summing columns):
 
 1. `cellx`: Represents a table cell, and is initialized as follows:
 
-    ```js
+    ```typ
     #let cellx(content,
       x: auto, y: auto,
       rowspan: 1, colspan: 1,
@@ -429,7 +429,7 @@ Another example (summing columns):
 
 2. `hlinex`: represents a horizontal line:
 
-    ```js
+    ```typ
     #let hlinex(
       start: 0, end: auto, y: auto,
       stroke: auto,
@@ -466,7 +466,7 @@ Another example (summing columns):
 
 3. `vlinex`: represents a vertical line:
 
-    ```js
+    ```typ
     #let vlinex(
       start: 0, end: auto, x: auto,
       stroke: auto,
@@ -514,7 +514,7 @@ Another example (summing columns):
 
 2. `tablex:` The main function for creating a table with this library:
 
-    ```js
+    ```typ
     #let tablex(
       columns: auto, rows: auto,
       inset: 5pt,
