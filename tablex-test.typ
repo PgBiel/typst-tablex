@@ -614,8 +614,27 @@ Test fractional columns in an auto-sized block:
 
 *Stroke parsing regression from issue \#55:*
 
+Red stroke:
+
 #let s = rect(stroke: red).stroke
 #tablex(
     stroke: s,
     [a]
+)
+
+Thick stroke with a decimal point:
+
+#tablex(columns: 2, stroke: 5.1pt + black)[a][b]
+
+Combining em and pt:
+
+#tablex(columns: 2, stroke: (2.5pt + 0.75em) + black)[a][b]
+
+Combining em and pt (with a stroke object):
+
+#let s = rect(stroke: (2.5pt + 0.75em) + black).stroke
+#tablex(
+    columns: 2,
+    stroke: s,
+    [a], [b]
 )

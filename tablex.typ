@@ -444,15 +444,24 @@
         panic(no-ratio-error)
     } else if type(stroke) == "color" {
         1pt
-    } else if type(stroke) == "stroke" {  // 2em + blue
-        let r = regex("^\\d+(?:em|pt|cm|in|%)")
+    } else if type(stroke) == "stroke" {
+        // support:
+        // - 5
+        // - 5.5
+        let maybe-float-regex = "(?:\\d+(?:\\.\\d+)?)"
+        // support:
+        // - 2pt / 2em / 2cm / 2in   + color
+        // - 2.5pt / 2.5em / ...  + color
+        // - 2pt + 3em   + color
+        let len-regex = "(?:" + maybe-float-regex + "(?:em|pt|cm|in|%)(?:\\s+\\+\\s+" + maybe-float-regex + "em)?)"
+        let r = regex("^" + len-regex)
         let s = repr(stroke).find(r)
 
         if s == none {
             // for more complex strokes, built through dictionaries
             // => "thickness: 5pt" field
             // note: on typst v0.7.0 or later, can just use 's.thickness'
-            let r = regex("thickness: (\\d+(?:em|pt|cm|in|%))")
+            let r = regex("thickness: (" + len-regex + ")")
             s = repr(stroke).match(r)
             if s != none {
                 s = s.captures.first();  // get the first match (the thickness)
