@@ -542,15 +542,29 @@ Another example (summing columns):
 
     **Parameters:**
 
-    - `columns`: The sizes of each column. They work just like regular `table`'s columns, and can be:
+    - `columns`: The sizes (widths) of each column. They work just like regular `table`'s columns, and can be:
         - an array of lengths (`1pt`, `2em`, `100%`, ...), including fractional (`2fr`), to specify the width of each column
-            - `auto` may be specified to automatically resize the column based on the space available
-            - when specifying fractional columns, the available space is divided between them, weighted on the fraction value of each column
+            - For instance, `columns: (2pt, 3em)` will give you two columns: one with a width of `2pt` and another with the width of `3em` (3 times the font size).
+                - Note that percentages, such as `49%`, **are considered fixed widths** as they are **always multiplied by the full page width** (minus margins) for columns. Thus, a column with a size of `100%` would span your whole page (even if there are other columns).
+            - `auto` may be specified to automatically resize the column based on the largest width of its contents, if possible - **this is the most common column width choice,** as it just delegates the column sizing job to tablex!
+                - For example, if your `auto`-sized column contains two cells with `Hello world!` and `Bye!` as contents, tablex will try to make the column large enough for `Hello world!` (the cell with largest _potential_ width) to fit in a single line.
+                - However, note that often enough that's not possible, as increasing the column's size too much would result in the table going over the page's margin - perhaps even beyond the document's total width. Therefore, **tablex will automatically reduce the size of your `auto` columns** when they would otherwise cause the table to overrun the page's normal width (i.e. the width between the page's lateral margins).
+                    - Fixed width columns (such as `2pt`, `3em` or `49%`) are not subject to this size reduction; thus, if you specify all columns' widths with fixed lengths, your table _could_ become larger than the page's width! (In such a case, **`auto` columns would be reduced to a size of zero,** as there would be no available space anymore!)
+            - when specifying fractional widths (`1fr`, `2fr`...) for columns, the available space (remaining page width, after calculating all other columns' sizes) is divided between them, weighted on the fraction value of each column.
                 - For example, with `(1fr, 2fr)`, the available space will be divided by 3 (1 + 2), and the first column will have 1/3 of the space, while the second will have 2/3.
+                    - `(1fr, 1fr)` would cause both columns to have equal length (1/2 and 1/2 of the available space).
+                - This is useful when you want some columns to just occupy all the remaining horizontal space in the page.
+                    - **Note:** If only one column has a fractional width (e.g. a single column with `1fr`), it will occupy the entire available space.
+                - **Warning:** fractional columns in tablex (much like in Typst's default tables) **will not work properly in pages with `auto` width** (the columns will have width zero) - this is because those pages theoretically have infinite width (they can expand indefinitely), so having columns spanning the entire available width is then impossible!
         - a single length like above, to indicate the width of a single column (equivalent to just placing it inside a unit array)
+            - For instance, `columns: 2pt` is equivalent to `columns: (2pt,)`, which translates to a single column of width `2pt`.
         - an integer (such as `4`), as a shorthand for `(auto,) * 4` (that many `auto` columns)
-    - `rows`: The sizes of each row. They follow the exact same format as `columns`, except that the "available space" is infinite (auto rows can expand as much as is needed, as the table can add rows over multiple pages).
+            - Useful if you just want to quickly set the amount of columns without worrying about their sizes (`columns: 4` will give you four `auto` columns).
+    - `rows`: The sizes (heights) of each row. They follow the exact same format as `columns`, except that the "available space" is infinite (auto rows can expand as much as is needed, as the table can add rows over multiple pages).
+        - **Note:** For rows, percentages (such as `49%`) are fixed width lengths, like in `columns`; however, here, they are **multiplied by the page's full height** (minus margins), and not width.
         - **Note:** If more rows than specified are added, the height for the **last row** will be the one assigned to all extra rows. (If the last row is `auto`, the extra ones will also be `auto`, for example.)
+            - Your table can have more rows than expected by simply having more cells than `(# columns)` multipled by `(# rows)`. In this case, you will have an extra row for each `(# columns)` cells after the limit. In other words, **the amount of columns is always fixed** (determined by the amount of widths in the array given to `columns`), but the amount of rows can vary depending on your input of cells to the table.
+            - Adding a cell at an arbitrary `y` coordinate can also cause your table to have extra rows (enough rows to reach the cell at that coordinate).
         - **Warning:** support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
     - `inset`: Inset/internal padding to give to each cell. Defaults to `5pt` (the `#table` default).
 
