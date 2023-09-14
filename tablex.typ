@@ -481,7 +481,14 @@
             }
         }
     } else if type(stroke) == "dictionary" and "thickness" in stroke {
-        stroke.thickness
+        let thickness = stroke.thickness
+        if type(thickness) == "length" {
+            convert-length-to-pt(thickness, styles: styles)
+        } else if type(thickness) in ("relative length", "ratio") {
+            panic(no-ratio-error)
+        } else {
+            1pt
+        }
     } else {
         1pt
     }
