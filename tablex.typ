@@ -2470,12 +2470,12 @@
 // If false, they draw their own horizontal lines.
 // Defaults to true.
 //
-// rtl: if true, the table is horizontally inverted.
+// rtl: if true, the table is horizontally flipped.
 // That is, cells and lines are placed in the opposite order
-// (starting from the right), and horizontal lines are reversed.
-// This is meant to simulate the behavior of default tables when
-// 'set text(dir: rtl)' is used, and is useful for speakers of
-// RTL (right-to-left) languages.
+// (starting from the right), and horizontal lines are flipped.
+// This is meant to simulate the behavior of default Typst tables when
+// 'set text(dir: rtl)' is used, and is useful when writing in a language
+// with a RTL (right-to-left) script.
 // Defaults to false.
 //
 // auto-lines: true = applies true to both auto-hlines and
