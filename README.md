@@ -630,7 +630,7 @@ Another example (summing columns):
 
 ### Unreleased
 
-- Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
+- Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58).
   - Default Typst tables are automatically flipped horizontally when using `set text(dir: rtl)`, however we can't detect that setting from tablex at this moment (it isn't currently possible to fetch set rules in Typst).
   - Therefore, as a way around that, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a RTL (right-to-left) document. (You can use e.g. `#let old-tablex = tablex` followed by `#let tablex(..args) = old-tablex(rtl: true, ..args)` to not have to repeat the `rtl` parameter every time.)
 - Added support for `box`'s dictionary inset syntax on tablex (https://github.com/PgBiel/typst-tablex/issues/54).
