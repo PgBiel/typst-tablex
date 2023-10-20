@@ -624,10 +624,10 @@ Another example (summing columns):
 ### Unreleased
 
 - Fixed errors when using floating point or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55)
-- Add info about `#rotate` problems to 'Known Issues' in the README (https://github.com/PgBiel/typst-tablex/pull/60)
+- Added info about `#rotate` problems to 'Known Issues' in the README (https://github.com/PgBiel/typst-tablex/pull/60)
 - Initial improvement in compatibility with the new Typst type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial)
-- Support `#box`'s dictionary inset syntax, such as `inset: (left: 5pt, top: 10pt, rest: 2pt)` (https://github.com/PgBiel/typst-tablex/issues/54)
-- Add support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
+- Support for `#box`'s dictionary inset syntax, such as `inset: (left: 5pt, top: 10pt, rest: 2pt)` (https://github.com/PgBiel/typst-tablex/issues/54)
+- Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
   - This is a workaround for the fact that we can't detect `set text(dir: rtl)` from tablex (for default tables, that setting inverts them horizontally; this tablex option aims to replicate that).
 
 ### v0.0.5
