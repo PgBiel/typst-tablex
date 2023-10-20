@@ -113,6 +113,8 @@ There are still a few oddities in the library (see [Known Issues](#known-issues)
 
 This is mostly a word of caution in case anything I haven't anticipated happens, but, based on my tests (and after tons of bug-fixing commits), the vast majority of tables (that don't face one of the listed known issues) should work just fine under the library.
 
+**Note:** If your document is written in a right-to-left (RTL) script, you may wish to enable `rtl: true` for your tables so that the order of cells and lines properly follows your text direction (when combined with `set text(dir: rtl)`). This is necessary because tablex cannot detect that setting automatically at the moment (while the native Typst table can and flips itself horizontally automatically). See the tablex option reference for more information.
+
 ### colspanx/rowspanx
 
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
@@ -596,6 +598,11 @@ Another example (summing columns):
     Defaults to `true`.
         - For example, if your header has a blue hline under it, that blue hline will display on all pages it is repeated on if this option is `true`. If this option is `false`, the header will repeat, but the blue hline will not.
 
+    - `rtl`: if true, the table is horizontally flipped. That is, cells and lines are placed in the opposite order (starting from the right), and horizontal lines are flipped.
+    This is meant to simulate the behavior of default Typst tables when `set text(dir: rtl)` is used,
+    and is useful when writing in a language with a RTL (right-to-left) script.
+    Defaults to `false`.
+
     - `auto-lines`: Shorthand to apply a boolean to both `auto-hlines` and `auto-vlines` at the same time (overridable by each). Defaults to `true`.
 
     - `auto-hlines`: If `true`, draw a horizontal line on every line where you did not manually draw one; if `false`, no hlines other than the ones you specify (via `hlinex`) are drawn. Defaults to `auto` (follows `auto-lines`, which in turn defaults to `true`).
@@ -624,14 +631,14 @@ Another example (summing columns):
 ### Unreleased
 
 - Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
-  - Default tables are automatically flipped horizontally with `set text(dir: rtl)`, however we can't detect that setting from tablex at this moment.
-  - Therefore, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a RTL (right-to-left) document. (You can use e.g. `#let tablex(..args) = tablex(rtl: true, ..args)` to make it automatic.)
-- Added support for `#box`'s dictionary inset syntax on tablex (https://github.com/PgBiel/typst-tablex/issues/54)
+  - Default Typst tables are automatically flipped horizontally when using `set text(dir: rtl)`, however we can't detect that setting from tablex at this moment (it isn't currently possible to fetch set rules in Typst).
+  - Therefore, as a way around that, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a RTL (right-to-left) document. (You can use e.g. `#let old-tablex = tablex` followed by `#let tablex(..args) = old-tablex(rtl: true, ..args)` to not have to repeat the `rtl` parameter every time.)
+- Added support for `box`'s dictionary inset syntax on tablex (https://github.com/PgBiel/typst-tablex/issues/54).
   - For instance, you can now do `#tablex(inset: (left: 5pt, top: 10pt, rest: 2pt), ...)`.
-- Fixed errors when using floating point strokes or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55)
-- Initial improvement in compatibility with the new Typst 0.8.0 type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial)
-- Added info about `#rotate` problems to "Known Issues" in the README (https://github.com/PgBiel/typst-tablex/pull/60)
-- Improved docs for tablex options `columns` and `rows` (https://github.com/PgBiel/typst-tablex/issues/53) 
+- Fixed errors when using floating point strokes or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55).
+- Initial improvement in compatibility with the new Typst 0.8.0 type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial).
+- Added info about `#rotate` problems to "Known Issues" in the README (https://github.com/PgBiel/typst-tablex/pull/60).
+- Improved docs for tablex options `columns` and `rows` (https://github.com/PgBiel/typst-tablex/issues/53).
 
 ### v0.0.5
 
