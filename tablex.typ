@@ -1068,7 +1068,7 @@
 }
 
 // calculate the size of auto columns (based on the max width of their cells)
-#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none) = {
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -1096,9 +1096,16 @@
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
-                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
+                        // simulate wrapping this cell in the final box,
+                        // but with unlimited width and height available
+                        // so we can measure its width.
+                        let cell-box = make-cell-box(
+                            pcell,
+                            width: auto, height: auto,
+                            inset: cell_inset, align_default: auto
+                        )
 
-                        let width = measure(pcell.content, styles).width + 2*cell_inset
+                        let width = measure(cell-box, styles).width// + 2*cell_inset // the box already considers inset
 
                         // here, we are excluding from the width of this cell
                         // at this column all width that was already covered by
@@ -1163,7 +1170,7 @@
     columns
 }
 
-#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, col-gutter: none) = {
+#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
         if _type(c) in ("length", "relative length", "ratio") {
             convert-length-to-pt(c, styles: styles, page_size: page_width)
@@ -1189,7 +1196,7 @@
     // page_width == 0pt => page width is 'auto'
     // so we don't have to restrict our table's size
     if available_size >= 0pt or page_width == 0pt {
-        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset)
+        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align)
         let total_auto_size = auto_cols_result.total
         let auto_sizes = auto_cols_result.sizes
         columns = auto_cols_result.columns
@@ -1272,8 +1279,6 @@
 
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
-
-                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
 
                         let cell-box = make-cell-box(
                             pcell,
@@ -1367,12 +1372,11 @@
     inset: none, gutter: none,
     align: auto,
 ) = {
-    let inset = convert-length-to-pt(inset, styles: styles)
-
     let columns_res = determine-column-sizes(
         grid: grid,
         page_width: page_width, styles: styles, columns: columns,
         inset: inset,
+        align: align,
         col-gutter: gutter.col
     )
     columns = columns_res.columns

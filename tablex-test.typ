@@ -638,3 +638,23 @@ Combining em and pt (with a stroke object):
     stroke: s,
     [a], [b]
 )
+
+*Dictionary insets from issue \#54:*
+
+#tablex(
+  columns: 3,
+  inset: (left: 20pt, rest: 10pt),
+  [A], [B], [C]
+)
+
+#tablex(
+  columns: 2,
+  inset: (
+    left: 20pt,
+    right: 5pt,
+    top: 10pt,
+    bottom: 3pt,
+  ),
+  [A],
+  [B],
+)
