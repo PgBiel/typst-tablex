@@ -623,12 +623,15 @@ Another example (summing columns):
 
 ### Unreleased
 
-- Fixed errors when using floating point or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55)
-- Added info about `#rotate` problems to 'Known Issues' in the README (https://github.com/PgBiel/typst-tablex/pull/60)
-- Initial improvement in compatibility with the new Typst type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial)
-- Support for `#box`'s dictionary inset syntax, such as `inset: (left: 5pt, top: 10pt, rest: 2pt)` (https://github.com/PgBiel/typst-tablex/issues/54)
 - Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
-  - This is a workaround for the fact that we can't detect `set text(dir: rtl)` from tablex (for default tables, that setting inverts them horizontally; this tablex option aims to replicate that).
+  - Default tables are automatically flipped horizontally with `set text(dir: rtl)`, however we can't detect that setting from tablex at this moment.
+  - Therefore, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a RTL (right-to-left) document. (You can use e.g. `#let tablex(..args) = tablex(rtl: true, ..args)` to make it automatic.)
+- Added support for `#box`'s dictionary inset syntax on tablex (https://github.com/PgBiel/typst-tablex/issues/54)
+  - For instance, you can now do `#tablex(inset: (left: 5pt, top: 10pt, rest: 2pt), ...)`.
+- Fixed errors when using floating point strokes or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55)
+- Initial improvement in compatibility with the new Typst 0.8.0 type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial)
+- Added info about `#rotate` problems to "Known Issues" in the README (https://github.com/PgBiel/typst-tablex/pull/60)
+- Improved docs for tablex options `columns` and `rows` (https://github.com/PgBiel/typst-tablex/issues/53) 
 
 ### v0.0.5
 
