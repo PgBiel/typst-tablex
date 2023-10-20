@@ -658,3 +658,99 @@ Combining em and pt (with a stroke object):
   [A],
   [B],
 )
+
+*RTL tables from issue \#58:*
+
+#[
+- Simple
+#let simple(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    [a], [b], [c],
+    [d], [e], [f],
+    [g], [h], [i]
+)
+#stack(dir: ltr, simple(false), 1em, $->$, 1em, simple(true))
+
+- Colspan, rowspan
+#let colspanrowspan(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    [a], colspanx(2)[d], (),
+    [d], [e],            rowspanx(2)[f],
+    [g], [h],            (),
+)
+#stack(dir: ltr, colspanrowspan(false), 1em, $->$, 1em, colspanrowspan(true))
+
+- No vertical lines
+#let novertlines(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    auto-vlines: false,
+    stroke: red,
+    [a], colspanx(2)[d], (),
+    [b], [b],            [b],
+    [d], [e],            rowspanx(2)[f],
+    [g], [h],            (),
+)
+#stack(dir: ltr, novertlines(false), 1em, $->$, 1em, novertlines(true))
+
+- Line customization
+#let linecustom(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    auto-lines: false,
+    (), vlinex(end: 1, stroke: blue),
+    [a], colspanx(2)[d], (),
+    [b], [b],            [b],
+    hlinex(end: 2, stroke: red),
+    [d], [e],            rowspanx(2)[f],
+    [g], [h],            (),
+)
+#stack(dir: ltr, linecustom(false), 1em, $->$, 1em, linecustom(true))
+
+- Alignment and fill
+#set text(dir: rtl)
+#let alignfill(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    align: (end, start, end),
+    fill: (x, y) => (red, green, blue, yellow).at(y).darken(20% * x),
+    [aaaa], colspanx(2)[ddddd], (),
+    [b],    [bdd],              [bd],
+    [d],    [e],                rowspanx(2)[f],
+    [g],    [h],                (),
+)
+#stack(dir: ltr, alignfill(false), 1em, $->$, 1em, alignfill(true))
+
+- Map cells, map rows, map cols
+#let mapstuff(rtl) = tablex(
+    columns: 3,
+    rtl: rtl,
+    align: (end, start, end),
+    fill: (x, y) => (red, green, blue, yellow).at(y).darken(20% * x),
+    map-rows: (y, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            cell.content = [#cell.content | y = #y]
+            cell
+        })
+    },
+    map-cols: (x, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            cell.content = [#cell.content | x = #x]
+            cell
+        })
+    },
+    map-cells: cell => {
+        cell.content = [#cell.content | HI]
+        cell
+    },
+    [aaaa], colspanx(2)[ddddd], (),
+    [b],    [bdd],              [bd],
+    [d],    [e],                rowspanx(2)[f],
+    [g],    [h],                (),
+)
+#stack(dir: ttb, mapstuff(false), 1em, $arrow.b$, 1em, mapstuff(true))
+]

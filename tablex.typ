@@ -1632,6 +1632,7 @@
     hline,
     initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
     styles: none,
+    rightmost_x: 0, rtl: false,
 ) = {
     let start = hline.start
     let end = hline.end
@@ -1663,6 +1664,12 @@
         return  // negative length
     }
 
+    if rtl {
+        // invert the line (start from the right instead of from the left)
+        start_x = rightmost_x - start_x
+        end_x = rightmost_x - end_x
+    }
+
     let start = (
         start_x,
         y
@@ -1685,7 +1692,8 @@
     vline,
     initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto,
     gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false,
-    styles: none
+    styles: none,
+    rightmost_x: 0, rtl: false,
 ) = {
     let start = vline.start
     let end = vline.end
@@ -1715,6 +1723,11 @@
 
     if end_y - start_y < 0pt {
         return  // negative length
+    }
+
+    if rtl {
+        // invert the vertical line's x pos (start from the right instead of from the left)
+        x = rightmost_x - x
     }
 
     let start = (
@@ -1802,6 +1815,7 @@
     min-pos: none,
     max-pos: none,
     header-hlines-have-priority: true,
+    rtl: false,
     table-loc: none,
     total-width: none,
     global-hlines: (),
@@ -1858,6 +1872,7 @@
 
             let first_x = none
             let first_y = none
+            let rightmost_x = none
 
             let row_heights = 0pt
 
@@ -1872,10 +1887,30 @@
                     let y = cell_box.cell.y
                     first_x = default-if-none(first_x, x)
                     first_y = default-if-none(first_y, y)
+                    rightmost_x = default-if-none(rightmost_x, width-between(start: first_x, end: none))
+
+                    // where to place the cell (horizontally)
+                    let dx = width-between(start: first_x, end: x)
+
+                    // TODO: consider implementing RTL before the rendering
+                    // stage (perhaps by inverting 'x' positions on cells
+                    // and lines beforehand).
+                    if rtl {
+                        // invert cell's x position (start from the right)
+                        dx = rightmost_x - dx
+                        // assume the cell doesn't start at the very end
+                        // (that would be weird)
+                        // Here we have to move dx back a bit as, after
+                        // inverting it, it'd be the right edge of the cell;
+                        // we need to keep it as the left edge's x position,
+                        // as #place works with the cell's left edge.
+                        // To do that, we subtract the cell's width from dx.
+                        dx -= width-between(start: x, end: x + cell_box.cell.colspan)
+                    }
 
                     // place the cell!
                     place(top+left,
-                        dx: width-between(start: first_x, end: x),
+                        dx: dx,
                         dy: height-between(start: first_y, end: y) + added_header_height,
                         cell_box.box)
 
@@ -1896,8 +1931,8 @@
 
             hide(rect(width: total-width, height: row_group_height))
 
-            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
-            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
+            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
+            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
 
             let header_last_y = if first-row-group != none {
                 first-row-group.row_group.y_span.at(1)
@@ -2015,6 +2050,7 @@
     min-pos: none,
     max-pos: none,
     header-rows: 1,
+    rtl: false,
     table-loc: none,
     table-id: none,
 ) = {
@@ -2113,6 +2149,7 @@
                 total-width: total_width,
                 table-loc: table-loc,
                 header-hlines-have-priority: header-hlines-have-priority,
+                rtl: rtl,
                 min-pos: min-pos,
                 max-pos: max-pos,
                 styles: styles,
@@ -2433,6 +2470,11 @@
 // If false, they draw their own horizontal lines.
 // Defaults to true.
 //
+// rtl: if true, the table is horizontally inverted.
+// That is, cells and vertical linse are placed in the
+// opposite order, and horizontal lines are reversed.
+// Defaults to false.
+//
 // auto-lines: true = applies true to both auto-hlines and
 // auto-vlines; false = applies false to both.
 // Their values override this one unless they are 'auto'.
@@ -2480,6 +2522,7 @@
     repeat-header: false,
     header-rows: 1,
     header-hlines-have-priority: true,
+    rtl: false,
     auto-lines: true,
     auto-hlines: auto,
     auto-vlines: auto,
@@ -2614,6 +2657,7 @@
             repeat-header: repeat-header,
             header-hlines-have-priority: header-hlines-have-priority,
             header-rows: header-rows,
+            rtl: rtl,
             min-pos: min_pos,
             max-pos: max_pos,
             table-loc: t_loc,
