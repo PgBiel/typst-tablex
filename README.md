@@ -17,6 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [Unreleased](#unreleased)
     * [v0.0.5](#v005)
     * [v0.0.4](#v004)
     * [v0.0.3](#v003)
@@ -31,7 +32,7 @@ To use this library through the Typst package manager **(for Typst v0.6.0+)**, w
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
-This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0 and v0.6.0.
+This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0 and v0.8.0.
 **Using the latest Typst version is recommended (v0.6.0+)**, as it fixes certain bugs which made it almost impossible to use references and citations from within tablex tables (and also brings the package manager, making using tablex even easier!).
 
 Here's an example of what `tablex` can do:
@@ -618,6 +619,16 @@ Another example (summing columns):
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## Changelog
+
+
+### Unreleased
+
+- Fixed errors when using floating point or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55)
+- Add info about `#rotate` problems to 'Known Issues' in the README (https://github.com/PgBiel/typst-tablex/pull/60)
+- Initial improvement in compatibility with the new Typst type system (https://github.com/PgBiel/typst-tablex/issues/69 - partial)
+- Support `#box`'s dictionary inset syntax, such as `inset: (left: 5pt, top: 10pt, rest: 2pt)` (https://github.com/PgBiel/typst-tablex/issues/54)
+- Add support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58)
+  - This is a workaround for the fact that we can't detect `set text(dir: rtl)` from tablex (for default tables, that setting inverts them horizontally; this tablex option aims to replicate that).
 
 ### v0.0.5
 
