@@ -2471,8 +2471,11 @@
 // Defaults to true.
 //
 // rtl: if true, the table is horizontally inverted.
-// That is, cells and vertical linse are placed in the
-// opposite order, and horizontal lines are reversed.
+// That is, cells and lines are placed in the opposite order
+// (starting from the right), and horizontal lines are reversed.
+// This is meant to simulate the behavior of default tables when
+// 'set text(dir: rtl)' is used, and is useful for speakers of
+// RTL (right-to-left) languages.
 // Defaults to false.
 //
 // auto-lines: true = applies true to both auto-hlines and
