@@ -1,4 +1,4 @@
-# typst-tablex (v0.0.5)
+# typst-tablex (v0.0.6)
 **More powerful and customizable tables in Typst.**
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
@@ -17,7 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.6](#v006)
     * [v0.0.5](#v005)
     * [v0.0.4](#v004)
     * [v0.0.3](#v003)
@@ -28,7 +28,7 @@
 
 ## Usage
 
-To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.5": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
+To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.6": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
@@ -41,7 +41,7 @@ Here's an example of what `tablex` can do:
 
 Here's the code for that table:
 ```typ
-#import "@preview/tablex:0.0.5": tablex, rowspanx, colspanx
+#import "@preview/tablex:0.0.6": tablex, rowspanx, colspanx
 
 #tablex(
   columns: 4,
@@ -93,7 +93,7 @@ Here's the code for that table:
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex
+#import "@preview/tablex:0.0.6": tablex
 
 #tablex(
   columns: (auto, 1em, 1fr, 1fr),  // 4 columns
@@ -120,7 +120,7 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -149,7 +149,7 @@ Also, note that, by default, the horizontal lines below the header are transport
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
 #v(80%)
@@ -196,7 +196,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -240,7 +240,7 @@ Here's some sample usage:
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -272,7 +272,7 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 For example:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, cellx, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, cellx, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -304,7 +304,7 @@ To customize multiple cells at once, you have a few options:
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.5": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.6": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -627,12 +627,11 @@ Another example (summing columns):
 
 ## Changelog
 
-
-### Unreleased
+### v0.0.6
 
 - Added support for RTL tables with `rtl: true` (https://github.com/PgBiel/typst-tablex/issues/58).
   - Default Typst tables are automatically flipped horizontally when using `set text(dir: rtl)`, however we can't detect that setting from tablex at this moment (it isn't currently possible to fetch set rules in Typst).
-  - Therefore, as a way around that, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a RTL (right-to-left) document. (You can use e.g. `#let old-tablex = tablex` followed by `#let tablex(..args) = old-tablex(rtl: true, ..args)` to not have to repeat the `rtl` parameter every time.)
+  - Therefore, as a way around that, you can now specify `#tablex(rtl: true, ...)` to flip your table horizontally if you're writing a document in RTL (right-to-left) script. (You can use e.g. `#let old-tablex = tablex` followed by `#let tablex(..args) = old-tablex(rtl: true, ..args)` to not have to repeat the `rtl` parameter every time.)
 - Added support for `box`'s dictionary inset syntax on tablex (https://github.com/PgBiel/typst-tablex/issues/54).
   - For instance, you can now do `#tablex(inset: (left: 5pt, top: 10pt, rest: 2pt), ...)`.
 - Fixed errors when using floating point strokes or other more complex strokes (https://github.com/PgBiel/typst-tablex/issues/55).
