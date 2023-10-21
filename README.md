@@ -569,7 +569,7 @@ Another example (summing columns):
             - Your table can have more rows than expected by simply having more cells than `(# columns)` multipled by `(# rows)`. In this case, you will have an extra row for each `(# columns)` cells after the limit. In other words, **the amount of columns is always fixed** (determined by the amount of widths in the array given to `columns`), but the amount of rows can vary depending on your input of cells to the table.
             - Adding a cell at an arbitrary `y` coordinate can also cause your table to have extra rows (enough rows to reach the cell at that coordinate).
         - **Warning:** support for fractional sizes for rows is still rudimentary - they only work properly on the table's first page; on the second page and onwards, they will not behave properly, differently from the default `#table`.
-    - `inset`: Inset/internal padding to give to each cell. Defaults to `5pt` (the `#table` default).
+    - `inset`: Inset/internal padding to give to each cell. Can be either a length (same inset from the top, bottom, left and right of the cell), or a dictionary (e.g. `(left: 5pt, right: 10pt, bottom: 2pt, top: 4pt)`, or even `(left: 5pt, rest: 10pt)` to apply the same value to the remaining sides). Defaults to `5pt` (the `#table` default).
 
     - `align`: How to align text in the cells. Defaults to `auto`, which inherits alignment from the outer context. Must be either `auto`, an `alignment` (such as `left` or `top`), a `2d alignment` (such as `left + top`), an `array` of alignment/2d alignment (one for each column in the table - if there are more columns than alignment values, they will alternate); or a function `(column, row) => alignment/2d alignment` (to customize for each individual cell).
 
