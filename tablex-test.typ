@@ -659,6 +659,13 @@ Combining em and pt (with a stroke object):
   [B],
 )
 
+#tablex(
+    columns: 2,
+    [a], [b],
+    [c], cellx(inset: (left: 2pt, right: 5pt, top: 10pt, bottom: 1pt))[d],
+    cellx(inset: (left: 5pt, rest: 10pt))[e], [f]
+)
+
 *RTL tables from issue \#58:*
 
 #[
