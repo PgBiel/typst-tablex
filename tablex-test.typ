@@ -1,3 +1,5 @@
+#import "src/common.typ": calc-mod
+#import "src/utilities.typ": default-if-auto
 #import "tablex.typ": *
 
 *Test*
