@@ -8,8 +8,6 @@
 #import "utilities.typ": *
 #import "grid.typ": *
 #import "col-row-size.typ": *
-#import "width-height.typ": *
-#import "drawing.typ": *
 #import "main-functions.typ": *
 #import "option-parsing.typ": *
 // -- end imports --
