@@ -8,7 +8,7 @@
 
 // Is this a valid dict created by this library?
 #let is-tablex-dict(x) = (
-    type(x) == "dictionary"
+    type(x) == _dict_type
         and "tablex-dict-type" in x
 )
 
@@ -24,11 +24,11 @@
 #let is-tablex-occupied(x) = is-tablex-dict-type(x, "occupied")
 
 #let table-item-convert(item, keep_empty: true) = {
-    if type(item) == "function" {  // dynamic cell content
+    if type(item) == _function_type {  // dynamic cell content
         cellx(item)
     } else if keep_empty and item == () {
         item
-    } else if type(item) != "dictionary" or "tablex-dict-type" not in item {
+    } else if type(item) != _dict_type or "tablex-dict-type" not in item {
         cellx[#item]
     } else {
         item
@@ -67,7 +67,7 @@
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
             if (is-tablex-cell(cell)
-                    and type(cell.y) in ("integer", "float")
+                    and type(cell.y) in (_int_type, _float_type)
                     and cell.y > acc) {
                 cell.y
             } else {
@@ -79,7 +79,7 @@
         if is-tablex-cell(item) and item.x == auto and item.y == auto {
             // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
-        } else if type(item) == "content" {
+        } else if type(item) == _content_type {
             len += 1
         }
     }
@@ -93,23 +93,28 @@
     len
 }
 
+// Check if this length is infinite.
+#let is-infinite-len(len) = {
+    type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
-    if type(columns) == "integer" {
+    if type(columns) == _int_type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
 
         columns = (auto,) * columns
     }
 
-    if type(rows) == "integer" {
+    if type(rows) == _int_type {
         assert(rows >= 0, message: "Error: Cannot have a negative amount of rows.")
         rows = (auto,) * rows
     }
 
-    if type(columns) != "array" {
+    if type(columns) != _array_type {
         columns = (columns,)
     }
 
-    if type(rows) != "array" {
+    if type(rows) != _array_type {
         rows = (rows,)
     }
 
@@ -124,17 +129,17 @@
     }
 
     let col_row_is_valid(col_row) = (
-        col_row == auto or type(col_row) in (
-            "fraction", "length", "relative length", "ratio"
-            )
+        (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
+            _fraction_type, _length_type, _rel_len_type, _ratio_type
+            ))
     )
 
     if not columns.all(col_row_is_valid) {
-        panic("Invalid column sizes (must all be 'auto' or a valid length specifier).")
+        panic("Invalid column sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
     if not rows.all(col_row_is_valid) {
-        panic("Invalid row sizes (must all be 'auto' or a valid length specifier).")
+        panic("Invalid row sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
     let col_len = columns.len()

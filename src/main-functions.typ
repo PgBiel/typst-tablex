@@ -77,6 +77,7 @@
     min-pos: none,
     max-pos: none,
     header-hlines-have-priority: true,
+    rtl: false,
     table-loc: none,
     total-width: none,
     global-hlines: (),
@@ -84,8 +85,8 @@
 ) = {
     let width-between = width-between.with(columns: columns, gutter: gutter)
     let height-between = height-between.with(rows: rows, gutter: gutter)
-    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, vlines: global-vlines)
-    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, hlines: global-hlines)
+    let draw-hline = draw-hline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, vlines: global-vlines, styles: styles)
+    let draw-vline = draw-vline.with(columns: columns, rows: rows, stroke: stroke, gutter: gutter, hlines: global-hlines, styles: styles)
 
     let group-rows = row-group.rows
     let hlines = row-group.hlines
@@ -118,7 +119,7 @@
             if page_turned and at_top and not is-header {
                 if repeat-header != false {
                     header-pages-state.update(l => l + (page,))
-                    if (repeat-header == true) or (type(repeat-header) == "integer" and rel_page <= repeat-header) or (type(repeat-header) == "array" and rel_page in repeat-header) {
+                    if (repeat-header == true) or (type(repeat-header) == _int_type and rel_page <= repeat-header) or (type(repeat-header) == _array_type and rel_page in repeat-header) {
                         let measures = measure(first-row-group.content, styles)
                         place(top+left, first-row-group.content)  // add header
                         added_header_height = measures.height
@@ -133,6 +134,7 @@
 
             let first_x = none
             let first_y = none
+            let rightmost_x = none
 
             let row_heights = 0pt
 
@@ -147,10 +149,30 @@
                     let y = cell_box.cell.y
                     first_x = default-if-none(first_x, x)
                     first_y = default-if-none(first_y, y)
+                    rightmost_x = default-if-none(rightmost_x, width-between(start: first_x, end: none))
+
+                    // where to place the cell (horizontally)
+                    let dx = width-between(start: first_x, end: x)
+
+                    // TODO: consider implementing RTL before the rendering
+                    // stage (perhaps by inverting 'x' positions on cells
+                    // and lines beforehand).
+                    if rtl {
+                        // invert cell's x position (start from the right)
+                        dx = rightmost_x - dx
+                        // assume the cell doesn't start at the very end
+                        // (that would be weird)
+                        // Here we have to move dx back a bit as, after
+                        // inverting it, it'd be the right edge of the cell;
+                        // we need to keep it as the left edge's x position,
+                        // as #place works with the cell's left edge.
+                        // To do that, we subtract the cell's width from dx.
+                        dx -= width-between(start: x, end: x + cell_box.cell.colspan)
+                    }
 
                     // place the cell!
                     place(top+left,
-                        dx: width-between(start: first_x, end: x),
+                        dx: dx,
                         dy: height-between(start: first_y, end: y) + added_header_height,
                         cell_box.box)
 
@@ -162,7 +184,7 @@
 
             let row_group_height = row_heights + added_header_height + (row_gutter_dy * group-rows.len())
 
-            let is_last_row = pos.y + row_group_height + row_gutter_dy >= max-pos.y
+            let is_last_row = not is-infinite-len(max-pos.y) and pos.y + row_group_height + row_gutter_dy >= max-pos.y
 
             if is_last_row {
                 row_group_height -= row_gutter_dy
@@ -171,8 +193,8 @@
 
             hide(rect(width: total-width, height: row_group_height))
 
-            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y)
-            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y)
+            let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
+            let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
 
             let header_last_y = if first-row-group != none {
                 first-row-group.row_group.y_span.at(1)
@@ -290,6 +312,7 @@
     min-pos: none,
     max-pos: none,
     header-rows: 1,
+    rtl: false,
     table-loc: none,
     table-id: none,
 ) = {
@@ -388,6 +411,7 @@
                 total-width: total_width,
                 table-loc: table-loc,
                 header-hlines-have-priority: header-hlines-have-priority,
+                rtl: rtl,
                 min-pos: min-pos,
                 max-pos: max-pos,
                 styles: styles,

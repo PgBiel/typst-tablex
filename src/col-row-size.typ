@@ -21,13 +21,13 @@
         align_default: left,
         fill_default: none) = {
 
-    let align_default = if type(align_default) == "function" {
+    let align_default = if type(align_default) == _function_type {
         align_default(cell.x, cell.y)  // column, row
     } else {
         align_default
     }
 
-    let fill_default = if type(fill_default) == "function" {
+    let fill_default = if type(fill_default) == _function_type {
         fill_default(cell.x, cell.y)  // row, column
     } else {
         fill_default
@@ -45,7 +45,7 @@
     // same here for fill
     let cell_fill = default-if-auto(cell.fill, fill_default)
 
-    if type(cell_fill) == "array" {
+    if type(cell_fill) == _array_type {
         let fill_len = cell_fill.len()
 
         if fill_len == 0 {
@@ -65,11 +65,11 @@
         }
     }
 
-    if cell_fill != none and type(cell_fill) != "color" {
+    if cell_fill != none and type(cell_fill) != _color_type {
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
-    if type(cell_align) == "array" {
+    if type(cell_align) == _array_type {
         let align_len = cell_align.len()
 
         if align_len == 0 {
@@ -89,7 +89,7 @@
         }
     }
 
-    if cell_align != auto and type(cell_align) not in ("alignment", "2d alignment") {
+    if cell_align != auto and type(cell_align) not in (_align_type, _2d_align_type) {
         panic("Tablex error: Invalid alignment specified (must be either a function (column, row) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
@@ -97,6 +97,10 @@
         [#content]
     } else {
         align(cell_align)[#content]
+    }
+
+    if is-infinite-len(inset) {
+        panic("Tablex error: inset must not be infinite")
     }
 
     box(
@@ -112,7 +116,7 @@
 // (auto, 1fr, ...) is ignored.
 #let sum-fixed-size-tracks(tracks) = {
     tracks.fold(0pt, (acc, el) => {
-        if type(el) == "length" {
+        if type(el) == _length_type {
             acc + el
         } else {
             acc
@@ -123,21 +127,21 @@
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
 #let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
-    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == "fraction")
+    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction_type)
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
 
-    if type(gutter) == "fraction" {
+    if type(gutter) == _fraction_type {
         amount-frac += (gutter / 1fr) * (tracks.len() - 1)
     }
 
-    let frac-width = if amount-frac > 0 {
+    let frac-width = if amount-frac > 0 and not is-infinite-len(remaining) {
         remaining / amount-frac
     } else {
         0pt
     }
 
-    if type(gutter) == "fraction" {
+    if type(gutter) == _fraction_type {
         gutter = frac-width * (gutter / 1fr)
     }
 
@@ -199,7 +203,7 @@
         let i = i_col.at(0)
         let col = i_col.at(1)
 
-        if type(col) == "length" {
+        if type(col) == _length_type {
             size += col
         }
     }
@@ -218,7 +222,7 @@
         let i = i_row.at(0)
         let row = i_row.at(1)
 
-        if type(row) == "length" {
+        if type(row) == _length_type {
             size += row
         }
     }
@@ -226,7 +230,7 @@
 }
 
 // calculate the size of auto columns (based on the max width of their cells)
-#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none) = {
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -254,9 +258,16 @@
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
-                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
+                        // simulate wrapping this cell in the final box,
+                        // but with unlimited width and height available
+                        // so we can measure its width.
+                        let cell-box = make-cell-box(
+                            pcell,
+                            width: auto, height: auto,
+                            inset: cell_inset, align_default: auto
+                        )
 
-                        let width = measure(pcell.content, styles).width + 2*cell_inset
+                        let width = measure(cell-box, styles).width// + 2*cell_inset // the box already considers inset
 
                         // here, we are excluding from the width of this cell
                         // at this column all width that was already covered by
@@ -281,6 +292,11 @@
 }
 
 #let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
+    if is-infinite-len(available) {
+        // infinite space available => don't modify columns
+        return columns
+    }
+
     let remaining = available
     let auto_cols_remaining = auto_cols.len()
 
@@ -316,9 +332,9 @@
     columns
 }
 
-#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, col-gutter: none) = {
+#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
-        if type(c) in ("length", "relative length", "ratio") {
+        if type(c) in (_length_type, _rel_len_type, _ratio_type) {
             convert-length-to-pt(c, styles: styles, page_size: page_width)
         } else if c == none {
             0pt
@@ -329,7 +345,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(col-gutter) == "length" {
+    let fixed-size-gutter = if type(col-gutter) == _length_type {
         col-gutter
     } else {
         0pt
@@ -342,7 +358,7 @@
     // page_width == 0pt => page width is 'auto'
     // so we don't have to restrict our table's size
     if available_size >= 0pt or page_width == 0pt {
-        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset)
+        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align)
         let total_auto_size = auto_cols_result.total
         let auto_sizes = auto_cols_result.sizes
         columns = auto_cols_result.columns
@@ -368,7 +384,7 @@
             }
 
             columns = columns.map(c => {
-                if type(c) == "fraction" {
+                if type(c) == _fraction_type {
                     0pt  // no space left to be divided
                 } else {
                     c
@@ -377,7 +393,7 @@
         }
     } else {
         columns = columns.map(c => {
-            if c == auto or type(c) == "fraction" {
+            if c == auto or type(c) == _fraction_type {
                 0pt  // no space remaining!
             } else {
                 c
@@ -426,8 +442,6 @@
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
-                        let cell_inset = convert-length-to-pt(cell_inset, styles: styles)
-
                         let cell-box = make-cell-box(
                             pcell,
                             width: width, height: auto,
@@ -463,7 +477,7 @@
 
 #let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
-        if type(r) in ("length", "relative length", "ratio") {
+        if type(r) in (_length_type, _rel_len_type, _ratio_type) {
             convert-length-to-pt(r, styles: styles, page_size: page_height)
         } else {
             r
@@ -479,7 +493,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(row-gutter) == "length" {
+    let fixed-size-gutter = if type(row-gutter) == _length_type {
         row-gutter
     } else {
         0pt
@@ -496,7 +510,7 @@
     } else {
         (
             rows: rows.map(r => {
-                if type(r) == "fraction" {  // no space remaining in this page or box
+                if type(r) == _fraction_type {  // no space remaining in this page or box
                     0pt
                 } else {
                     r
@@ -520,12 +534,11 @@
     inset: none, gutter: none,
     align: auto,
 ) = {
-    let inset = convert-length-to-pt(inset, styles: styles)
-
     let columns_res = determine-column-sizes(
         grid: grid,
         page_width: page_width, styles: styles, columns: columns,
         inset: inset,
+        align: align,
         col-gutter: gutter.col
     )
     columns = columns_res.columns

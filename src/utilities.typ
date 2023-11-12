@@ -1,6 +1,11 @@
 // #03
 // General Typst and table utilities.
 
+// -- tablex imports --
+#import "common.typ": *
+#import "type-validators.typ": *
+// -- end imports --
+
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
@@ -80,7 +85,7 @@
 
 // Backwards-compatible enumerate
 #let enumerate(arr) = {
-    if type(arr) != "array" {
+    if type(arr) != _array_type {
         return arr
     }
 
@@ -121,7 +126,9 @@
 ) = {
     page_size = 0pt + page_size
 
-    if type(len) == "length" {
+    if is-infinite-len(len) {
+        0pt  // avoid the destruction of the universe
+    } else if type(len) == _length_type {
         if "em" in repr(len) {
             if styles == none {
                 panic("Cannot convert length to pt ('styles' not specified).")
@@ -131,13 +138,17 @@
         } else {
             len + 0pt  // mm, in, pt
         }
-    } else if type(len) == "ratio" {
+    } else if type(len) == _ratio_type {
         if page_size == none {
             panic("Cannot convert ratio to pt ('page_size' not specified).")
         }
 
+        if is-infinite-len(page_size) {
+            return 0pt  // page has 'auto' size => % should return 0
+        }
+
         ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
-    } else if type(len) == "fraction" {
+    } else if type(len) == _fraction_type {
         if frac_amount == none {
             panic("Cannot convert fraction to pt ('frac_amount' not specified).")
         }
@@ -146,14 +157,14 @@
             panic("Cannot convert fraction to pt ('frac_total' not specified).")
         }
 
-        if frac_amount <= 0 {
+        if frac_amount <= 0 or is-infinite-len(frac_total) {
             return 0pt
         }
 
         let len_per_frac = frac_total / frac_amount
 
         (len_per_frac * (len / 1fr)) + 0pt
-    } else if type(len) == "relative length" {
+    } else if type(len) == _rel_len_type {
         if styles == none {
             panic("Cannot convert relative length to pt ('styles' not specified).")
         }
@@ -170,11 +181,11 @@
 
             // SAFETY: guaranteed to be a ratio by regex
             let ratio_part = eval(ratio)
-            assert(type(ratio_part) == "ratio", message: "Eval didn't return a ratio")
+            assert(type(ratio_part) == _ratio_type, message: "Eval didn't return a ratio")
 
             let other_part = len - ratio_part  // get the (2em + 5pt) part
 
-            let ratio_part_pt = ((ratio_part / 1%) / 100) * page_size
+            let ratio_part_pt = if is-infinite-len(page_size) { 0pt } else { ((ratio_part / 1%) / 100) * page_size }
             let other_part_pt = 0pt
 
             if other_part < 0pt {
@@ -191,25 +202,61 @@
 }
 
 // Convert a stroke to its thickness
-#let stroke-len(stroke, stroke-auto: 1pt) = {
+#let stroke-len(stroke, stroke-auto: 1pt, styles: none) = {
+    let no-ratio-error = "Tablex error: Stroke cannot be a ratio or relative length (i.e. have a percentage like '53%'). Try using the layout() function (or similar) to convert the percentage to 'pt' instead."
     let stroke = default-if-auto(stroke, stroke-auto)
-    if type(stroke) in ("length", "relative length") {
-        stroke
-    } else if type(stroke) == "color" {
+    if type(stroke) == _length_type {
+        convert-length-to-pt(stroke, styles: styles)
+    } else if type(stroke) in (_rel_len_type, _ratio_type) {
+        panic(no-ratio-error)
+    } else if type(stroke) == _color_type {
         1pt
-    } else if type(stroke) == "stroke" {  // 2em + blue
-        let r = regex("^\\d+(?:em|pt|cm|in|%)")
+    } else if type(stroke) == _stroke_type {
+        // support:
+        // - 5
+        // - 5.5
+        let maybe-float-regex = "(?:\\d+(?:\\.\\d+)?)"
+        // support:
+        // - 2pt / 2em / 2cm / 2in   + color
+        // - 2.5pt / 2.5em / ...  + color
+        // - 2pt + 3em   + color
+        let len-regex = "(?:" + maybe-float-regex + "(?:em|pt|cm|in|%)(?:\\s+\\+\\s+" + maybe-float-regex + "em)?)"
+        let r = regex("^" + len-regex)
         let s = repr(stroke).find(r)
 
         if s == none {
-        1pt
-        } else {
-        eval(s)
+            // for more complex strokes, built through dictionaries
+            // => "thickness: 5pt" field
+            // note: on typst v0.7.0 or later, can just use 's.thickness'
+            let r = regex("thickness: (" + len-regex + ")")
+            s = repr(stroke).match(r)
+            if s != none {
+                s = s.captures.first();  // get the first match (the thickness)
+            }
         }
-    } else if type(stroke) == "dictionary" and "thickness" in stroke {
-        stroke.thickness
+
+        if s == none {
+            1pt  // okay it's probably just a color then
+        } else {
+            let len = eval(s)
+            if type(len) == _length_type {
+                convert-length-to-pt(len, styles: styles)
+            } else if type(len) in (_rel_len_type, _ratio_type) {
+                panic(no-ratio-error)
+            } else {
+                1pt  // should be unreachable
+            }
+        }
+    } else if type(stroke) == _dict_type and "thickness" in stroke {
+        let thickness = stroke.thickness
+        if type(thickness) == _length_type {
+            convert-length-to-pt(thickness, styles: styles)
+        } else if type(thickness) in (_rel_len_type, _ratio_type) {
+            panic(no-ratio-error)
+        } else {
+            1pt
+        }
     } else {
         1pt
     }
 }
-

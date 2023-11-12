@@ -19,7 +19,7 @@
     let parse-func(line, page-size: none) = {
         line.stroke-expand = line.stroke-expand == true
         line.expand = default-if-auto(line.expand, none)
-        if type(line.expand) != "array" and line.expand != none {
+        if type(line.expand) != _array_type and line.expand != none {
             line.expand = (line.expand, line.expand)
         }
         line.expand = if line.expand == none {
@@ -30,7 +30,7 @@
                     e
                 } else {
                     e = default-if-auto(e, 0pt)
-                    if type(e) not in ("length", "relative length", "ratio") {
+                    if type(e) not in (_length_type, _rel_len_type, _ratio_type) {
                         panic("'expand' argument to lines must be a pair (length, length).")
                     }
 
@@ -78,11 +78,11 @@
     col-gutter = default-if-auto(col-gutter, 0pt)
     row-gutter = default-if-auto(row-gutter, 0pt)
 
-    if type(col-gutter) in ("length", "relative length", "ratio") {
+    if type(col-gutter) in (_length_type, _rel_len_type, _ratio_type) {
         col-gutter = convert-length-to-pt(col-gutter, styles: styles, page_size: page-width)
     }
 
-    if type(row-gutter) in ("length", "relative length", "ratio") {
+    if type(row-gutter) in (_length_type, _rel_len_type, _ratio_type) {
         row-gutter = convert-length-to-pt(row-gutter, styles: styles, page_size: page-width)
     }
 
@@ -98,7 +98,7 @@
         } else {
             o => o  // identity
         }
-    } else if type(map-func) != "function" {
+    } else if type(map-func) != _function_type {
         panic("Map parameters must be functions.")
     } else {
         map-func
@@ -135,7 +135,7 @@
             if is-tablex-occupied(c) { none } else { c }
         }))
 
-        if type(cells) != "array" {
+        if type(cells) != _array_type {
             panic("Tablex error: 'map-rows' returned something that isn't an array.")
         }
 
@@ -150,7 +150,7 @@
             let c = i_c.at(1)
             let x = c.x
             let y = c.y
-            type(x) != "integer" or type(y) != "integer" or x < 0 or y < 0 or x >= col_len or y >= row_len
+            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col_len or y >= row_len
         }) {
             panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
         }
@@ -183,7 +183,7 @@
             if is-tablex-occupied(c) { none } else { c }
         }))
 
-        if type(cells) != "array" {
+        if type(cells) != _array_type {
             panic("Tablex error: 'map-cols' returned something that isn't an array.")
         }
 
@@ -198,7 +198,7 @@
             let c = i_c.at(1)
             let x = c.x
             let y = c.y
-            type(x) != "integer" or type(y) != "integer" or x < 0 or y < 0 or x >= col_len or y >= row_len
+            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col_len or y >= row_len
         }) {
             panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
         }
@@ -230,7 +230,7 @@
 #let validate-header-rows(header-rows) = {
     header-rows = default-if-auto(default-if-none(header-rows, 0), 1)
 
-    if type(header-rows) != "integer" or header-rows < 0 {
+    if type(header-rows) != _int_type or header-rows < 0 {
         panic("Tablex error: 'header-rows' must be a (positive) integer.")
     }
 
@@ -244,9 +244,9 @@
 
     repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
 
-    if type(repeat-header) not in ("boolean", "integer", "array") {
+    if type(repeat-header) not in ("boolean", _int_type, _array_type) {
         panic("Tablex error: 'repeat-header' must be a boolean (true - always repeat the header, false - never), an integer (amount of pages for which to repeat the header), or an array of integers (relative pages in which the header should repeat).")
-    } else if type(repeat-header) == "array" and repeat-header.any(i => type(i) != "integer") {
+    } else if type(repeat-header) == _array_type and repeat-header.any(i => type(i) != _int_type) {
         panic("Tablex error: 'repeat-header' cannot be an array of anything other than integers!")
     }
 

@@ -12,9 +12,9 @@
 // -- end imports --
 
 #let parse-stroke(stroke) = {
-    if type(stroke) == "color" {
+    if type(stroke) == _color_type {
         stroke + 1pt
-    } else if type(stroke) in ("length", "relative length", "ratio", "stroke", "dictionary") or stroke in (none, auto) {
+    } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
         stroke
     } else {
         panic("Invalid stroke '" + repr(stroke) + "'.")
@@ -29,7 +29,7 @@
     if line.expand in (none, (none, none), auto, (auto, auto)) {
         return (none, none)
     }
-    if type(line.expand) != "array" {
+    if type(line.expand) != _array_type {
         line.expand = (line.expand, line.expand)
     }
 
@@ -53,7 +53,12 @@
     expansion
 }
 
-#let draw-hline(hline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false) = {
+#let draw-hline(
+    hline,
+    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
+    styles: none,
+    rightmost_x: 0, rtl: false,
+) = {
     let start = hline.start
     let end = hline.end
     let stroke-auto = parse-stroke(stroke)
@@ -71,7 +76,7 @@
     let right-expand = default-if-auto-or-none(expand.at(1), 0pt)
 
     if default-if-auto(hline.stroke-expand, true) == true {
-        let largest-stroke = _largest-stroke-among-vlines-at-x.with(vlines: vlines, stroke-auto: stroke-auto)
+        let largest-stroke = _largest-stroke-among-vlines-at-x.with(vlines: vlines, stroke-auto: stroke-auto, styles: styles)
         left-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // expand to the left to close stroke gap
         right-expand += largest-stroke(default-if-auto-or-none(end, columns.len())) / 2  // close stroke gap to the right
     }
@@ -82,6 +87,12 @@
 
     if end_x - start_x < 0pt {
         return  // negative length
+    }
+
+    if rtl {
+        // invert the line (start from the right instead of from the left)
+        start_x = rightmost_x - start_x
+        end_x = rightmost_x - end_x
     }
 
     let start = (
@@ -102,7 +113,13 @@
     }
 }
 
-#let draw-vline(vline, initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false) = {
+#let draw-vline(
+    vline,
+    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto,
+    gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false,
+    styles: none,
+    rightmost_x: 0, rtl: false,
+) = {
     let start = vline.start
     let end = vline.end
     let stroke-auto = parse-stroke(stroke)
@@ -120,7 +137,7 @@
     let bottom-expand = default-if-auto-or-none(expand.at(1), 0pt)
 
     if default-if-auto(vline.stroke-expand, true) == true {
-        let largest-stroke = _largest-stroke-among-hlines-at-y.with(hlines: hlines, stroke-auto: stroke-auto)
+        let largest-stroke = _largest-stroke-among-hlines-at-y.with(hlines: hlines, stroke-auto: stroke-auto, styles: styles)
         top-expand += largest-stroke(default-if-auto-or-none(start, 0)) / 2  // close stroke gap to the top
         bottom-expand += largest-stroke(default-if-auto-or-none(end, rows.len())) / 2  // close stroke gap to the bottom
     }
@@ -131,6 +148,11 @@
 
     if end_y - start_y < 0pt {
         return  // negative length
+    }
+
+    if rtl {
+        // invert the vertical line's x pos (start from the right instead of from the left)
+        x = rightmost_x - x
     }
 
     let start = (

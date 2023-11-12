@@ -174,14 +174,14 @@
         and a.gutter-restrict == b.gutter-restrict
 )
 
-#let _largest-stroke-among-lines(lines, stroke-auto: 1pt) = (
-    calc.max(0pt, ..lines.map(l => stroke-len(l.stroke, stroke-auto: stroke-auto)))
+#let _largest-stroke-among-lines(lines, stroke-auto: 1pt, styles: none) = (
+    calc.max(0pt, ..lines.map(l => stroke-len(l.stroke, stroke-auto: stroke-auto, styles: styles)))
 )
 
-#let _largest-stroke-among-hlines-at-y(y, hlines: none, stroke-auto: 1pt) = {
-    _largest-stroke-among-lines(hlines.filter(h => h.y == y), stroke-auto: stroke-auto)
+#let _largest-stroke-among-hlines-at-y(y, hlines: none, stroke-auto: 1pt, styles: none) = {
+    _largest-stroke-among-lines(hlines.filter(h => h.y == y), stroke-auto: stroke-auto, styles: styles)
 }
 
-#let _largest-stroke-among-vlines-at-x(x, vlines: none, stroke-auto: 1pt) = {
-    _largest-stroke-among-lines(vlines.filter(v => v.x == x), stroke-auto: stroke-auto)
+#let _largest-stroke-among-vlines-at-x(x, vlines: none, stroke-auto: 1pt, styles: none) = {
+    _largest-stroke-among-lines(vlines.filter(v => v.x == x), stroke-auto: stroke-auto, styles: styles)
 }
