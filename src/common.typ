@@ -17,6 +17,7 @@
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
 #let _array_type = type(())
 #let _dict_type = type((a: 5))
+#let _bool_type = type(true)
 #let _str_type = type("")
 #let _color_type = type(red)
 #let _stroke_type = type(red + 5pt)

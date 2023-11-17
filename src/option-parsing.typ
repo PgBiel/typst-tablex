@@ -244,7 +244,7 @@
 
     repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
 
-    if type(repeat-header) not in ("boolean", _int_type, _array_type) {
+    if type(repeat-header) not in (_bool_type, _int_type, _array_type) {
         panic("Tablex error: 'repeat-header' must be a boolean (true - always repeat the header, false - never), an integer (amount of pages for which to repeat the header), or an array of integers (relative pages in which the header should repeat).")
     } else if type(repeat-header) == _array_type and repeat-header.any(i => type(i) != _int_type) {
         panic("Tablex error: 'repeat-header' cannot be an array of anything other than integers!")
@@ -258,7 +258,7 @@
 ) = {
     header-hlines-have-priority = default-if-auto(default-if-none(header-hlines-have-priority, true), true)
 
-    if type(header-hlines-have-priority) != "boolean" {
+    if type(header-hlines-have-priority) != _bool_type {
         panic("Tablex error: 'header-hlines-have-priority' option must be a boolean.")
     }
 
