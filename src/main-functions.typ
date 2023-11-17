@@ -11,7 +11,7 @@
 #import "grid.typ": *
 #import "col-row-size.typ": *
 #import "width-height.typ": *
-#import "drawing.typ": *
+#import "lines.typ": *
 // -- end imports --
 
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),
