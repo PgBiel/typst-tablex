@@ -10,6 +10,7 @@
 #import "col-row-size.typ": *
 #import "main-functions.typ": *
 #import "option-parsing.typ": *
+#import "renderer/renderer.typ": render
 // -- end imports --
 
 // Creates a table.
@@ -232,25 +233,35 @@
         let rows = updated_cols_rows.rows
         let gutter = updated_cols_rows.gutter
 
-        let row_groups = generate-row-groups(
+        let context = (
+            // cell info and data
             grid: table_grid,
-            columns: columns, rows: rows,
-            stroke: stroke, inset: inset,
+            columns: columns,
+            rows: rows,
+            // table parameters and styles
+            fill: fill,
+            align: align,
+            stroke: stroke,
+            inset: inset,
+            rtl: rtl,
             gutter: gutter,
-            fill: fill, align: align,
-            hlines: hlines, vlines: vlines,
-            styles: styles,
+            // headers
             repeat-header: repeat-header,
             header-hlines-have-priority: header-hlines-have-priority,
             header-rows: header-rows,
-            rtl: rtl,
+            // lines
+            hlines: hlines,
+            vlines: vlines,
+            // layout info
             min-pos: min_pos,
             max-pos: max_pos,
+            // Typst context
+            styles: styles,
             table-loc: t_loc,
             table-id: table_id
         )
 
-        grid(columns: (auto,), rows: auto, ..row_groups)
+        render(context)
     })))
 }
 
