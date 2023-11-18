@@ -1,3 +1,11 @@
+// Contains the row group generator.
+
+// -- tablex imports --
+#import "../type-validators.typ": is-tablex-cell
+#import "../grid.typ": grid-at
+#import "../width-height.typ": v-and-hline-spans-for-cell, is-same-hline
+// -- end imports --
+
 // Generates groups of rows.
 // By default, 1 row + rows from its rowspan cells = 1 row group.
 // The first row group is the header, which is repeated across pages.
@@ -17,8 +25,6 @@
     let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col-len, y_limit: row-len, grid: grid)
 
     let this-row-group = (rows: ((),), hlines: (), vlines: (), y-span: (0, 0))
-
-    let total_width = width-between(end: none)
 
     let row-group-add-counter = 1  // how many more rows are going to be added to the latest row group
     let header-rows-count = calc.min(row-len, header-rows)
