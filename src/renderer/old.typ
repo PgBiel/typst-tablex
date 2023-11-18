@@ -12,6 +12,8 @@
 #import "../lines.typ": *
 // -- end imports --
 
+#import "./row-groups.typ": generate-row-groups
+
 // Gets a state variable that holds the page's max x ("width") and max y ("height"),
 // considering the left and top margins.
 // Requires placing 'get-page-dim-writer(the_returned_state)' on the
@@ -89,8 +91,8 @@
     let group-rows = row-group.rows
     let hlines = row-group.hlines
     let vlines = row-group.vlines
-    let start-y = row-group.y_span.at(0)
-    let end-y = row-group.y_span.at(1)
+    let start-y = row-group.y-span.at(0)
+    let end-y = row-group.y-span.at(1)
 
     locate(loc => {
         // let old_page = latest-page-state.at(loc)
@@ -195,7 +197,7 @@
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
 
             let header_last_y = if first-row-group != none {
-                first-row-group.row_group.y_span.at(1)
+                first-row-group.row_group.y-span.at(1)
             } else {
                 none
             }
@@ -216,7 +218,7 @@
                 // if header's wasn't already drawn
                 if hline.y == start-y {
                     let header_last_y = if first-row-group != none {
-                        first-row-group.row_group.y_span.at(1)
+                        first-row-group.row_group.y-span.at(1)
                     } else {
                         none
                     }
@@ -291,142 +293,6 @@
             }
         })
     })
-}
-
-// Generates groups of rows.
-// By default, 1 row + rows from its rowspan cells = 1 row group.
-// The first row group is the header, which is repeated across pages.
-#let generate-row-groups(
-    grid: none,
-    columns: none, rows: none,
-    stroke: none, inset: none,
-    gutter: none,
-    fill: none,
-    align: none,
-    hlines: none, vlines: none,
-    repeat-header: false,
-    styles: none,
-    header-hlines-have-priority: true,
-    min-pos: none,
-    max-pos: none,
-    header-rows: 1,
-    rtl: false,
-    table-loc: none,
-    table-id: none,
-) = {
-    let col_len = columns.len()
-    let row_len = rows.len()
-
-    // specialize some functions for the given grid, columns and rows
-    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col_len, y_limit: row_len, grid: grid)
-    let cell-width = cell-width.with(columns: columns, gutter: gutter)
-    let cell-height = cell-height.with(rows: rows, gutter: gutter)
-    let width-between = width-between.with(columns: columns, gutter: gutter)
-    let height-between = height-between.with(rows: rows, gutter: gutter)
-
-    // each row group is an unbreakable unit of rows.
-    // In general, they're just one row. However, they can be multiple rows
-    // if one of their cells spans multiple rows.
-    let first_row_group = none
-
-    let header_pages = state("tablex_tablex_header_pages__" + repr(table-id), (table-loc.page(),))
-    let this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (0, 0))
-
-    let total_width = width-between(end: none)
-
-    let row_group_add_counter = 1  // how many more rows are going to be added to the latest row group
-    let current_row = 0
-    let header_rows_count = calc.min(row_len, header-rows)
-
-    for row in range(0, row_len) {
-        // maximum cell total rowspan in this row
-        let max_rowspan = 0
-
-        for column in range(0, col_len) {
-            let cell = grid-at(grid, column, row)
-            let lines_dict = v-and-hline-spans-for-cell(cell, hlines: hlines)
-            let hlines = lines_dict.hlines
-            let vlines = lines_dict.vlines
-
-            if is-tablex-cell(cell) {
-                // ensure row-spanned rows are in the same group
-                row_group_add_counter = calc.max(row_group_add_counter, cell.rowspan)
-
-                let width = cell-width(cell.x, colspan: cell.colspan)
-                let height = cell-height(cell.y, rowspan: cell.rowspan)
-
-                let cell_box = make-cell-box(
-                    cell,
-                    width: width, height: height, inset: inset,
-                    align_default: align,
-                    fill_default: fill)
-
-                this_row_group.rows.last().push((cell: cell, box: cell_box))
-
-                let hlines = hlines
-                    .filter(h =>
-                        this_row_group.hlines
-                            .filter(is-same-hline.with(h))
-                            .len() == 0)
-
-                let vlines = vlines
-                    .filter(v => v not in this_row_group.vlines)
-
-                this_row_group.hlines += hlines
-                this_row_group.vlines += vlines
-            }
-        }
-
-        current_row += 1
-        row_group_add_counter = calc.max(0, row_group_add_counter - 1)  // one row added
-        header_rows_count = calc.max(0, header_rows_count - 1)  // ensure at least the amount of requested header rows was added
-
-        // added all pertaining rows to the group
-        // now we can draw it
-        if row_group_add_counter <= 0 and header_rows_count <= 0 {
-            row_group_add_counter = 1
-
-            let row_group = this_row_group
-
-            // get where the row starts and where it ends
-            let start_y = row_group.y_span.at(0)
-            let end_y = row_group.y_span.at(1)
-
-            let next_y = end_y + 1
-
-            this_row_group = (rows: ((),), hlines: (), vlines: (), y_span: (next_y, next_y))
-
-            let is_header = first_row_group == none
-            let content = draw-row-group(
-                row_group,
-                is-header: is_header,
-                header-pages-state: header_pages,
-                first-row-group: first_row_group,
-                columns: columns, rows: rows,
-                stroke: stroke,
-                gutter: gutter,
-                repeat-header: repeat-header,
-                total-width: total_width,
-                table-loc: table-loc,
-                header-hlines-have-priority: header-hlines-have-priority,
-                rtl: rtl,
-                min-pos: min-pos,
-                max-pos: max-pos,
-                styles: styles,
-                global-hlines: hlines,
-                global-vlines: vlines,
-            )
-
-            if is_header {  // this is now the header group.
-                first_row_group = (row_group: row_group, content: content)  // 'content' to repeat later
-            }
-
-            (content,)
-        } else {
-            this_row_group.rows.push(())
-            this_row_group.y_span.at(1) += 1
-        }
-    }
 }
 
 #let render-row-groups-old(ctx) = {
@@ -508,27 +374,7 @@
   // 1. A single row.
   // 2. Two or more rows spanned by a rowspan cell. Those rows must stay together (in the same page).
   // 3. Header rows, which must stay together (in the same page).
-  let row-groups = generate-row-groups(
-      grid: ctx.grid,
-      columns: ctx.columns,
-      rows: ctx.rows,
-      stroke: ctx.stroke,
-      inset: ctx.inset,
-      gutter: ctx.gutter,
-      fill: ctx.fill,
-      align: ctx.align,
-      hlines: ctx.hlines,
-      vlines: ctx.vlines,
-      styles: ctx.styles,
-      repeat-header: ctx.repeat-header,
-      header-hlines-have-priority: ctx.header-hlines-have-priority,
-      header-rows: ctx.header-rows,
-      rtl: ctx.rtl,
-      min-pos: ctx.min-pos,
-      max-pos: ctx.max-pos,
-      table-loc: ctx.table-loc,
-      table-id: ctx.table-id
-  )
+  let row-groups = render-row-groups-old(ctx)
 
   // Place the row groups as rows in a grid.
   // The grid will control the pagebreaking aspect.
