@@ -432,7 +432,7 @@
 #let render-row-groups-old(ctx) = {
     let row-groups = generate-row-groups(ctx)
 
-    let (grid, columns, rows) = ctx
+    let (gutter, columns, rows) = ctx
 
     let cell-width = cell-width.with(columns: columns, gutter: gutter)
     let cell-height = cell-height.with(rows: rows, gutter: gutter)
@@ -452,7 +452,7 @@
     let first-row-group = none
 
     for group in row-groups {
-        group.cells = group.cells.map(cell => {
+        group.rows = group.rows.map(cells => cells.map(cell => {
             let width = cell-width(cell.x, colspan: cell.colspan)
             let height = cell-height(cell.y, rowspan: cell.rowspan)
 
@@ -468,7 +468,7 @@
                 fill_default: ctx.fill)
 
             (cell: cell, box: cell-box)
-        })
+        }))
 
         let rendered-group = draw-row-group(
             group,
@@ -497,7 +497,7 @@
 
         is-header = false
 
-        (group,)
+        (rendered-group,)
     }
 }
 
