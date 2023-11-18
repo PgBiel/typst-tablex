@@ -429,6 +429,78 @@
     }
 }
 
+#let render-row-groups-old(ctx) = {
+    let row-groups = generate-row-groups(ctx)
+
+    let (grid, columns, rows) = ctx
+
+    let cell-width = cell-width.with(columns: columns, gutter: gutter)
+    let cell-height = cell-height.with(rows: rows, gutter: gutter)
+    let width-between = width-between.with(columns: columns, gutter: gutter)
+    let height-between = height-between.with(rows: rows, gutter: gutter)
+
+    // state containing which pages this table's header spans.
+    let header-pages = state("tablex_tablex_header_pages__" + repr(ctx.table-id), (ctx.table-loc.page(),))
+
+    let total-width = width-between(end: none)
+
+    // whether we are currently analyzing the first row group (the header).
+    let is-header = true
+
+    // store the first row group in a special variable (including its content)
+    // used to repeat the header.
+    let first-row-group = none
+
+    for group in row-groups {
+        group.cells = group.cells.map(cell => {
+            let width = cell-width(cell.x, colspan: cell.colspan)
+            let height = cell-height(cell.y, rowspan: cell.rowspan)
+
+            // create box which contains the cell.
+            // this box will contain the appropriate fill for the cell,
+            // alongside the cell's inset, alignment and expected size.
+            let cell-box = make-cell-box(
+                cell,
+                width: width,
+                height: height,
+                inset: ctx.inset,
+                align_default: ctx.align,
+                fill_default: ctx.fill)
+
+            (cell: cell, box: cell-box)
+        })
+
+        let rendered-group = draw-row-group(
+            group,
+            is-header: is-header,
+            header-pages-state: header-pages,
+            first-row-group: first-row-group,
+            columns: columns,
+            rows: rows,
+            stroke: ctx.stroke,
+            gutter: ctx.gutter,
+            repeat-header: ctx.repeat-header,
+            total-width: total-width,
+            table-loc: ctx.table-loc,
+            header-hlines-have-priority: ctx.header-hlines-have-priority,
+            rtl: ctx.rtl,
+            min-pos: ctx.min-pos,
+            max-pos: ctx.max-pos,
+            styles: ctx.styles,
+            global-hlines: ctx.hlines,
+            global-vlines: ctx.vlines,
+        )
+
+        if is-header {  // this is now the header group. Store its content
+            first-row-group = (row_group: group, content: rendered-group)  // 'content' of the header to repeat later
+        }
+
+        is-header = false
+
+        (group,)
+    }
+}
+
 // Renders the table with the given context dictionary (see renderer.typ).
 // Uses the old renderer.
 #let render-old(ctx) = {
