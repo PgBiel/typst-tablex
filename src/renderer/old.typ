@@ -19,7 +19,7 @@
 // Requires placing 'get-page-dim-writer(the_returned_state)' on the
 // document.
 // The id is to differentiate the state for each table.
-#let get-page-dim-state(id) = state("tablex_tablex_page_dims__" + repr(id), (width: 0pt, height: 0pt, top_left: none, bottom_right: none))
+#let get-page-dim-state(id) = state("tablex_tablex_page_dims__" + repr(id), (top-left: none, bottom-right: none))
 
 // A little trick to get the page max width and max height.
 // Places a component on the page (or outer container)'s top left,
@@ -32,36 +32,31 @@
 // NOTE: This function cannot differentiate between the actual page
 // and a possible box or block where the component using this function
 // could be contained in.
-#let get-page-dim-writer() = locate(w_loc => {
-    let table_id = _tablex-table-counter.at(w_loc)
-    let page_dim_state = get-page-dim-state(table_id)
+#let get-page-dim-writer(table-loc, table-id) = {
+    let page-dim-state = get-page-dim-state(table-id)
 
     place(top + left, locate(loc => {
-        page_dim_state.update(s => {
-            if s.top_left != none {
+        page-dim-state.update(s => {
+            if s.top-left != none {
                 s
             } else {
                 let pos = loc.position()
-                let width = s.width - pos.x
-                let height = s.width - pos.y
-                (width: width, height: height, top_left: pos, bottom_right: s.bottom_right)
+                (top-left: pos, bottom-right: s.bottom-right)
             }
         })
     }))
 
     place(bottom + right, locate(loc => {
-        page_dim_state.update(s => {
-            if s.bottom_right != none {
+        page-dim-state.update(s => {
+            if s.bottom-right != none {
                 s
             } else {
                 let pos = loc.position()
-                let width = s.width + pos.x
-                let height = s.width + pos.y
-                (width: width, height: height, top_left: s.top_left, bottom_right: pos)
+                (top-left: s.top-left, bottom-right: pos)
             }
         })
     }))
-})
+}
 
 // Draws a row group using locate() and a block().
 #let draw-row-group(
@@ -197,7 +192,7 @@
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
 
             let header_last_y = if first-row-group != none {
-                first-row-group.row_group.y-span.at(1)
+                first-row-group.row-group.y-span.at(1)
             } else {
                 none
             }
@@ -206,7 +201,7 @@
             // otherwise they'd repeat on every page), then
             // we draw its hlines for the header, below it.
             let hlines = if not header-hlines-have-priority and not is-header and start-y == header_last_y + 1 {
-                let hlines_below_header = first-row-group.row_group.hlines.filter(h => h.y == header_last_y + 1)
+                let hlines_below_header = first-row-group.row-group.hlines.filter(h => h.y == header_last_y + 1)
 
                 hlines + hlines_below_header
             } else {
@@ -218,7 +213,7 @@
                 // if header's wasn't already drawn
                 if hline.y == start-y {
                     let header_last_y = if first-row-group != none {
-                        first-row-group.row_group.y-span.at(1)
+                        first-row-group.row-group.y-span.at(1)
                     } else {
                         none
                     }
@@ -298,7 +293,7 @@
 #let render-row-groups-old(ctx) = {
     let row-groups = generate-row-groups(ctx)
 
-    let (gutter, columns, rows) = ctx
+    let (renderer-ctx, gutter, columns, rows) = ctx
 
     let cell-width = cell-width.with(columns: columns, gutter: gutter)
     let cell-height = cell-height.with(rows: rows, gutter: gutter)
@@ -306,8 +301,12 @@
     let height-between = height-between.with(rows: rows, gutter: gutter)
 
     // state containing which pages this table's header spans.
-    let header-pages = state("tablex_tablex_header_pages__" + repr(ctx.table-id), (ctx.table-loc.page(),))
+    let header-pages = state(
+        "tablex_tablex_header_pages__" + repr(renderer-ctx.table-id),
+        (renderer-ctx.table-loc.page(),)
+    )
 
+    // expected total width between the leftmost and rightmost cells
     let total-width = width-between(end: none)
 
     // whether we are currently analyzing the first row group (the header).
@@ -347,24 +346,68 @@
             gutter: ctx.gutter,
             repeat-header: ctx.repeat-header,
             total-width: total-width,
-            table-loc: ctx.table-loc,
             header-hlines-have-priority: ctx.header-hlines-have-priority,
             rtl: ctx.rtl,
-            min-pos: ctx.min-pos,
-            max-pos: ctx.max-pos,
             styles: ctx.styles,
             global-hlines: ctx.hlines,
             global-vlines: ctx.vlines,
+            // --- renderer context (defined by the old renderer itself) ---
+            table-loc: renderer-ctx.table-loc,
+            min-pos: renderer-ctx.min-pos,
+            max-pos: renderer-ctx.max-pos,
         )
 
         if is-header {  // this is now the header group. Store its content
-            first-row-group = (row_group: group, content: rendered-group)  // 'content' of the header to repeat later
+            first-row-group = (row-group: group, content: rendered-group)  // 'content' of the header to repeat later
         }
 
         is-header = false
 
         (rendered-group,)
     }
+}
+
+// Sets up the old renderer, feeds its context to the table and outputs the table.
+// Use as follows:
+// old-renderer-setup(size, (renderer-ctx, size, styles) => ... tablex code ...)
+#let old-renderer-setup(tablex-callback) = {
+    // steps the table counter
+    _tablex-table-counter.step()
+
+    locate(loc => {
+        // this table's id and position
+        // the ID is used to generate unique "state"s, avoiding conflicts with other tables.
+        let table-id = _tablex-table-counter.at(loc)
+        let table-pos = loc.position()
+
+        // state containing the calculated positions of the edges of the page
+        let page-dim-state = get-page-dim-state(table-id)
+
+        // the final value of the state (since the bottom right of the page will be after this table)
+        let page-dim = page-dim-state.final(loc)
+
+        // when this element is placed, the page-dim-state will be updated with the coords of the page edges.
+        get-page-dim-writer(loc, table-id)
+
+        layout(size => style(styles => {
+            let renderer-ctx = (
+                table-loc: loc,
+                table-id: table-id,
+                table-pos: table-pos,
+                page-dim: page-dim,
+
+                // try to guess some defaults in case we don't know the page's edges yet:
+                // 1. min-pos (normally top left edge): we assume to be the table's position;
+                // 2. max-pos (normally bottom right edge): we assume to be the table's position + page size.
+                min-pos: default-if-none(page-dim.top-left, table-pos),
+                max-pos: default-if-none(page-dim.bottom-right, (x: table-pos.x + size.width, y: table-pos.y + size.height))
+            )
+
+
+            // return the table.
+            tablex-callback(renderer-ctx, size, styles)
+        }))
+    })
 }
 
 // Renders the table with the given context dictionary (see renderer.typ).

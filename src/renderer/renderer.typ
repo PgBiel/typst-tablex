@@ -1,5 +1,5 @@
 // Central file for the renderer module.
-#import "old.typ": render-old
+#import "old.typ": render-old, old-renderer-setup
 
 // ctx: The context dictionary with the following attributes:
 //
@@ -25,15 +25,20 @@
 // - hlines
 // - vlines
 //
-// 5. layout info
-// - min-pos
-// - max-pos
+// 5. info needed by the renderer
+// - renderer-ctx
 //
 // 6. Typst context
 // - styles
-// - table-loc
-// - table-id
 #let render(ctx) = {
   // TODO: add new renderer, allow choosing.
   render-old(ctx)
+}
+
+// Sets up the renderer and generates the table.
+// Call with:
+// renderer-setup((renderer-ctx, size, styles) => ... code to generate the tablex table ...)
+#let renderer-setup(tablex-callback) = {
+  // TODO: add new renderer, allow choosing
+  old-renderer-setup(tablex-callback)
 }

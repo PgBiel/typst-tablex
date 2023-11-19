@@ -9,6 +9,8 @@
 // Generates groups of rows.
 // By default, 1 row + rows from its rowspan cells = 1 row group.
 // The first row group is the header, which is repeated across pages.
+// ---
+// Does not require a renderer-ctx in the context, and is thus renderer agnostic.
 #let generate-row-groups(ctx) = {
     let (
       grid,

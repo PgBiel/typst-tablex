@@ -10,7 +10,7 @@
 #import "col-row-size.typ": *
 #import "main-functions.typ": *
 #import "option-parsing.typ": *
-#import "renderer/renderer.typ": render
+#import "renderer/renderer.typ": render, renderer-setup
 // -- end imports --
 
 // Creates a table.
@@ -120,10 +120,6 @@
     map-cols: none,
     ..items
 ) = {
-    _tablex-table-counter.step()
-
-    get-page-dim-writer()  // get the current page's dimensions
-
     let header-rows = validate-header-rows(header-rows)
     let repeat-header = validate-repeat-header(repeat-header, header-rows: header-rows)
     let header-hlines-have-priority = validate-header-hlines-priority(header-hlines-have-priority)
@@ -133,20 +129,56 @@
     let map-rows = parse-map-func(map-rows, uses-second-param: true)
     let map-cols = parse-map-func(map-cols, uses-second-param: true)
 
-    layout(size => locate(t_loc => style(styles => {
-        let table_id = _tablex-table-counter.at(t_loc)
-        let page_dimensions = get-page-dim-state(table_id)
-        let page_dim_at = page_dimensions.final(t_loc)
-        let t_pos = t_loc.position()
+    // --- initial grid setup (doesn't require renderer setup) ---
+    let items = items.pos().map(table-item-convert)
 
-        // Subtract the max width/height from current width/height to disregard margin/etc.
-        let page_width = size.width
-        let page_height = size.height
+    let validated_cols_rows = validate-cols-rows(columns, rows, items: items.filter(is-tablex-cell))
 
-        let max_pos = default-if-none(page_dim_at.bottom_right, (x: t_pos.x + page_width, y: t_pos.y + page_height))
-        let min_pos = default-if-none(page_dim_at.top_left, t_pos)
+    let columns = validated_cols_rows.columns
+    let rows = validated_cols_rows.rows
+    items += validated_cols_rows.items
 
-        let items = items.pos().map(table-item-convert)
+    let col_len = columns.len()
+    let row_len = rows.len()
+
+    // generate cell matrix and other things
+    let grid_info = generate-grid(
+        items,
+        x_limit: col_len, y_limit: row_len,
+        map-cells: map-cells
+    )
+
+    let table_grid = grid_info.grid
+    let hlines = grid_info.hlines
+    let vlines = grid_info.vlines
+    let items = grid_info.items
+
+    for _ in range(grid_info.new_row_count - row_len) {
+        rows.push(auto)  // add new rows (due to extra cells)
+    }
+
+    let col_len = columns.len()
+    let row_len = rows.len()
+
+    let auto_lines_res = generate-autolines(
+        auto-lines: auto-lines, auto-hlines: auto-hlines,
+        auto-vlines: auto-vlines,
+        hlines: hlines,
+        vlines: vlines,
+        col_len: col_len,
+        row_len: row_len
+    )
+
+    hlines += auto_lines_res.new_hlines
+    vlines += auto_lines_res.new_vlines
+    // --- finish initial grid setup ---
+
+    // Gather the info the renderer needs (available through renderer-ctx),
+    // and also get the page/container's dimensions ('container-size')
+    // and the current styles ('styles').
+    renderer-setup((renderer-ctx, container-size, styles) => {
+        let page_width = container-size.width
+        let page_height = container-size.height
 
         let gutter = parse-gutters(
             col-gutter: column-gutter, row-gutter: row-gutter,
@@ -155,50 +187,9 @@
             page-width: page_width, page-height: page_height
         )
 
-        let validated_cols_rows = validate-cols-rows(
-            columns, rows, items: items.filter(is-tablex-cell))
-
-        let columns = validated_cols_rows.columns
-        let rows = validated_cols_rows.rows
-        items += validated_cols_rows.items
-
-        let col_len = columns.len()
-        let row_len = rows.len()
-
-        // generate cell matrix and other things
-        let grid_info = generate-grid(
-            items,
-            x_limit: col_len, y_limit: row_len,
-            map-cells: map-cells
-        )
-
-        let table_grid = grid_info.grid
-        let hlines = grid_info.hlines
-        let vlines = grid_info.vlines
-        let items = grid_info.items
-
-        for _ in range(grid_info.new_row_count - row_len) {
-            rows.push(auto)  // add new rows (due to extra cells)
-        }
-
-        let col_len = columns.len()
-        let row_len = rows.len()
-
-        let auto_lines_res = generate-autolines(
-            auto-lines: auto-lines, auto-hlines: auto-hlines,
-            auto-vlines: auto-vlines,
-            hlines: hlines,
-            vlines: vlines,
-            col_len: col_len,
-            row_len: row_len
-        )
-
-        hlines += auto_lines_res.new_hlines
-        vlines += auto_lines_res.new_vlines
-
         let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
-        hlines = parsed_lines.hlines
-        vlines = parsed_lines.vlines
+        let hlines = parsed_lines.hlines
+        let vlines = parsed_lines.vlines
 
         let mapped_grid = apply-maps(
             grid: table_grid,
@@ -210,14 +201,14 @@
             map-cols: map-cols
         )
 
-        table_grid = mapped_grid.grid
-        hlines = mapped_grid.hlines
-        vlines = mapped_grid.vlines
+        let table_grid = mapped_grid.grid
+        let hlines = mapped_grid.hlines
+        let vlines = mapped_grid.vlines
 
         // re-parse just in case
         let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
-        hlines = parsed_lines.hlines
-        vlines = parsed_lines.vlines
+        let hlines = parsed_lines.hlines
+        let vlines = parsed_lines.vlines
 
         // convert auto to actual size
         let updated_cols_rows = determine-auto-column-row-sizes(
@@ -252,17 +243,14 @@
             // lines
             hlines: hlines,
             vlines: vlines,
-            // layout info
-            min-pos: min_pos,
-            max-pos: max_pos,
+            // renderer context info
+            renderer-ctx: renderer-ctx,
             // Typst context
-            styles: styles,
-            table-loc: t_loc,
-            table-id: table_id
+            styles: styles
         )
 
         render(context)
-    })))
+    })
 }
 
 // Same as table but defaults to lines off
