@@ -85,15 +85,15 @@
 // returns another.
 //
 // map-rows: Maps each row of cells.
-// Takes (row_num, cell_array) and returns
-// the modified cell_array. Note that, here, they
+// Takes (row-num, cell-array) and returns
+// the modified cell-array. Note that, here, they
 // cannot be sent to another row. Also, cells may be
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
 //
 // map-cols: Maps each column of cells.
-// Takes (col_num, cell_array) and returns
-// the modified cell_array. Note that, here, they
+// Takes (col-num, cell-array) and returns
+// the modified cell-array. Note that, here, they
 // cannot be sent to another row. Also, cells may be
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
@@ -131,67 +131,67 @@
     // --- initial grid setup (doesn't require renderer setup) ---
     let items = items.pos().map(table-item-convert)
 
-    let validated_cols_rows = validate-cols-rows(columns, rows, items: items.filter(is-tablex-cell))
+    let validated-cols-rows = validate-cols-rows(columns, rows, items: items.filter(is-tablex-cell))
 
-    let columns = validated_cols_rows.columns
-    let rows = validated_cols_rows.rows
-    items += validated_cols_rows.items
+    let columns = validated-cols-rows.columns
+    let rows = validated-cols-rows.rows
+    items += validated-cols-rows.items
 
-    let col_len = columns.len()
-    let row_len = rows.len()
+    let col-len = columns.len()
+    let row-len = rows.len()
 
     // generate cell matrix and other things
-    let grid_info = generate-grid(
+    let grid-info = generate-grid(
         items,
-        x_limit: col_len, y_limit: row_len,
+        x-limit: col-len, y-limit: row-len,
         map-cells: map-cells
     )
 
-    let table_grid = grid_info.grid
-    let hlines = grid_info.hlines
-    let vlines = grid_info.vlines
-    let items = grid_info.items
+    let table-grid = grid-info.grid
+    let hlines = grid-info.hlines
+    let vlines = grid-info.vlines
+    let items = grid-info.items
 
-    for _ in range(grid_info.new_row_count - row_len) {
+    for _ in range(grid-info.new-row-count - row-len) {
         rows.push(auto)  // add new rows (due to extra cells)
     }
 
-    let col_len = columns.len()
-    let row_len = rows.len()
+    let col-len = columns.len()
+    let row-len = rows.len()
 
-    let auto_lines_res = generate-autolines(
+    let auto-lines-res = generate-autolines(
         auto-lines: auto-lines, auto-hlines: auto-hlines,
         auto-vlines: auto-vlines,
         hlines: hlines,
         vlines: vlines,
-        col_len: col_len,
-        row_len: row_len
+        col-len: col-len,
+        row-len: row-len
     )
 
-    hlines += auto_lines_res.new_hlines
-    vlines += auto_lines_res.new_vlines
+    hlines += auto-lines-res.new-hlines
+    vlines += auto-lines-res.new-vlines
     // --- finish initial grid setup ---
 
     // Gather the info the renderer needs (available through renderer-ctx),
     // and also get the page/container's dimensions ('container-size')
     // and the current styles ('styles').
     renderer-setup((renderer-ctx, container-size, styles) => {
-        let page_width = container-size.width
-        let page_height = container-size.height
+        let page-width = container-size.width
+        let page-height = container-size.height
 
         let gutter = parse-gutters(
             col-gutter: column-gutter, row-gutter: row-gutter,
             gutter: gutter,
             styles: styles,
-            page-width: page_width, page-height: page_height
+            page-width: page-width, page-height: page-height
         )
 
-        let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
-        let hlines = parsed_lines.hlines
-        let vlines = parsed_lines.vlines
+        let parsed-lines = _parse-lines(hlines, vlines, styles: styles, page-width: page-width, page-height: page-height)
+        let hlines = parsed-lines.hlines
+        let vlines = parsed-lines.vlines
 
-        let mapped_grid = apply-maps(
-            grid: table_grid,
+        let mapped-grid = apply-maps(
+            grid: table-grid,
             hlines: hlines,
             vlines: vlines,
             map-hlines: map-hlines,
@@ -200,32 +200,32 @@
             map-cols: map-cols
         )
 
-        let table_grid = mapped_grid.grid
-        let hlines = mapped_grid.hlines
-        let vlines = mapped_grid.vlines
+        let table-grid = mapped-grid.grid
+        let hlines = mapped-grid.hlines
+        let vlines = mapped-grid.vlines
 
         // re-parse just in case
-        let parsed_lines = _parse-lines(hlines, vlines, styles: styles, page-width: page_width, page-height: page_height)
-        let hlines = parsed_lines.hlines
-        let vlines = parsed_lines.vlines
+        let parsed-lines = _parse-lines(hlines, vlines, styles: styles, page-width: page-width, page-height: page-height)
+        let hlines = parsed-lines.hlines
+        let vlines = parsed-lines.vlines
 
         // convert auto to actual size
-        let updated_cols_rows = determine-auto-column-row-sizes(
-            grid: table_grid,
-            page_width: page_width, page_height: page_height,
+        let updated-cols-rows = determine-auto-column-row-sizes(
+            grid: table-grid,
+            page-width: page-width, page-height: page-height,
             styles: styles,
             columns: columns, rows: rows,
             inset: inset, align: align,
             gutter: gutter
         )
 
-        let columns = updated_cols_rows.columns
-        let rows = updated_cols_rows.rows
-        let gutter = updated_cols_rows.gutter
+        let columns = updated-cols-rows.columns
+        let rows = updated-cols-rows.rows
+        let gutter = updated-cols-rows.gutter
 
         let context = (
             // cell info and data
-            grid: table_grid,
+            grid: table-grid,
             columns: columns,
             rows: rows,
             // table parameters and styles

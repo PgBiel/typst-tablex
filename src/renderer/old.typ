@@ -329,8 +329,8 @@
                 width: width,
                 height: height,
                 inset: ctx.inset,
-                align_default: ctx.align,
-                fill_default: ctx.fill)
+                align-default: ctx.align,
+                fill-default: ctx.fill)
 
             (cell: cell, box: cell-box)
         }))

@@ -56,10 +56,10 @@
     y: y,
 )
 
-#let occupied(x: 0, y: 0, parent_x: none, parent_y: none) = (
+#let occupied(x: 0, y: 0, parent-x: none, parent-y: none) = (
     tablex-dict-type: "occupied",
     x: x,
     y: y,
-    parent_x: parent_x,
-    parent_y: parent_y
+    parent-x: parent-x,
+    parent-y: parent-y
 )

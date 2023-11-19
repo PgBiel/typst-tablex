@@ -96,7 +96,7 @@
 // (hline) ----====---      (= and || indicate intersection)
 //             |  ||
 //             ----   <--- sample cell
-#let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x_limit: 0, y_limit: 0, grid: ()) = {
+#let v-and-hline-spans-for-cell(cell, hlines: (), vlines: (), x-limit: 0, y-limit: 0, grid: ()) = {
     // only draw lines from the parent cell
     if is-tablex-occupied(cell) {
         return (
@@ -121,7 +121,7 @@
         })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + cell.colspan, limit: x_limit)
+            let span = get-included-span(h.start, h.end, start: cell.x, end: cell.x + cell.colspan, limit: x-limit)
 
             if span == none {  // no intersection!
                 none
@@ -147,7 +147,7 @@
         })
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
-            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + cell.rowspan, limit: y_limit)
+            let span = get-included-span(v.start, v.end, start: cell.y, end: cell.y + cell.rowspan, limit: y-limit)
 
             if span == none {  // no intersection!
                 none
