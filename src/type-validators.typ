@@ -59,7 +59,7 @@
 
 // Get expected amount of cell positions
 // in the table (considering colspan and rowspan)
-#let get-expected-grid-len(items, col_len: 0) = {
+#let get-expected-grid-len(items, col-len: 0) = {
     let len = 0
 
     // maximum explicit 'y' specified
@@ -84,10 +84,10 @@
         }
     }
 
-    let rows(len) = calc.ceil(len / col_len)
+    let rows(len) = calc.ceil(len / col-len)
 
     while rows(len) < max_explicit_y {
-        len += col_len
+        len += col-len
     }
 
     len
@@ -142,11 +142,11 @@
         panic("Invalid row sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
-    let col_len = columns.len()
+    let col-len = columns.len()
 
-    let grid_len = get-expected-grid-len(items, col_len: col_len)
+    let grid_len = get-expected-grid-len(items, col-len: col-len)
 
-    let expected_rows = calc.ceil(grid_len / col_len)
+    let expected_rows = calc.ceil(grid_len / col-len)
 
     // more cells than expected => add rows
     if rows.len() < expected_rows {

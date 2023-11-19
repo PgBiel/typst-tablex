@@ -92,7 +92,7 @@
 // if a normal cell => return it, untouched.
 #let get-parent-cell(cell, grid: none) = {
     if is-tablex-occupied(cell) {
-        grid-at(grid, cell.parent_x, cell.parent_y)
+        grid-at(grid, cell.parent-x, cell.parent-y)
     } else if is-tablex-cell(cell) {
         cell
     } else {
@@ -102,7 +102,7 @@
 
 // Return the next position available on the grid
 #let next-available-position(
-    grid, x: 0, y: 0, x_limit: 0, y_limit: 0
+    grid, x: 0, y: 0, x-limit: 0, y-limit: 0
 ) = {
     let cell = (x, y)
     let there_is_next(cell_pos) = {
@@ -113,14 +113,14 @@
     while there_is_next(cell) {
         x += 1
 
-        if x >= x_limit {
+        if x >= x-limit {
             x = 0
             y += 1
         }
 
         cell = (x, y)
 
-        if y >= y_limit {  // last row reached - stop
+        if y >= y-limit {  // last row reached - stop
             break
         }
     }
@@ -130,12 +130,12 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate-grid(items, x_limit: 0, y_limit: 0, map-cells: c => c) = {
+#let generate-grid(items, x-limit: 0, y-limit: 0, map-cells: c => c) = {
     // init grid as a matrix
-    // y_limit  x   x_limit
-    let grid = create-grid(x_limit, y_limit)
+    // y-limit  x   x-limit
+    let grid = create-grid(x-limit, y-limit)
 
-    let grid-index-at = grid-index-at.with(width: x_limit)
+    let grid-index-at = grid-index-at.with(width: x-limit)
 
     let hlines = ()
     let vlines = ()
@@ -195,11 +195,11 @@
                         prev_x += 1  // use this as a 'secondary counter'
                                      // in the meantime
 
-                        if prev_x > x_limit + 1 {
-                            panic("Error: Specified way too many vlines or empty () cells before the first row of the table. (Note that () is used to separate vline()s at the beginning of the table.)  Please specify at most " + str(x_limit + 1) + " empty cells or vlines before the first cell of the table.")
+                        if prev_x > x-limit + 1 {
+                            panic("Error: Specified way too many vlines or empty () cells before the first row of the table. (Note that () is used to separate vline()s at the beginning of the table.)  Please specify at most " + str(x-limit + 1) + " empty cells or vlines before the first cell of the table.")
                         }
                     } else if row_wrapped {
-                        item.x = x_limit  // allow v_line at the last column
+                        item.x = x-limit  // allow v_line at the last column
                         row_wrapped = false
                     } else {
                         item.x = x
@@ -270,15 +270,15 @@
         let max_x = this_x + cell.colspan - 1
         let max_y = this_y + cell.rowspan - 1
 
-        if this_x >= x_limit {
+        if this_x >= x-limit {
             panic("Error: Cell at " + repr((this_x, this_y)) + " is placed at an inexistent column.")
         }
 
-        if max_x >= x_limit {
+        if max_x >= x-limit {
             panic("Error: Cell at " + repr((this_x, this_y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
         }
 
-        let cell_positions = positions-spanned-by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
+        let cell_positions = positions-spanned-by(cell, x: this_x, y: this_y, x-limit: x-limit, y-limit: none)
 
         for position in cell_positions {
             let px = position.at(0)
@@ -300,7 +300,7 @@
                 let grid_expand_res = grid-expand-to(grid, grid.width - 1, max_y)
 
                 grid = grid_expand_res
-                y_limit = grid-count-rows(grid)
+                y-limit = grid-count-rows(grid)
 
                 let index = grid-index-at(this_x, this_y)
 
@@ -314,11 +314,11 @@
             } else {
                 let index = grid-index-at(px, py)
 
-                grid.items.at(index) = occupied(x: px, y: py, parent_x: this_x, parent_y: this_y)  // indicate this position's parent cell (to join them later)
+                grid.items.at(index) = occupied(x: px, y: py, parent-x: this_x, parent-y: this_y)  // indicate this position's parent cell (to join them later)
             }
         }
 
-        let next_pos = next-available-position(grid, x: this_x, y: this_y, x_limit: x_limit, y_limit: y_limit)
+        let next_pos = next-available-position(grid, x: this_x, y: this_y, x-limit: x-limit, y-limit: y-limit)
 
         prev_x = this_x
         prev_y = this_y
@@ -350,6 +350,6 @@
         items: grid.items,
         hlines: hlines,
         vlines: vlines,
-        new_row_count: grid-count-rows(grid)
+        new-row-count: grid-count-rows(grid)
     )
 }

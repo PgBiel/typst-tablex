@@ -24,7 +24,7 @@
     let row-len = rows.len()
 
     // specialize some functions for the given grid, columns and rows
-    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x_limit: col-len, y_limit: row-len, grid: grid)
+    let v-and-hline-spans-for-cell = v-and-hline-spans-for-cell.with(vlines: vlines, x-limit: col-len, y-limit: row-len, grid: grid)
 
     let this-row-group = (rows: ((),), hlines: (), vlines: (), y-span: (0, 0))
 

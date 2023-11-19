@@ -49,26 +49,26 @@
 
 // Parses 'auto-lines', generating the corresponding lists of
 // new hlines and vlines
-#let generate-autolines(auto-lines: false, auto-hlines: auto, auto-vlines: auto, hlines: none, vlines: none, col_len: none, row_len: none) = {
+#let generate-autolines(auto-lines: false, auto-hlines: auto, auto-vlines: auto, hlines: none, vlines: none, col-len: none, row-len: none) = {
     let auto-hlines = default-if-auto(auto-hlines, auto-lines)
     let auto-vlines = default-if-auto(auto-vlines, auto-lines)
 
-    let new_hlines = ()
-    let new_vlines = ()
+    let new-hlines = ()
+    let new-vlines = ()
 
     if auto-hlines {
-        new_hlines = range(0, row_len + 1)
+        new-hlines = range(0, row-len + 1)
             .filter(y => hlines.filter(h => h.y == y).len() == 0)
             .map(y => hlinex(y: y))
     }
 
     if auto-vlines {
-        new_vlines = range(0, col_len + 1)
+        new-vlines = range(0, col-len + 1)
             .filter(x => vlines.filter(v => v.x == x).len() == 0)
             .map(x => vlinex(x: x))
     }
 
-    (new_hlines: new_hlines, new_vlines: new_vlines)
+    (new-hlines: new-hlines, new-vlines: new-vlines)
 }
 
 #let parse-gutters(col-gutter: auto, row-gutter: auto, gutter: auto, styles: none, page-width: 0pt, page-height: 0pt) = {
@@ -124,10 +124,10 @@
         panic("'map-hlines' function returned a non-hline.")
     }
 
-    let col_len = grid.width
-    let row_len = grid-count-rows(grid)
+    let col-len = grid.width
+    let row-len = grid-count-rows(grid)
 
-    for row in range(row_len) {
+    for row in range(row-len) {
         let original_cells = grid-get-row(grid, row)
 
         // occupied cells = none for the outer user
@@ -150,7 +150,7 @@
             let c = i_c.at(1)
             let x = c.x
             let y = c.y
-            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col_len or y >= row_len
+            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col-len or y >= row-len
         }) {
             panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
         }
@@ -175,7 +175,7 @@
         }
     }
 
-    for column in range(col_len) {
+    for column in range(col-len) {
         let original_cells = grid-get-column(grid, column)
 
         // occupied cells = none for the outer user
@@ -198,7 +198,7 @@
             let c = i_c.at(1)
             let x = c.x
             let y = c.y
-            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col_len or y >= row_len
+            type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col-len or y >= row-len
         }) {
             panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
         }

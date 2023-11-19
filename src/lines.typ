@@ -23,7 +23,7 @@
 
 // How much should this line expand?
 // If it's not at the edge of the parent line => don't expand
-// spanned-tracks-len: row_len (if vline), col_len (if hline)
+// spanned-tracks-len: row-len (if vline), col-len (if hline)
 #let get-actual-expansion(line, spanned-tracks-len: 0) = {
     // TODO: better handle negative expansion
     if line.expand in (none, (none, none), auto, (auto, auto)) {

@@ -9,7 +9,7 @@
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
-#let positions-spanned-by(cell, x: 0, y: 0, x_limit: 0, y_limit: none) = {
+#let positions-spanned-by(cell, x: 0, y: 0, x-limit: 0, y-limit: none) = {
     let result = ()
     let rowspan = if "rowspan" in cell { cell.rowspan } else { 1 }
     let colspan = if "colspan" in cell { cell.colspan } else { 1 }
@@ -23,12 +23,12 @@
     let max_x = x + colspan
     let max_y = y + rowspan
 
-    if x_limit != none {
-        max_x = calc.min(x_limit, max_x)
+    if x-limit != none {
+        max_x = calc.min(x-limit, max_x)
     }
 
-    if y_limit != none {
-        max_y = calc.min(y_limit, max_y)
+    if y-limit != none {
+        max_y = calc.min(y-limit, max_y)
     }
 
     for x in range(x, max_x) {
