@@ -763,3 +763,23 @@ Combining em and pt (with a stroke object):
 )
 #stack(dir: ttb, mapstuff(false), 1em, $arrow.b$, 1em, mapstuff(true))
 ]
+
+*Lines in tables from issue \#80*
+#table(
+    columns: 2,
+    [A #box(line(length: 50pt)) B], [A #line(length: 50pt) B],
+    [C], [D],
+    style(styles => {
+        measure(line(length: 40pt), styles)
+    }),
+    [E]
+)
+#tablex(
+    columns: 2,
+    [A #box(line(length: 50pt)) B], [A #line(length: 50pt) B],
+    [C], [D],
+    style(styles => {
+        measure(line(length: 40pt), styles)
+    }),
+    [E]
+)
