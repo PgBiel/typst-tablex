@@ -1885,9 +1885,6 @@
 
             let row_gutter_dy = default-if-none(gutter.row, 0pt)
 
-            // move lines down by the height of the added header
-            show line: place.with(top + left, dy: added_header_height)
-
             let first_x = none
             let first_y = none
             let rightmost_x = none
@@ -1951,6 +1948,10 @@
 
             let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
+
+            // ensure the lines are drawn absolutely, after the header
+            let draw-hline = (..args) => place(top + left, dy: added_header_height, draw-hline(..args))
+            let draw-vline = (..args) => place(top + left, dy: added_header_height, draw-vline(..args))
 
             let header_last_y = if first-row-group != none {
                 first-row-group.row_group.y_span.at(1)
