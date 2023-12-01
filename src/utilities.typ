@@ -6,6 +6,11 @@
 #import "type-validators.typ": *
 // -- end imports --
 
+// Typst 0.9.0 uses a minus sign ("−"; U+2212 MINUS SIGN) for negative numbers.
+// Before that, it used a hyphen minus ("-"; U+002D HYPHEN MINUS), so we use
+// regex alternation to match either of those.
+#let NUMBER_REGEX_STRING = "(−|-)?\\d*\\.?\\d+"
+
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
 // is greater than 1)
@@ -129,15 +134,43 @@
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
     } else if type(len) == _length_type {
-        if "em" in repr(len) {
-            if styles == none {
-                panic("Cannot convert length to pt ('styles' not specified).")
+        // E.g., "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
+        // Important notes: there will always be at least one digit before the decimal point
+        // for fractional lengths (e.g., .5em becomes "0.5em"). Negative parts will always
+        // have a single minus sign or hyphen (depending on the Typst version) in front without
+        // any separating space.
+        let len-repr = repr(len)
+
+        // Convert the em part.
+        //
+        // We cannot simply do `len < 0pt` as that will throw an error when `len` has an em component;
+        // Typst does not allow comparing lengths containing an em component with lengths that do not.
+        //
+        // We also need to consider that a length can be positive or negative depending on the current em.
+        // E.g., 1em - 1pt will be positive if 1em > 1pt, but negative if 1em < 1pt. It's unfortunately
+        // not straightforward, so we handle the absolute and em components separately.
+        let em-regex = regex(NUMBER_REGEX_STRING + "em")
+        let em-part-repr = len-repr.find(em-regex)
+        let (em-part, em-part-in-pt) = if em-part-repr == none {
+            (0em, 0pt)
+        } else if styles == none {  // em-part-repr is not none at this point (e.g., "1em")
+            panic("Cannot convert length to pt ('styles' not specified).")
+        } else {  // em-part-repr is not none and styles is also present (i.e., it's valid)
+            // SAFETY: guaranteed to be a purely em length by regex
+            let em-part = eval(em-part-repr)
+            let em-part-in-pt = if em-part >= 0em {
+                measure(line(length: em-part), styles).width
+            } else  {
+                -measure(line(length: -em-part), styles).width
             }
 
-            measure(line(length: len), styles).width + 0pt
-        } else {
-            len + 0pt  // mm, in, pt
+            (em-part, em-part-in-pt)
         }
+
+        // This will be a purely pt length (i.e., no em part).
+        let pt-part = len - em-part
+
+        pt-part + em-part-in-pt
     } else if type(len) == _ratio_type {
         if page_size == none {
             panic("Cannot convert ratio to pt ('page_size' not specified).")
