@@ -220,37 +220,23 @@
     } else if type(len) == _fraction_type {
         convert-fraction-type-to-pt(len, frac_amount, frac_total)
     } else if type(len) == _rel_len_type {
-        if styles == none {
-            panic("Cannot convert relative length to pt ('styles' not specified).")
-        }
+        let ratio-regex = regex(NUMBER_REGEX_STRING + "%")
+        let ratio-part-repr = repr(len).find(ratio-regex)
 
-        let ratio_regex = regex("^\\d+%")
-        let ratio = repr(len).find(ratio_regex)
-
-        if ratio == none {  // 2em + 5pt  (doesn't contain 100% or something)
-            measure(line(length: len), styles).width
-        } else {  // 100% + 2em + 5pt  --> extract the "100%" part
-            if page_size == none {
-                panic("Cannot convert relative length to pt ('page_size' not specified).")
-            }
-
+        let (ratio-part, ratio-part-pt) = if ratio-part-repr == none {
+            (0%, 0pt)
+        } else {
             // SAFETY: guaranteed to be a ratio by regex
-            let ratio_part = eval(ratio)
-            assert(type(ratio_part) == _ratio_type, message: "Eval didn't return a ratio")
+            let ratio-part = eval(ratio-part-repr)
+            let ratio-part-pt = convert-ratio-type-to-pt(ratio-part, page_size)
 
-            let other_part = len - ratio_part  // get the (2em + 5pt) part
-
-            let ratio_part_pt = if is-infinite-len(page_size) { 0pt } else { ((ratio_part / 1%) / 100) * page_size }
-            let other_part_pt = 0pt
-
-            if other_part < 0pt {
-                other_part_pt = -measure(line(length: -other_part), styles).width
-            } else {
-                other_part_pt = measure(line(length: other_part), styles).width
-            }
-
-            ratio_part_pt + other_part_pt + 0pt
+            (ratio-part, ratio-part-pt)
         }
+
+        let length-part = len - ratio-part
+        let length-part-pt = convert-length-type-to-pt(length-part, styles)
+
+        ratio-part-pt + length-part-pt
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
     }
