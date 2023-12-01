@@ -119,6 +119,86 @@
     previous
 }
 
+// Convert a length of type length to pt.
+//
+// styles: from style()
+#let convert-length-type-to-pt(len, styles) = {
+    // E.g., "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
+    // Important notes: there will always be at least one digit before the decimal point
+    // for fractional lengths (e.g., .5em becomes "0.5em"). Negative parts will always
+    // have a single minus sign or hyphen (depending on the Typst version) in front without
+    // any separating space.
+    let len-repr = repr(len)
+
+    // Convert the em part.
+    //
+    // We cannot simply do `len < 0pt` as that will throw an error when `len` has an em component;
+    // Typst does not allow comparing lengths containing an em component with lengths that do not.
+    //
+    // We also need to consider that a length can be positive or negative depending on the current em.
+    // E.g., 1em - 1pt will be positive if 1em > 1pt, but negative if 1em < 1pt. It's unfortunately
+    // not straightforward, so we handle the absolute and em components separately.
+    let em-regex = regex(NUMBER_REGEX_STRING + "em")
+    let em-part-repr = len-repr.find(em-regex)
+    let (em-part, em-part-in-pt) = if em-part-repr == none {
+        (0em, 0pt)
+    } else if styles == none {  // em-part-repr is not none at this point (e.g., "1em")
+        panic("Cannot convert length to pt ('styles' not specified).")
+    } else {  // em-part-repr is not none and styles is also present (i.e., it's valid)
+        // SAFETY: guaranteed to be a purely em length by regex
+        let em-part = eval(em-part-repr)
+        let em-part-in-pt = if em-part >= 0em {
+            measure(line(length: em-part), styles).width
+        } else  {
+            -measure(line(length: -em-part), styles).width
+        }
+
+        (em-part, em-part-in-pt)
+    }
+
+    // This will be a purely pt length (i.e., no em part).
+    let pt-part = len - em-part
+
+    pt-part + em-part-in-pt
+}
+
+// Convert a ratio type length to pt
+//
+// page_size: equivalent to 100%
+#let convert-ratio-type-to-pt(len, page_size) = {
+    if page_size == none {
+        panic("Cannot convert ratio to pt ('page_size' not specified).")
+    }
+
+    if is-infinite-len(page_size) {
+        return 0pt  // page has 'auto' size => % should return 0
+    }
+
+    ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
+}
+
+// Convert a fraction type length to pt
+//
+// frac_amount: amount of 'fr' specified
+// frac_total: total space shared by fractions
+#let convert-fraction-type-to-pt(len, frac_amount, frac_total) = {
+    if frac_amount == none {
+        panic("Cannot convert fraction to pt ('frac_amount' not specified).")
+    }
+
+    if frac_total == none {
+        panic("Cannot convert fraction to pt ('frac_total' not specified).")
+    }
+
+    if frac_amount <= 0 or is-infinite-len(frac_total) {
+        return 0pt
+    }
+
+    let len_per_frac = frac_total / frac_amount
+
+    (len_per_frac * (len / 1fr)) + 0pt
+}
+
 // Convert a certain (non-relative) length to pt
 //
 // styles: from style()
@@ -134,69 +214,11 @@
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
     } else if type(len) == _length_type {
-        // E.g., "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
-        // Important notes: there will always be at least one digit before the decimal point
-        // for fractional lengths (e.g., .5em becomes "0.5em"). Negative parts will always
-        // have a single minus sign or hyphen (depending on the Typst version) in front without
-        // any separating space.
-        let len-repr = repr(len)
-
-        // Convert the em part.
-        //
-        // We cannot simply do `len < 0pt` as that will throw an error when `len` has an em component;
-        // Typst does not allow comparing lengths containing an em component with lengths that do not.
-        //
-        // We also need to consider that a length can be positive or negative depending on the current em.
-        // E.g., 1em - 1pt will be positive if 1em > 1pt, but negative if 1em < 1pt. It's unfortunately
-        // not straightforward, so we handle the absolute and em components separately.
-        let em-regex = regex(NUMBER_REGEX_STRING + "em")
-        let em-part-repr = len-repr.find(em-regex)
-        let (em-part, em-part-in-pt) = if em-part-repr == none {
-            (0em, 0pt)
-        } else if styles == none {  // em-part-repr is not none at this point (e.g., "1em")
-            panic("Cannot convert length to pt ('styles' not specified).")
-        } else {  // em-part-repr is not none and styles is also present (i.e., it's valid)
-            // SAFETY: guaranteed to be a purely em length by regex
-            let em-part = eval(em-part-repr)
-            let em-part-in-pt = if em-part >= 0em {
-                measure(line(length: em-part), styles).width
-            } else  {
-                -measure(line(length: -em-part), styles).width
-            }
-
-            (em-part, em-part-in-pt)
-        }
-
-        // This will be a purely pt length (i.e., no em part).
-        let pt-part = len - em-part
-
-        pt-part + em-part-in-pt
+        convert-length-type-to-pt(len, styles)
     } else if type(len) == _ratio_type {
-        if page_size == none {
-            panic("Cannot convert ratio to pt ('page_size' not specified).")
-        }
-
-        if is-infinite-len(page_size) {
-            return 0pt  // page has 'auto' size => % should return 0
-        }
-
-        ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
+        convert-ratio-type-to-pt(len, page_size)
     } else if type(len) == _fraction_type {
-        if frac_amount == none {
-            panic("Cannot convert fraction to pt ('frac_amount' not specified).")
-        }
-
-        if frac_total == none {
-            panic("Cannot convert fraction to pt ('frac_total' not specified).")
-        }
-
-        if frac_amount <= 0 or is-infinite-len(frac_total) {
-            return 0pt
-        }
-
-        let len_per_frac = frac_total / frac_amount
-
-        (len_per_frac * (len / 1fr)) + 0pt
+        convert-fraction-type-to-pt(len, frac_amount, frac_total)
     } else if type(len) == _rel_len_type {
         if styles == none {
             panic("Cannot convert relative length to pt ('styles' not specified).")
