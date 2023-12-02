@@ -9,7 +9,7 @@
 // Typst 0.9.0 uses a minus sign ("−"; U+2212 MINUS SIGN) for negative numbers.
 // Before that, it used a hyphen minus ("-"; U+002D HYPHEN MINUS), so we use
 // regex alternation to match either of those.
-#let NUMBER_REGEX_STRING = "(−|-)?\\d*\\.?\\d+"
+#let NUMBER-REGEX-STRING = "(−|-)?\\d*\\.?\\d+"
 
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
@@ -138,7 +138,7 @@
     // We also need to consider that a length can be positive or negative depending on the current em.
     // E.g., 1em - 1pt will be positive if 1em > 1pt, but negative if 1em < 1pt. It's unfortunately
     // not straightforward, so we handle the absolute and em components separately.
-    let em-regex = regex(NUMBER_REGEX_STRING + "em")
+    let em-regex = regex(NUMBER-REGEX-STRING + "em")
     let em-part-repr = len-repr.find(em-regex)
     let (em-part, em-part-in-pt) = if em-part-repr == none {
         (0em, 0pt)
@@ -164,63 +164,63 @@
 
 // Convert a ratio type length to pt
 //
-// page_size: equivalent to 100%
-#let convert-ratio-type-to-pt(len, page_size) = {
-    if page_size == none {
-        panic("Cannot convert ratio to pt ('page_size' not specified).")
+// page-size: equivalent to 100%
+#let convert-ratio-type-to-pt(len, page-size) = {
+    if page-size == none {
+        panic("Cannot convert ratio to pt ('page-size' not specified).")
     }
 
-    if is-infinite-len(page_size) {
+    if is-infinite-len(page-size) {
         return 0pt  // page has 'auto' size => % should return 0
     }
 
-    ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
+    ((len / 1%) / 100) * page-size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page-size
 }
 
 // Convert a fraction type length to pt
 //
-// frac_amount: amount of 'fr' specified
-// frac_total: total space shared by fractions
-#let convert-fraction-type-to-pt(len, frac_amount, frac_total) = {
-    if frac_amount == none {
-        panic("Cannot convert fraction to pt ('frac_amount' not specified).")
+// frac-amount: amount of 'fr' specified
+// frac-total: total space shared by fractions
+#let convert-fraction-type-to-pt(len, frac-amount, frac-total) = {
+    if frac-amount == none {
+        panic("Cannot convert fraction to pt ('frac-amount' not specified).")
     }
 
-    if frac_total == none {
-        panic("Cannot convert fraction to pt ('frac_total' not specified).")
+    if frac-total == none {
+        panic("Cannot convert fraction to pt ('frac-total' not specified).")
     }
 
-    if frac_amount <= 0 or is-infinite-len(frac_total) {
+    if frac-amount <= 0 or is-infinite-len(frac-total) {
         return 0pt
     }
 
-    let len_per_frac = frac_total / frac_amount
+    let len-per-frac = frac-total / frac-amount
 
-    (len_per_frac * (len / 1fr)) + 0pt
+    (len-per-frac * (len / 1fr)) + 0pt
 }
 
 // Convert a certain (non-relative) length to pt
 //
 // styles: from style()
-// page_size: equivalent to 100%
-// frac_amount: amount of 'fr' specified
-// frac_total: total space shared by fractions
+// page-size: equivalent to 100%
+// frac-amount: amount of 'fr' specified
+// frac-total: total space shared by fractions
 #let convert-length-to-pt(
     len,
-    styles: none, page_size: none, frac_amount: none, frac_total: none
+    styles: none, page-size: none, frac-amount: none, frac-total: none
 ) = {
-    page_size = 0pt + page_size
+    page-size = 0pt + page-size
 
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
     } else if type(len) == _length_type {
         convert-length-type-to-pt(len, styles)
     } else if type(len) == _ratio_type {
-        convert-ratio-type-to-pt(len, page_size)
+        convert-ratio-type-to-pt(len, page-size)
     } else if type(len) == _fraction_type {
-        convert-fraction-type-to-pt(len, frac_amount, frac_total)
+        convert-fraction-type-to-pt(len, frac-amount, frac-total)
     } else if type(len) == _rel_len_type {
-        let ratio-regex = regex(NUMBER_REGEX_STRING + "%")
+        let ratio-regex = regex(NUMBER-REGEX-STRING + "%")
         let ratio-part-repr = repr(len).find(ratio-regex)
 
         let (ratio-part, ratio-part-pt) = if ratio-part-repr == none {
@@ -228,7 +228,7 @@
         } else {
             // SAFETY: guaranteed to be a ratio by regex
             let ratio-part = eval(ratio-part-repr)
-            let ratio-part-pt = convert-ratio-type-to-pt(ratio-part, page_size)
+            let ratio-part-pt = convert-ratio-type-to-pt(ratio-part, page-size)
 
             (ratio-part, ratio-part-pt)
         }
