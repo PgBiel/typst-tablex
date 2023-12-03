@@ -202,6 +202,56 @@
     (len-per-frac * (len / 1fr)) + 0pt
 }
 
+// Convert a relative type length to pt
+//
+// styles: from style()
+// page-size: equivalent to 100% (optional because the length may not have a ratio component)
+#let convert-relative-type-to-pt(len, styles, page-size: none) = {
+    // We will need to draw a line for measurement later,
+    // so we need the styles.
+    if styles == none {
+        panic("Cannot convert relative length to pt ('styles' not specified).")
+    }
+
+    // Note on precision: the `repr` for em components is precise, unlike
+    // other length components, which are rounded to a precision of 2.
+    // This is true up to Typst 0.9.0 and possibly later versions.
+    let em-regex = regex(NUMBER-REGEX-STRING + "em")
+    let em-part-repr = repr(len).find(em-regex)
+
+    // Calculate the length minus its em component.
+    // E.g., 1% + 1pt + 1em -> 1% + 1pt
+    let (em-part, len-minus-em) = if em-part-repr == none {
+        (0em, len)
+    } else {
+        // SAFETY: guaranteed to be a purely em length by regex
+        let em-part = eval(em-part-repr)
+        (em-part, len - em-part)
+    }
+
+    // This will give only the pt part of the length.
+    // E.g., 1% + 1pt -> 1pt
+    // See the documentation on measure-pt for more information.
+    let pt-part = measure-pt(len-minus-em, styles)
+
+    // Since we have the values of the em and pt components,
+    // we can calculate the ratio part.
+    let ratio-part = len-minus-em - pt-part
+    let ratio-part-pt = if ratio-part == 0% {
+        // No point doing `convert-ratio-type-to-pt` if there's no ratio component.
+        0pt
+    } else {
+        convert-ratio-type-to-pt(ratio-part, page-size)
+    }
+
+    // The length part is the pt part + em part.
+    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len_type` value,
+    // not a `_length_type` value.
+    let length-part-pt = convert-length-type-to-pt(pt-part + em-part, styles: styles)
+
+    ratio-part-pt + length-part-pt
+}
+
 // Convert a certain (non-relative) length to pt
 //
 // styles: from style()
@@ -223,23 +273,7 @@
     } else if type(len) == _fraction_type {
         convert-fraction-type-to-pt(len, frac-amount, frac-total)
     } else if type(len) == _rel_len_type {
-        let ratio-regex = regex(NUMBER-REGEX-STRING + "%")
-        let ratio-part-repr = repr(len).find(ratio-regex)
-
-        let (ratio-part, ratio-part-pt) = if ratio-part-repr == none {
-            (0%, 0pt)
-        } else {
-            // SAFETY: guaranteed to be a ratio by regex
-            let ratio-part = eval(ratio-part-repr)
-            let ratio-part-pt = convert-ratio-type-to-pt(ratio-part, page-size)
-
-            (ratio-part, ratio-part-pt)
-        }
-
-        let length-part = len - ratio-part
-        let length-part-pt = convert-length-type-to-pt(length-part, styles)
-
-        ratio-part-pt + length-part-pt
+        convert-relative-type-to-pt(len, styles, page-size: page-size)
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
     }
