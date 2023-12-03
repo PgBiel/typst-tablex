@@ -788,11 +788,11 @@ Combining em and pt (with a stroke object):
 
 #let convert-length-to-pt-test(
     len, expected,
-    page-size: 100pt,
-    frac-amount: 10,
+    page-size: 100pt,  // Set 1% to 1pt
+    frac-amount: 10,  // Set 1fr to 1pt
     frac-total: 10pt,
 ) = {
-    set text(size: 10pt)  // Set 1em to 10pt
+    set text(size: 1pt)  // Set 1em to 1pt
     style(styles => {
         let actual = convert-length-to-pt(
             len,
@@ -810,17 +810,17 @@ Combining em and pt (with a stroke object):
 // `length` tests
 #convert-length-to-pt-test(0pt, 0pt)
 #convert-length-to-pt-test(1pt, 1pt)
-#convert-length-to-pt-test(1em, 10pt)
+#convert-length-to-pt-test(1em, 1pt)
 #convert-length-to-pt-test(-1pt, -1pt)
-#convert-length-to-pt-test(-1em, -10pt)
-#convert-length-to-pt-test(0.5pt, 0.5pt)
-#convert-length-to-pt-test(0.5em, 5pt)
-#convert-length-to-pt-test(-0.5pt, -0.5pt)
-#convert-length-to-pt-test(-0.5em, -5pt)
-#convert-length-to-pt-test(0.5pt + 0.5em, 5.5pt)
-#convert-length-to-pt-test(0.5pt - 0.5em, -4.5pt)
-#convert-length-to-pt-test(-0.5pt + 0.5em, 4.5pt)
-#convert-length-to-pt-test(-0.5pt - 0.5em, -5.5pt)
+#convert-length-to-pt-test(-1em, -1pt)
+#convert-length-to-pt-test(0.005pt, 0.005pt)
+#convert-length-to-pt-test(0.005em, 0.005pt)
+#convert-length-to-pt-test(-0.005pt, -0.005pt)
+#convert-length-to-pt-test(-0.005em, -0.005pt)
+#convert-length-to-pt-test(0.005pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005pt - 0.005em, 0pt)
+#convert-length-to-pt-test(-0.005pt + 0.005em, 0pt)
+#convert-length-to-pt-test(-0.005pt - 0.005em, -0.01pt)
 
 // `ratio` tests
 #convert-length-to-pt-test(1%, 1pt)
@@ -836,29 +836,29 @@ Combining em and pt (with a stroke object):
 
 // `relative` tests
 #convert-length-to-pt-test(0% + 0pt + 0em, 0pt)
-#convert-length-to-pt-test(0% + 0pt + 1em, 10pt)
+#convert-length-to-pt-test(0% + 0pt + 1em, 1pt)
 #convert-length-to-pt-test(0% + 1pt + 0em, 1pt)
-#convert-length-to-pt-test(0% + 1pt + 1em, 11pt)
+#convert-length-to-pt-test(0% + 1pt + 1em, 2pt)
 #convert-length-to-pt-test(1% + 0pt + 0em, 1pt)
-#convert-length-to-pt-test(1% + 0pt + 1em, 11pt)
+#convert-length-to-pt-test(1% + 0pt + 1em, 2pt)
 #convert-length-to-pt-test(1% + 1pt + 0em, 2pt)
-#convert-length-to-pt-test(1% + 1pt + 1em, 12pt)
+#convert-length-to-pt-test(1% + 1pt + 1em, 3pt)
 
-#convert-length-to-pt-test(0% + 0pt + 0.5em, 5pt)
-#convert-length-to-pt-test(0% + 0.5pt + 0em, 0.5pt)
-#convert-length-to-pt-test(0% + 0.5pt + 0.5em, 5.5pt)
-#convert-length-to-pt-test(0.5% + 0pt + 0em, 0.5pt)
-#convert-length-to-pt-test(0.5% + 0pt + 0.5em, 5.5pt)
-#convert-length-to-pt-test(0.5% + 0.5pt + 0em, 1pt)
-#convert-length-to-pt-test(0.5% + 0.5pt + 0.5em, 6pt)
+#convert-length-to-pt-test(0% + 0pt + 0.005em, 0.005pt)
+#convert-length-to-pt-test(0% + 0.005pt + 0em, 0.005pt)
+#convert-length-to-pt-test(0% + 0.005pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0pt + 0em, 0.005pt)
+#convert-length-to-pt-test(0.005% + 0pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0.005pt + 0em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0.005pt + 0.005em, 0.015pt)
 
-#convert-length-to-pt-test(0% + 0pt - 0.5em, -5pt)
-#convert-length-to-pt-test(0% - 0.5pt + 0em, -0.5pt)
-#convert-length-to-pt-test(0% - 0.5pt - 0.5em, -5.5pt)
-#convert-length-to-pt-test(-0.5% + 0pt + 0em, -0.5pt)
-#convert-length-to-pt-test(-0.5% + 0pt - 0.5em, -5.5pt)
-#convert-length-to-pt-test(-0.5% - 0.5pt + 0em, -1pt)
-#convert-length-to-pt-test(-0.5% - 0.5pt - 0.5em, -6pt)
+#convert-length-to-pt-test(0% + 0pt - 0.005em, -0.005pt)
+#convert-length-to-pt-test(0% - 0.005pt + 0em, -0.005pt)
+#convert-length-to-pt-test(0% - 0.005pt - 0.005em, -0.01pt)
+#convert-length-to-pt-test(-0.005% + 0pt + 0em, -0.005pt)
+#convert-length-to-pt-test(-0.005% + 0pt - 0.005em, -0.01pt)
+#convert-length-to-pt-test(-0.005% - 0.005pt + 0em, -0.01pt)
+#convert-length-to-pt-test(-0.005% - 0.005pt - 0.005em, -0.015pt)
 
 *Line expansion*
 
