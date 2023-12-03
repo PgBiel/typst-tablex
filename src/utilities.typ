@@ -119,47 +119,50 @@
     previous
 }
 
+// Measure a length in pt by drawing a line and using the measure() function.
+// This function will work for negative lengths as well.
+//
+// Note that for ratios, the measurement will be 0pt due to limitations of
+// the "draw and measure" technique (wrapping the line in a box still returns 0pt;
+// not sure if there is any viable way to measure a ratio). This also affects
+// relative lengths — this function will only be able to measure the length component.
+//
+// styles: from style()
+#let measure-pt(len, styles) = {
+    let measured-pt = measure(line(length: len), styles).width
+
+    // If the measured length is positive, `len` must have overall been positive.
+    // There's nothing else to be done, so return the measured length.
+    if measured-pt > 0pt {
+        return measured-pt
+    }
+
+    // If we've reached this point, the previously measured length must have been `0pt`
+    // (drawing a line with a negative length will draw nothing, so measuring it will return `0pt`).
+    // Hence, `len` must either be `0pt` or negative.
+    // We multiply `len` by -1 to get a positive length, draw a line and measure it, then negate
+    // the measured length. This nicely handles the `0pt` case as well.
+    measured-pt = -measure(line(length: -len), styles).width
+    return measured-pt
+}
+
 // Convert a length of type length to pt.
 //
 // styles: from style()
-#let convert-length-type-to-pt(len, styles) = {
-    // E.g., "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
-    // Important notes: there will always be at least one digit before the decimal point
-    // for fractional lengths (e.g., .5em becomes "0.5em"). Negative parts will always
-    // have a single minus sign or hyphen (depending on the Typst version) in front without
-    // any separating space.
-    let len-repr = repr(len)
-
-    // Convert the em part.
-    //
-    // We cannot simply do `len < 0pt` as that will throw an error when `len` has an em component;
-    // Typst does not allow comparing lengths containing an em component with lengths that do not.
-    //
-    // We also need to consider that a length can be positive or negative depending on the current em.
-    // E.g., 1em - 1pt will be positive if 1em > 1pt, but negative if 1em < 1pt. It's unfortunately
-    // not straightforward, so we handle the absolute and em components separately.
-    let em-regex = regex(NUMBER-REGEX-STRING + "em")
-    let em-part-repr = len-repr.find(em-regex)
-    let (em-part, em-part-in-pt) = if em-part-repr == none {
-        (0em, 0pt)
-    } else if styles == none {  // em-part-repr is not none at this point (e.g., "1em")
-        panic("Cannot convert length to pt ('styles' not specified).")
-    } else {  // em-part-repr is not none and styles is also present (i.e., it's valid)
-        // SAFETY: guaranteed to be a purely em length by regex
-        let em-part = eval(em-part-repr)
-        let em-part-in-pt = if em-part >= 0em {
-            measure(line(length: em-part), styles).width
-        } else  {
-            -measure(line(length: -em-part), styles).width
-        }
-
-        (em-part, em-part-in-pt)
+#let convert-length-type-to-pt(len, styles: none) = {
+    // repr examples: "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
+    if "em" not in repr(len) {
+        // No need to do any conversion because it must already be in pt.
+        return len
     }
 
-    // This will be a purely pt length (i.e., no em part).
-    let pt-part = len - em-part
+    // At this point, we will need to draw a line for measurement,
+    // so we need the styles.
+    if styles == none {
+        panic("Cannot convert length to pt ('styles' not specified).")
+    }
 
-    pt-part + em-part-in-pt
+    return measure-pt(len, styles)
 }
 
 // Convert a ratio type length to pt
@@ -214,7 +217,7 @@
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
     } else if type(len) == _length_type {
-        convert-length-type-to-pt(len, styles)
+        convert-length-type-to-pt(len, styles: styles)
     } else if type(len) == _ratio_type {
         convert-ratio-type-to-pt(len, page-size)
     } else if type(len) == _fraction_type {
