@@ -858,3 +858,148 @@ Combining em and pt (with a stroke object):
 #convert-length-to-pt-test(-0.5% + 0pt - 0.5em, -5.5pt)
 #convert-length-to-pt-test(-0.5% - 0.5pt + 0em, -1pt)
 #convert-length-to-pt-test(-0.5% - 0.5pt - 0.5em, -6pt)
+
+*Line expansion*
+
+#let wrap-for-linex-expansion-test(tabx) = {
+    set text(size: 1pt) // Set 1em to 1pt
+    box(
+        width: 100pt,  // Set 1% to 1pt
+        height: 100pt,
+        tabx
+    )
+}
+
+- Positive single-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 3pt,
+      auto-lines: false,
+      hlinex(),
+      [],
+      hlinex(expand: 3pt),
+      [],
+      hlinex(expand: 3em),
+      [],
+      hlinex(expand: 3%),
+      [],
+      hlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Positive multi-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: (1pt, 1pt, 1pt),
+      auto-lines: false,
+      hlinex(),
+      [], [], [],
+      hlinex(expand: 3pt),
+      [], [], [],
+      hlinex(expand: 3em),
+      [], [], [],
+      hlinex(expand: 3%),
+      [], [], [],
+      hlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Negative single-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 15pt,
+      auto-lines: false,
+      hlinex(),
+      [],
+      hlinex(expand: -6pt),
+      [],
+      hlinex(expand: -6em),
+      [],
+      hlinex(expand: -6%),
+      [],
+      hlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+// TODO: currently does not work as intended (https://github.com/PgBiel/typst-tablex/issues/85)
+- Negative multi-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: (5pt, 5pt, 5pt),
+      auto-lines: false,
+      hlinex(),
+      [], [], [],
+      hlinex(expand: -6pt),
+      [], [], [],
+      hlinex(expand: -6em),
+      [], [], [],
+      hlinex(expand: -6%),
+      [], [], [],
+      hlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+- Positive single-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: 3pt,
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: 3pt),
+      vlinex(expand: 3em),
+      vlinex(expand: 3%),
+      vlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Positive multi-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: (1pt, 1pt, 1pt),
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: 3pt),
+      vlinex(expand: 3em),
+      vlinex(expand: 3%),
+      vlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Negative single-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: 15pt,
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: -6pt),
+      vlinex(expand: -6em),
+      vlinex(expand: -6%),
+      vlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+// TODO: currently does not work as intended (https://github.com/PgBiel/typst-tablex/issues/85)
+- Negative multi-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: (5pt, 5pt, 5pt),
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: -6pt),
+      vlinex(expand: -6em),
+      vlinex(expand: -6%),
+      vlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
