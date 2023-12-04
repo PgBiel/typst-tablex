@@ -169,6 +169,11 @@
 //
 // page-size: equivalent to 100%
 #let convert-ratio-type-to-pt(len, page-size) = {
+    assert(
+        is-purely-pt-len(page-size),
+        message: "'page-size' should be a purely pt length"
+    )
+
     if page-size == none {
         panic("Cannot convert ratio to pt ('page-size' not specified).")
     }
@@ -185,6 +190,11 @@
 // frac-amount: amount of 'fr' specified
 // frac-total: total space shared by fractions
 #let convert-fraction-type-to-pt(len, frac-amount, frac-total) = {
+    assert(
+        is-purely-pt-len(frac-total),
+        message: "'frac-total' should be a purely pt length"
+    )
+
     if frac-amount == none {
         panic("Cannot convert fraction to pt ('frac-amount' not specified).")
     }
