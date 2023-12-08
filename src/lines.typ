@@ -12,7 +12,7 @@
 // -- end imports --
 
 #let parse-stroke(stroke) = {
-    if type(stroke) == _color_type {
+    if is-color(stroke) {
         stroke + 1pt
     } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
         stroke

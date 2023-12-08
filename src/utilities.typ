@@ -297,7 +297,7 @@
         convert-length-to-pt(stroke, styles: styles)
     } else if type(stroke) in (_rel_len_type, _ratio_type) {
         panic(no-ratio-error)
-    } else if type(stroke) == _color_type {
+    } else if is-color(stroke) {
         1pt
     } else if type(stroke) == _stroke_type {
         // support:

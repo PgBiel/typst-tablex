@@ -103,6 +103,11 @@
     type(len) == _length_type and "em" not in repr(len)
 }
 
+// Check if this is a valid color (color, gradient or pattern).
+#let is-color(val) = {
+    type(val) == _color_type or str(type(val)) in ("gradient", "pattern")
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == _int_type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")

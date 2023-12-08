@@ -65,7 +65,7 @@
         }
     }
 
-    if cell-fill != none and type(cell-fill) != _color_type {
+    if cell-fill != none and not is-color(cell-fill) {
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
