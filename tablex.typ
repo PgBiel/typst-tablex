@@ -196,6 +196,11 @@
     type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
 }
 
+// Check if this is a valid color (color, gradient or pattern).
+#let is-color(val) = {
+    type(val) == _color_type or str(type(val)) in ("gradient", "pattern")
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == _int_type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
@@ -556,7 +561,7 @@
         convert-length-to-pt(stroke, styles: styles)
     } else if type(stroke) in (_rel_len_type, _ratio_type) {
         panic(no-ratio-error)
-    } else if type(stroke) == _color_type {
+    } else if is-color(stroke) {
         1pt
     } else if type(stroke) == _stroke_type {
         // support:
@@ -1014,7 +1019,7 @@
         }
     }
 
-    if cell_fill != none and type(cell_fill) != _color_type {
+    if cell_fill != none and not is-color(cell_fill) {
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
@@ -1698,7 +1703,7 @@
 // -- drawing --
 
 #let parse-stroke(stroke) = {
-    if type(stroke) == _color_type {
+    if is-color(stroke) {
         stroke + 1pt
     } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
         stroke
