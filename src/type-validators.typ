@@ -98,6 +98,11 @@
     type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
 }
 
+// Check if the given length has type '_length_type' and no 'em' component.
+#let is-purely-pt-len(len) = {
+    type(len) == _length_type and "em" not in repr(len)
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == _int_type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
