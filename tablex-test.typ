@@ -860,7 +860,7 @@ Combining em and pt (with a stroke object):
 #convert-length-to-pt-test(-0.005% - 0.005pt + 0em, -0.01pt)
 #convert-length-to-pt-test(-0.005% - 0.005pt - 0.005em, -0.015pt)
 
-*Line expansion*
+*Line expansion - issue \#74:*
 
 #let wrap-for-linex-expansion-test(tabx) = {
     set text(size: 1pt) // Set 1em to 1pt
