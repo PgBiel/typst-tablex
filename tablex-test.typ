@@ -781,3 +781,224 @@ Combining em and pt (with a stroke object):
     }),
     [E]
 )
+
+*Length to pt conversion*
+
+#let convert-length-to-pt-test(
+    len, expected,
+    page-size: 100pt,  // Set 1% to 1pt
+    frac-amount: 10,  // Set 1fr to 1pt
+    frac-total: 10pt,
+) = {
+    set text(size: 1pt)  // Set 1em to 1pt
+    style(styles => {
+        let actual = convert-length-to-pt(
+            len,
+            styles: styles,
+            page-size: page-size,
+            frac-amount: frac-amount,
+            frac-total: frac-total,
+        )
+
+        assert(type(actual) == _length_type)
+        assert(expected == actual)
+    })
+}
+
+// `length` tests
+#convert-length-to-pt-test(0pt, 0pt)
+#convert-length-to-pt-test(1pt, 1pt)
+#convert-length-to-pt-test(1em, 1pt)
+#convert-length-to-pt-test(-1pt, -1pt)
+#convert-length-to-pt-test(-1em, -1pt)
+#convert-length-to-pt-test(0.005pt, 0.005pt)
+#convert-length-to-pt-test(0.005em, 0.005pt)
+#convert-length-to-pt-test(-0.005pt, -0.005pt)
+#convert-length-to-pt-test(-0.005em, -0.005pt)
+#convert-length-to-pt-test(0.005pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005pt - 0.005em, 0pt)
+#convert-length-to-pt-test(-0.005pt + 0.005em, 0pt)
+#convert-length-to-pt-test(-0.005pt - 0.005em, -0.01pt)
+
+// `ratio` tests
+#convert-length-to-pt-test(1%, 1pt)
+#convert-length-to-pt-test(-1%, -1pt)
+#convert-length-to-pt-test(0.5%, 0.5pt)
+#convert-length-to-pt-test(-0.5%, -0.5pt)
+
+// `fraction` tests
+#convert-length-to-pt-test(1fr, 1pt)
+#convert-length-to-pt-test(-1fr, -1pt)
+#convert-length-to-pt-test(0.5fr, 0.5pt)
+#convert-length-to-pt-test(-0.5fr, -0.5pt)
+
+// `relative` tests
+#convert-length-to-pt-test(0% + 0pt + 0em, 0pt)
+#convert-length-to-pt-test(0% + 0pt + 1em, 1pt)
+#convert-length-to-pt-test(0% + 1pt + 0em, 1pt)
+#convert-length-to-pt-test(0% + 1pt + 1em, 2pt)
+#convert-length-to-pt-test(1% + 0pt + 0em, 1pt)
+#convert-length-to-pt-test(1% + 0pt + 1em, 2pt)
+#convert-length-to-pt-test(1% + 1pt + 0em, 2pt)
+#convert-length-to-pt-test(1% + 1pt + 1em, 3pt)
+
+#convert-length-to-pt-test(0% + 0pt + 0.005em, 0.005pt)
+#convert-length-to-pt-test(0% + 0.005pt + 0em, 0.005pt)
+#convert-length-to-pt-test(0% + 0.005pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0pt + 0em, 0.005pt)
+#convert-length-to-pt-test(0.005% + 0pt + 0.005em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0.005pt + 0em, 0.01pt)
+#convert-length-to-pt-test(0.005% + 0.005pt + 0.005em, 0.015pt)
+
+#convert-length-to-pt-test(0% + 0pt - 0.005em, -0.005pt)
+#convert-length-to-pt-test(0% - 0.005pt + 0em, -0.005pt)
+#convert-length-to-pt-test(0% - 0.005pt - 0.005em, -0.01pt)
+#convert-length-to-pt-test(-0.005% + 0pt + 0em, -0.005pt)
+#convert-length-to-pt-test(-0.005% + 0pt - 0.005em, -0.01pt)
+#convert-length-to-pt-test(-0.005% - 0.005pt + 0em, -0.01pt)
+#convert-length-to-pt-test(-0.005% - 0.005pt - 0.005em, -0.015pt)
+
+*Line expansion - issue \#74:*
+
+#let wrap-for-linex-expansion-test(tabx) = {
+    set text(size: 1pt) // Set 1em to 1pt
+    box(
+        width: 100pt,  // Set 1% to 1pt
+        height: 100pt,
+        tabx
+    )
+}
+
+- Positive single-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 3pt,
+      auto-lines: false,
+      hlinex(),
+      [],
+      hlinex(expand: 3pt),
+      [],
+      hlinex(expand: 3em),
+      [],
+      hlinex(expand: 3%),
+      [],
+      hlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Positive multi-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: (1pt, 1pt, 1pt),
+      auto-lines: false,
+      hlinex(),
+      [], [], [],
+      hlinex(expand: 3pt),
+      [], [], [],
+      hlinex(expand: 3em),
+      [], [], [],
+      hlinex(expand: 3%),
+      [], [], [],
+      hlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Negative single-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 15pt,
+      auto-lines: false,
+      hlinex(),
+      [],
+      hlinex(expand: -6pt),
+      [],
+      hlinex(expand: -6em),
+      [],
+      hlinex(expand: -6%),
+      [],
+      hlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+// TODO: currently does not work as intended (https://github.com/PgBiel/typst-tablex/issues/85)
+- Negative multi-cell hlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: (5pt, 5pt, 5pt),
+      auto-lines: false,
+      hlinex(),
+      [], [], [],
+      hlinex(expand: -6pt),
+      [], [], [],
+      hlinex(expand: -6em),
+      [], [], [],
+      hlinex(expand: -6%),
+      [], [], [],
+      hlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+- Positive single-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: 3pt,
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: 3pt),
+      vlinex(expand: 3em),
+      vlinex(expand: 3%),
+      vlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Positive multi-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: (1pt, 1pt, 1pt),
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: 3pt),
+      vlinex(expand: 3em),
+      vlinex(expand: 3%),
+      vlinex(expand: 1% + 1pt + 1em),
+    )
+)
+
+- Negative single-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: 15pt,
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: -6pt),
+      vlinex(expand: -6em),
+      vlinex(expand: -6%),
+      vlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
+
+// TODO: currently does not work as intended (https://github.com/PgBiel/typst-tablex/issues/85)
+- Negative multi-cell vlinex expansion
+
+#wrap-for-linex-expansion-test(
+    tablex(
+      columns: 5,
+      rows: (5pt, 5pt, 5pt),
+      auto-lines: false,
+      vlinex(),
+      vlinex(expand: -6pt),
+      vlinex(expand: -6em),
+      vlinex(expand: -6%),
+      vlinex(expand: -(2% + 2pt + 2em)),
+    )
+)
