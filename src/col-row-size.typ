@@ -335,7 +335,7 @@
 #let determine-column-sizes(grid: (), page-width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
         if type(c) in (_length_type, _rel_len_type, _ratio_type) {
-            convert-length-to-pt(c, styles: styles, page_size: page-width)
+            convert-length-to-pt(c, styles: styles, page-size: page-width)
         } else if c == none {
             0pt
         } else {
@@ -478,7 +478,7 @@
 #let determine-row-sizes(grid: (), page-height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
         if type(r) in (_length_type, _rel_len_type, _ratio_type) {
-            convert-length-to-pt(r, styles: styles, page_size: page-height)
+            convert-length-to-pt(r, styles: styles, page-size: page-height)
         } else {
             r
         }

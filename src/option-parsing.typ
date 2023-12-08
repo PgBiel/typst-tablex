@@ -34,7 +34,7 @@
                         panic("'expand' argument to lines must be a pair (length, length).")
                     }
 
-                    convert-length-to-pt(e, styles: styles, page_size: page-size)
+                    convert-length-to-pt(e, styles: styles, page-size: page-size)
                 }
             })
         }
@@ -79,11 +79,11 @@
     row-gutter = default-if-auto(row-gutter, 0pt)
 
     if type(col-gutter) in (_length_type, _rel_len_type, _ratio_type) {
-        col-gutter = convert-length-to-pt(col-gutter, styles: styles, page_size: page-width)
+        col-gutter = convert-length-to-pt(col-gutter, styles: styles, page-size: page-width)
     }
 
     if type(row-gutter) in (_length_type, _rel_len_type, _ratio_type) {
-        row-gutter = convert-length-to-pt(row-gutter, styles: styles, page_size: page-width)
+        row-gutter = convert-length-to-pt(row-gutter, styles: styles, page-size: page-width)
     }
 
     (col: col-gutter, row: row-gutter)
