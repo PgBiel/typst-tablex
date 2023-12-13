@@ -16,6 +16,7 @@
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
 #let _array_type = type(())
 #let _dict_type = type((a: 5))
+#let _bool_type = type(true)
 #let _str_type = type("")
 #let _color_type = type(red)
 #let _stroke_type = type(red + 5pt)
@@ -195,6 +196,11 @@
     type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
 }
 
+// Check if this is a valid color (color, gradient or pattern).
+#let is-color(val) = {
+    type(val) == _color_type or str(type(val)) in ("gradient", "pattern")
+}
+
 #let validate-cols-rows(columns, rows, items: ()) = {
     if type(columns) == _int_type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
@@ -367,88 +373,181 @@
     previous
 }
 
+// Typst 0.9.0 uses a minus sign ("−"; U+2212 MINUS SIGN) for negative numbers.
+// Before that, it used a hyphen minus ("-"; U+002D HYPHEN MINUS), so we use
+// regex alternation to match either of those.
+#let NUMBER-REGEX-STRING = "(−|-)?\\d*\\.?\\d+"
+
+// Check if the given length has type '_length_type' and no 'em' component.
+#let is-purely-pt-len(len) = {
+    type(len) == _length_type and "em" not in repr(len)
+}
+
+// Measure a length in pt by drawing a line and using the measure() function.
+// This function will work for negative lengths as well.
+//
+// Note that for ratios, the measurement will be 0pt due to limitations of
+// the "draw and measure" technique (wrapping the line in a box still returns 0pt;
+// not sure if there is any viable way to measure a ratio). This also affects
+// relative lengths — this function will only be able to measure the length component.
+//
+// styles: from style()
+#let measure-pt(len, styles) = {
+    let measured-pt = measure(line(length: len), styles).width
+
+    // If the measured length is positive, `len` must have overall been positive.
+    // There's nothing else to be done, so return the measured length.
+    if measured-pt > 0pt {
+        return measured-pt
+    }
+
+    // If we've reached this point, the previously measured length must have been `0pt`
+    // (drawing a line with a negative length will draw nothing, so measuring it will return `0pt`).
+    // Hence, `len` must either be `0pt` or negative.
+    // We multiply `len` by -1 to get a positive length, draw a line and measure it, then negate
+    // the measured length. This nicely handles the `0pt` case as well.
+    measured-pt = -measure(line(length: -len), styles).width
+    return measured-pt
+}
+
+// Convert a length of type length to pt.
+//
+// styles: from style()
+#let convert-length-type-to-pt(len, styles: none) = {
+    // repr examples: "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
+    if "em" not in repr(len) {
+        // No need to do any conversion because it must already be in pt.
+        return len
+    }
+
+    // At this point, we will need to draw a line for measurement,
+    // so we need the styles.
+    if styles == none {
+        panic("Cannot convert length to pt ('styles' not specified).")
+    }
+
+    return measure-pt(len, styles)
+}
+
+// Convert a ratio type length to pt
+//
+// page-size: equivalent to 100%
+#let convert-ratio-type-to-pt(len, page-size) = {
+    assert(
+        is-purely-pt-len(page-size),
+        message: "'page-size' should be a purely pt length"
+    )
+
+    if page-size == none {
+        panic("Cannot convert ratio to pt ('page-size' not specified).")
+    }
+
+    if is-infinite-len(page-size) {
+        return 0pt  // page has 'auto' size => % should return 0
+    }
+
+    ((len / 1%) / 100) * page-size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page-size
+}
+
+// Convert a fraction type length to pt
+//
+// frac-amount: amount of 'fr' specified
+// frac-total: total space shared by fractions
+#let convert-fraction-type-to-pt(len, frac-amount, frac-total) = {
+    assert(
+        is-purely-pt-len(frac-total),
+        message: "'frac-total' should be a purely pt length"
+    )
+
+    if frac-amount == none {
+        panic("Cannot convert fraction to pt ('frac-amount' not specified).")
+    }
+
+    if frac-total == none {
+        panic("Cannot convert fraction to pt ('frac-total' not specified).")
+    }
+
+    if frac-amount <= 0 or is-infinite-len(frac-total) {
+        return 0pt
+    }
+
+    let len-per-frac = frac-total / frac-amount
+
+    (len-per-frac * (len / 1fr)) + 0pt
+}
+
+// Convert a relative type length to pt
+//
+// styles: from style()
+// page-size: equivalent to 100% (optional because the length may not have a ratio component)
+#let convert-relative-type-to-pt(len, styles, page-size: none) = {
+    // We will need to draw a line for measurement later,
+    // so we need the styles.
+    if styles == none {
+        panic("Cannot convert relative length to pt ('styles' not specified).")
+    }
+
+    // Note on precision: the `repr` for em components is precise, unlike
+    // other length components, which are rounded to a precision of 2.
+    // This is true up to Typst 0.9.0 and possibly later versions.
+    let em-regex = regex(NUMBER-REGEX-STRING + "em")
+    let em-part-repr = repr(len).find(em-regex)
+
+    // Calculate the length minus its em component.
+    // E.g., 1% + 1pt + 1em -> 1% + 1pt
+    let (em-part, len-minus-em) = if em-part-repr == none {
+        (0em, len)
+    } else {
+        // SAFETY: guaranteed to be a purely em length by regex
+        let em-part = eval(em-part-repr)
+        (em-part, len - em-part)
+    }
+
+    // This will give only the pt part of the length.
+    // E.g., 1% + 1pt -> 1pt
+    // See the documentation on measure-pt for more information.
+    let pt-part = measure-pt(len-minus-em, styles)
+
+    // Since we have the values of the em and pt components,
+    // we can calculate the ratio part.
+    let ratio-part = len-minus-em - pt-part
+    let ratio-part-pt = if ratio-part == 0% {
+        // No point doing `convert-ratio-type-to-pt` if there's no ratio component.
+        0pt
+    } else {
+        convert-ratio-type-to-pt(ratio-part, page-size)
+    }
+
+    // The length part is the pt part + em part.
+    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len_type` value,
+    // not a `_length_type` value.
+    let length-part-pt = convert-length-type-to-pt(pt-part + em-part, styles: styles)
+
+    ratio-part-pt + length-part-pt
+}
+
 // Convert a certain (non-relative) length to pt
 //
 // styles: from style()
-// page_size: equivalent to 100%
-// frac_amount: amount of 'fr' specified
-// frac_total: total space shared by fractions
+// page-size: equivalent to 100%
+// frac-amount: amount of 'fr' specified
+// frac-total: total space shared by fractions
 #let convert-length-to-pt(
     len,
-    styles: none, page_size: none, frac_amount: none, frac_total: none
+    styles: none, page-size: none, frac-amount: none, frac-total: none
 ) = {
-    page_size = 0pt + page_size
+    page-size = 0pt + page-size
 
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
     } else if type(len) == _length_type {
-        if "em" in repr(len) {
-            if styles == none {
-                panic("Cannot convert length to pt ('styles' not specified).")
-            }
-
-            measure(line(length: len), styles).width + 0pt
-        } else {
-            len + 0pt  // mm, in, pt
-        }
+        convert-length-type-to-pt(len, styles: styles)
     } else if type(len) == _ratio_type {
-        if page_size == none {
-            panic("Cannot convert ratio to pt ('page_size' not specified).")
-        }
-
-        if is-infinite-len(page_size) {
-            return 0pt  // page has 'auto' size => % should return 0
-        }
-
-        ((len / 1%) / 100) * page_size + 0pt  // e.g. 100% / 1% = 100; / 100 = 1; 1 * page_size
+        convert-ratio-type-to-pt(len, page-size)
     } else if type(len) == _fraction_type {
-        if frac_amount == none {
-            panic("Cannot convert fraction to pt ('frac_amount' not specified).")
-        }
-
-        if frac_total == none {
-            panic("Cannot convert fraction to pt ('frac_total' not specified).")
-        }
-
-        if frac_amount <= 0 or is-infinite-len(frac_total) {
-            return 0pt
-        }
-
-        let len_per_frac = frac_total / frac_amount
-
-        (len_per_frac * (len / 1fr)) + 0pt
+        convert-fraction-type-to-pt(len, frac-amount, frac-total)
     } else if type(len) == _rel_len_type {
-        if styles == none {
-            panic("Cannot convert relative length to pt ('styles' not specified).")
-        }
-
-        let ratio_regex = regex("^\\d+%")
-        let ratio = repr(len).find(ratio_regex)
-
-        if ratio == none {  // 2em + 5pt  (doesn't contain 100% or something)
-            measure(line(length: len), styles).width
-        } else {  // 100% + 2em + 5pt  --> extract the "100%" part
-            if page_size == none {
-                panic("Cannot convert relative length to pt ('page_size' not specified).")
-            }
-
-            // SAFETY: guaranteed to be a ratio by regex
-            let ratio_part = eval(ratio)
-            assert(type(ratio_part) == _ratio_type, message: "Eval didn't return a ratio")
-
-            let other_part = len - ratio_part  // get the (2em + 5pt) part
-
-            let ratio_part_pt = if is-infinite-len(page_size) { 0pt } else { ((ratio_part / 1%) / 100) * page_size }
-            let other_part_pt = 0pt
-
-            if other_part < 0pt {
-                other_part_pt = -measure(line(length: -other_part), styles).width
-            } else {
-                other_part_pt = measure(line(length: other_part), styles).width
-            }
-
-            ratio_part_pt + other_part_pt + 0pt
-        }
+        convert-relative-type-to-pt(len, styles, page-size: page-size)
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
     }
@@ -462,7 +561,7 @@
         convert-length-to-pt(stroke, styles: styles)
     } else if type(stroke) in (_rel_len_type, _ratio_type) {
         panic(no-ratio-error)
-    } else if type(stroke) == _color_type {
+    } else if is-color(stroke) {
         1pt
     } else if type(stroke) == _stroke_type {
         // support:
@@ -920,7 +1019,7 @@
         }
     }
 
-    if cell_fill != none and type(cell_fill) != _color_type {
+    if cell_fill != none and not is-color(cell_fill) {
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
@@ -1190,7 +1289,7 @@
 #let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
         if type(c) in (_length_type, _rel_len_type, _ratio_type) {
-            convert-length-to-pt(c, styles: styles, page_size: page_width)
+            convert-length-to-pt(c, styles: styles, page-size: page_width)
         } else if c == none {
             0pt
         } else {
@@ -1333,7 +1432,7 @@
 #let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
         if type(r) in (_length_type, _rel_len_type, _ratio_type) {
-            convert-length-to-pt(r, styles: styles, page_size: page_height)
+            convert-length-to-pt(r, styles: styles, page-size: page_height)
         } else {
             r
         }
@@ -1604,7 +1703,7 @@
 // -- drawing --
 
 #let parse-stroke(stroke) = {
-    if type(stroke) == _color_type {
+    if is-color(stroke) {
         stroke + 1pt
     } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
         stroke
@@ -1884,9 +1983,6 @@
 
             let row_gutter_dy = default-if-none(gutter.row, 0pt)
 
-            // move lines down by the height of the added header
-            show line: place.with(top + left, dy: added_header_height)
-
             let first_x = none
             let first_y = none
             let rightmost_x = none
@@ -1950,6 +2046,10 @@
 
             let draw-hline = draw-hline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
             let draw-vline = draw-vline.with(initial_x: first_x, initial_y: first_y, rightmost_x: rightmost_x, rtl: rtl)
+
+            // ensure the lines are drawn absolutely, after the header
+            let draw-hline = (..args) => place(top + left, dy: added_header_height, draw-hline(..args))
+            let draw-vline = (..args) => place(top + left, dy: added_header_height, draw-vline(..args))
 
             let header_last_y = if first-row-group != none {
                 first-row-group.row_group.y_span.at(1)
@@ -2213,7 +2313,7 @@
                         panic("'expand' argument to lines must be a pair (length, length).")
                     }
 
-                    convert-length-to-pt(e, styles: styles, page_size: page-size)
+                    convert-length-to-pt(e, styles: styles, page-size: page-size)
                 }
             })
         }
@@ -2258,11 +2358,11 @@
     row-gutter = default-if-auto(row-gutter, 0pt)
 
     if type(col-gutter) in (_length_type, _rel_len_type, _ratio_type) {
-        col-gutter = convert-length-to-pt(col-gutter, styles: styles, page_size: page-width)
+        col-gutter = convert-length-to-pt(col-gutter, styles: styles, page-size: page-width)
     }
 
     if type(row-gutter) in (_length_type, _rel_len_type, _ratio_type) {
-        row-gutter = convert-length-to-pt(row-gutter, styles: styles, page_size: page-width)
+        row-gutter = convert-length-to-pt(row-gutter, styles: styles, page-size: page-width)
     }
 
     (col: col-gutter, row: row-gutter)
@@ -2423,7 +2523,7 @@
 
     repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
 
-    if type(repeat-header) not in ("boolean", _int_type, _array_type) {
+    if type(repeat-header) not in (_bool_type, _int_type, _array_type) {
         panic("Tablex error: 'repeat-header' must be a boolean (true - always repeat the header, false - never), an integer (amount of pages for which to repeat the header), or an array of integers (relative pages in which the header should repeat).")
     } else if type(repeat-header) == _array_type and repeat-header.any(i => type(i) != _int_type) {
         panic("Tablex error: 'repeat-header' cannot be an array of anything other than integers!")
@@ -2437,7 +2537,7 @@
 ) = {
     header-hlines-have-priority = default-if-auto(default-if-none(header-hlines-have-priority, true), true)
 
-    if type(header-hlines-have-priority) != "boolean" {
+    if type(header-hlines-have-priority) != _bool_type {
         panic("Tablex error: 'header-hlines-have-priority' option must be a boolean.")
     }
 
