@@ -32,7 +32,7 @@ To use this library through the Typst package manager **(for Typst v0.6.0+)**, w
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
-This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0 and v0.8.0.
+This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0, v0.8.0, v0.9.0 and v0.10.0.
 **Using the latest Typst version is recommended (v0.6.0+)**, as it fixes certain bugs which made it almost impossible to use references and citations from within tablex tables (and also brings the package manager, making using tablex even easier!).
 
 Here's an example of what `tablex` can do:
@@ -626,6 +626,17 @@ Another example (summing columns):
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## Changelog
+
+### Unreleased
+
+[You can now sponsor my work on tablex and Typst tables! Consider taking a look :)](https://github.com/sponsors/PgBiel)
+
+- Allow gradients and patterns in fills (https://github.com/PgBiel/typst-tablex/pull/87)
+- Fixed negative line expansion within a single cell (https://github.com/PgBiel/typst-tablex/pull/84)
+  - Negative line expansion across multiple cells isn't yet supported.
+  - Thanks GitHub user @dixslyf for the great work on fixing and testing this!
+- Fixed length measuring code when `repr` of an em length isn't exact (https://github.com/PgBiel/typst-tablex/issues/92)
+- Added missing support for boolean types in Typst 0.8.0+ (https://github.com/PgBiel/typst-tablex/issues/73)
 
 ### v0.0.6
 
