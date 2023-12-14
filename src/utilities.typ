@@ -223,6 +223,11 @@
         panic("Cannot convert relative length to pt ('styles' not specified).")
     }
 
+    if eval(repr(0.00005em)) != 0.00005em {
+        // em repr changed in 0.11.0 => can safely use fields here
+        return convert-ratio-type-to-pt(len.ratio, page-size) + convert-length-type-to-pt(len.length, styles: styles)
+    }
+
     // Note on precision: the `repr` for em components is precise, unlike
     // other length components, which are rounded to a precision of 2.
     // This is true up to Typst 0.9.0 and possibly later versions.
