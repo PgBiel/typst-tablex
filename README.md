@@ -17,6 +17,7 @@
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [Unreleased](#unreleased)
     * [v0.0.6](#v006)
     * [v0.0.5](#v005)
     * [v0.0.4](#v004)
