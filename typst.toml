@@ -6,3 +6,4 @@ license = "MIT"
 description = "More powerful and customizable tables in Typst."
 entrypoint = "tablex.typ"
 repository = "https://github.com/PgBiel/typst-tablex"
+keywords = ["formatting", "table", "tables", "customization"]
