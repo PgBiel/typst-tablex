@@ -637,7 +637,9 @@ Another example (summing columns):
   - Negative line expansion across multiple cells isn't yet supported.
   - Thanks GitHub user @dixslyf for the great work on fixing and testing this!
 - Fixed length measuring code when `repr` of an em length isn't exact (https://github.com/PgBiel/typst-tablex/issues/92)
+  - Solves a potential incompatibility with (unreleased) Typst 0.11.0
 - Added missing support for boolean types in Typst 0.8.0+ (https://github.com/PgBiel/typst-tablex/issues/73)
+- Added some keywords to tablex's `typst.toml` for better discoverability (https://github.com/PgBiel/typst-tablex/issues/91)
 
 ### v0.0.6
 
