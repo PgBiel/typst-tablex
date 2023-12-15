@@ -129,7 +129,7 @@
 //
 // styles: from style()
 #let measure-pt(len, styles) = {
-    let measured-pt = measure(line(length: len), styles).width
+    let measured-pt = measure(box(width: len), styles).width
 
     // If the measured length is positive, `len` must have overall been positive.
     // There's nothing else to be done, so return the measured length.
@@ -142,7 +142,7 @@
     // Hence, `len` must either be `0pt` or negative.
     // We multiply `len` by -1 to get a positive length, draw a line and measure it, then negate
     // the measured length. This nicely handles the `0pt` case as well.
-    measured-pt = -measure(line(length: -len), styles).width
+    measured-pt = -measure(box(width: -len), styles).width
     return measured-pt
 }
 
