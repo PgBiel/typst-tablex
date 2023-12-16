@@ -3,6 +3,10 @@
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
 
+## Sponsors ❤️
+
+If you'd like to appear here, [consider sponsoring the project!](https://github.com/sponsors/PgBiel)
+
 ## Table of Contents
 
 * [Usage](#usage)
