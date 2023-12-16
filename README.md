@@ -634,10 +634,11 @@ Another example (summing columns):
 
 ### v0.0.7
 
-I have begun work on bringing many tablex improvements to built-in Typst tables! In that regard, [you can now sponsor my work on tablex and improving Typst tables via GitHub Sponsors! Consider taking a look :)](https://github.com/sponsors/PgBiel)
+I have begun [work on bringing many tablex improvements to built-in Typst tables](https://github.com/PgBiel/typst-improv-tables-planning)! In that regard, [you can now sponsor my work on tablex and improving Typst tables via GitHub Sponsors! Consider taking a look :)](https://github.com/sponsors/PgBiel)
 
 - Allow gradients and patterns in fills (https://github.com/PgBiel/typst-tablex/pull/87)
 - Fixed a critical bug where `line` in tablex cells would misbehave (https://github.com/PgBiel/typst-tablex/issues/80)
+  - CeTZ and drawing in general should now work properly within tablex cells.
 - Fixed negative line expansion within a single cell (https://github.com/PgBiel/typst-tablex/pull/84)
   - Negative line expansion across multiple cells isn't yet supported.
   - Thanks GitHub user @dixslyf for the great work on fixing and testing this!
