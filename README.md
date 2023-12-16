@@ -634,7 +634,7 @@ Another example (summing columns):
 
 ### v0.0.7
 
-[You can now sponsor my work on tablex and improving Typst tables via GitHub Sponsors! Consider taking a look :)](https://github.com/sponsors/PgBiel)
+I have begun work on bringing many tablex improvements to built-in Typst tables! In that regard, [you can now sponsor my work on tablex and improving Typst tables via GitHub Sponsors! Consider taking a look :)](https://github.com/sponsors/PgBiel)
 
 - Allow gradients and patterns in fills (https://github.com/PgBiel/typst-tablex/pull/87)
 - Fixed a critical bug where `line` in tablex cells would misbehave (https://github.com/PgBiel/typst-tablex/issues/80)
