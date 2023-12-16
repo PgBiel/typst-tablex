@@ -639,6 +639,7 @@ I have begun [work on bringing many tablex improvements to built-in Typst tables
 - Allow gradients and patterns in fills (https://github.com/PgBiel/typst-tablex/pull/87)
 - Fixed a critical bug where `line` in tablex cells would misbehave (https://github.com/PgBiel/typst-tablex/issues/80)
   - CeTZ and drawing in general should now work properly within tablex cells.
+  - Also fixes a problem with nested tables (https://github.com/PgBiel/typst-tablex/issues/34)
 - Fixed negative line expansion within a single cell (https://github.com/PgBiel/typst-tablex/pull/84)
   - Negative line expansion across multiple cells isn't yet supported.
   - Thanks GitHub user @dixslyf for the great work on fixing and testing this!
