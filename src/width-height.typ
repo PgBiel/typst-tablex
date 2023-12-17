@@ -13,10 +13,10 @@
     let col-gutter = default-if-none(default-if-none(gutter, (col: 0pt)).col, 0pt)
     end = default-if-none(end, columns.len())
 
-    let col_range = range(start, calc.min(columns.len() + 1, end))
+    let col-range = range(start, calc.min(columns.len() + 1, end))
 
     let sum = 0pt
-    for i in col_range {
+    for i in col-range {
         sum += columns.at(i) + col-gutter
     }
 
@@ -33,10 +33,10 @@
     let row-gutter = default-if-none(default-if-none(gutter, (row: 0pt)).row, 0pt)
     end = default-if-none(end, rows.len())
 
-    let row_range = range(start, calc.min(rows.len() + 1, end))
+    let row-range = range(start, calc.min(rows.len() + 1, end))
 
     let sum = 0pt
-    for i in row_range {
+    for i in row-range {
         sum += rows.at(i) + row-gutter
     }
 
@@ -58,35 +58,35 @@
 }
 
 // override start and end for vlines and hlines (keep styling options and stuff)
-#let v-or-hline-with-span(v_or_hline, start: none, end: none) = {
+#let v-or-hline-with-span(v-or-hline, start: none, end: none) = {
     (
-        ..v_or_hline,
+        ..v-or-hline,
         start: start,
         end: end,
-        parent: v_or_hline  // the one that generated this
+        parent: v-or-hline  // the one that generated this
     )
 }
 
 // check the subspan a hline or vline goes through inside a larger span
-#let get-included-span(l_start, l_end, start: 0, end: 0, limit: 0) = {
-    if l_start in (none, auto) {
-        l_start = 0
+#let get-included-span(l-start, l-end, start: 0, end: 0, limit: 0) = {
+    if l-start in (none, auto) {
+        l-start = 0
     }
 
-    if l_end in (none, auto) {
-        l_end = limit
+    if l-end in (none, auto) {
+        l-end = limit
     }
 
-    l_start = calc.max(0, l_start)
-    l_end = calc.min(end, limit)
+    l-start = calc.max(0, l-start)
+    l-end = calc.min(end, limit)
 
     // ---- ====     or ==== ----
-    if l_end < start or l_start > end {
+    if l-end < start or l-start > end {
         return none
     }
 
     // --##==   ;   ==##-- ;  #### ; ... : intersection.
-    (calc.max(l_start, start), calc.min(l_end, end))
+    (calc.max(l-start, start), calc.min(l-end, end))
 }
 
 // restrict hlines and vlines to the cells' borders.
@@ -109,15 +109,15 @@
         .filter(h => {
             let y = h.y
 
-            let in_top_or_bottom = y in (cell.y, cell.y + cell.rowspan)
+            let in-top-or-bottom = y in (cell.y, cell.y + cell.rowspan)
 
-            let hline_hasnt_already_ended = (
+            let hline-hasnt-already-ended = (
                 h.end in (auto, none)  // always goes towards the right
                 or h.end >= cell.x + cell.colspan  // ends at or after this cell
             )
 
-            (in_top_or_bottom
-                and hline_hasnt_already_ended)
+            (in-top-or-bottom
+                and hline-hasnt-already-ended)
         })
         .map(h => {
             // get the intersection between the hline and the cell's x-span.
@@ -135,15 +135,15 @@
         .filter(v => {
             let x = v.x
 
-            let at_left_or_right = x in (cell.x, cell.x + cell.colspan)
+            let at-left-or-right = x in (cell.x, cell.x + cell.colspan)
 
-            let vline_hasnt_already_ended = (
+            let vline-hasnt-already-ended = (
                 v.end in (auto, none)  // always goes towards the bottom
                 or v.end >= cell.y + cell.rowspan  // ends at or after this cell
             )
 
-            (at_left_or_right
-                and vline_hasnt_already_ended)
+            (at-left-or-right
+                and vline-hasnt-already-ended)
         })
         .map(v => {
             // get the intersection between the hline and the cell's x-span.
