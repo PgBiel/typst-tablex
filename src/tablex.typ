@@ -97,6 +97,15 @@
 // cannot be sent to another row. Also, cells may be
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
+//
+// renderer: Choose the renderer you will use.
+// Must be either "old" or "cetz".
+// Defaults to "old".
+//
+// renderer-args: Args for the renderer.
+// If "old", ignored.
+// If "cetz", must contain 'styles'.
+// Must be a dictionary.
 #let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
@@ -117,6 +126,8 @@
     map-vlines: none,
     map-rows: none,
     map-cols: none,
+    renderer: "old",
+    renderer-args: (:),
     ..items
 ) = {
     let header-rows = validate-header-rows(header-rows)
@@ -127,6 +138,8 @@
     let map-vlines = parse-map-func(map-vlines)
     let map-rows = parse-map-func(map-rows, uses-second-param: true)
     let map-cols = parse-map-func(map-cols, uses-second-param: true)
+    let renderer = validate-renderer(renderer)
+    let renderer-args = validate-renderer-args(renderer-args, renderer: renderer)
 
     // --- initial grid setup (doesn't require renderer setup) ---
     let items = items.pos().map(table-item-convert)
@@ -175,7 +188,7 @@
     // Gather the info the renderer needs (available through renderer-ctx),
     // and also get the page/container's dimensions ('container-size')
     // and the current styles ('styles').
-    renderer-setup((renderer-ctx, container-size, styles) => {
+    renderer-setup(renderer, renderer-args, (renderer-ctx, container-size, styles) => {
         let page-width = container-size.width
         let page-height = container-size.height
 
@@ -242,13 +255,15 @@
             // lines
             hlines: hlines,
             vlines: vlines,
-            // renderer context info
+            // renderer and renderer context info
+            renderer: renderer,
+            renderer-args: renderer-args,
             renderer-ctx: renderer-ctx,
             // Typst context
             styles: styles
         )
 
-        render(context)
+        render(renderer, context)
     })
 }
 
