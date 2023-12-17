@@ -114,7 +114,7 @@
             if page_turned and at_top and not is-header {
                 if repeat-header != false {
                     header-pages-state.update(l => l + (page,))
-                    if (repeat-header == true) or (type(repeat-header) == _int_type and rel_page <= repeat-header) or (type(repeat-header) == _array_type and rel_page in repeat-header) {
+                    if (repeat-header == true) or (type(repeat-header) == _int-type and rel_page <= repeat-header) or (type(repeat-header) == _array-type and rel_page in repeat-header) {
                         let measures = measure(first-row-group.content, styles)
                         place(top+left, first-row-group.content)  // add header
                         added_header_height = measures.height

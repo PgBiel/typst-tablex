@@ -90,7 +90,7 @@
 
 // Backwards-compatible enumerate
 #let enumerate(arr) = {
-    if type(arr) != _array_type {
+    if type(arr) != _array-type {
         return arr
     }
 
@@ -260,8 +260,8 @@
     }
 
     // The length part is the pt part + em part.
-    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len_type` value,
-    // not a `_length_type` value.
+    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len-type` value,
+    // not a `_length-type` value.
     let length-part-pt = convert-length-type-to-pt(pt-part + em-part, styles: styles)
 
     ratio-part-pt + length-part-pt
@@ -281,13 +281,13 @@
 
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
-    } else if type(len) == _length_type {
+    } else if type(len) == _length-type {
         convert-length-type-to-pt(len, styles: styles)
-    } else if type(len) == _ratio_type {
+    } else if type(len) == _ratio-type {
         convert-ratio-type-to-pt(len, page-size)
-    } else if type(len) == _fraction_type {
+    } else if type(len) == _fraction-type {
         convert-fraction-type-to-pt(len, frac-amount, frac-total)
-    } else if type(len) == _rel_len_type {
+    } else if type(len) == _rel_len-type {
         convert-relative-type-to-pt(len, styles, page-size: page-size)
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
@@ -298,13 +298,13 @@
 #let stroke-len(stroke, stroke-auto: 1pt, styles: none) = {
     let no-ratio-error = "Tablex error: Stroke cannot be a ratio or relative length (i.e. have a percentage like '53%'). Try using the layout() function (or similar) to convert the percentage to 'pt' instead."
     let stroke = default-if-auto(stroke, stroke-auto)
-    if type(stroke) == _length_type {
+    if type(stroke) == _length-type {
         convert-length-to-pt(stroke, styles: styles)
-    } else if type(stroke) in (_rel_len_type, _ratio_type) {
+    } else if type(stroke) in (_rel_len-type, _ratio-type) {
         panic(no-ratio-error)
     } else if is-color(stroke) {
         1pt
-    } else if type(stroke) == _stroke_type {
+    } else if type(stroke) == _stroke-type {
         // support:
         // - 5
         // - 5.5
@@ -332,19 +332,19 @@
             1pt  // okay it's probably just a color then
         } else {
             let len = eval(s)
-            if type(len) == _length_type {
+            if type(len) == _length-type {
                 convert-length-to-pt(len, styles: styles)
-            } else if type(len) in (_rel_len_type, _ratio_type) {
+            } else if type(len) in (_rel_len-type, _ratio-type) {
                 panic(no-ratio-error)
             } else {
                 1pt  // should be unreachable
             }
         }
-    } else if type(stroke) == _dict_type and "thickness" in stroke {
+    } else if type(stroke) == _dict-type and "thickness" in stroke {
         let thickness = stroke.thickness
-        if type(thickness) == _length_type {
+        if type(thickness) == _length-type {
             convert-length-to-pt(thickness, styles: styles)
-        } else if type(thickness) in (_rel_len_type, _ratio_type) {
+        } else if type(thickness) in (_rel_len-type, _ratio-type) {
             panic(no-ratio-error)
         } else {
             1pt

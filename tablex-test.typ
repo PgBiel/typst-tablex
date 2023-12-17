@@ -1,4 +1,4 @@
-#import "src/common.typ": calc-mod, _length_type
+#import "src/common.typ": calc-mod, _length-type
 #import "src/utilities.typ": default-if-auto, convert-length-to-pt
 #import "tablex.typ": *
 
@@ -802,7 +802,7 @@ Combining em and pt (with a stroke object):
             frac-total: frac-total,
         )
 
-        assert(type(actual) == _length_type)
+        assert(type(actual) == _length-type)
         assert(expected == actual)
     })
 }

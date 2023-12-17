@@ -21,13 +21,13 @@
         align-default: left,
         fill-default: none) = {
 
-    let align-default = if type(align-default) == _function_type {
+    let align-default = if type(align-default) == _function-type {
         align-default(cell.x, cell.y)  // column, row
     } else {
         align-default
     }
 
-    let fill-default = if type(fill-default) == _function_type {
+    let fill-default = if type(fill-default) == _function-type {
         fill-default(cell.x, cell.y)  // row, column
     } else {
         fill-default
@@ -45,7 +45,7 @@
     // same here for fill
     let cell-fill = default-if-auto(cell.fill, fill-default)
 
-    if type(cell-fill) == _array_type {
+    if type(cell-fill) == _array-type {
         let fill-len = cell-fill.len()
 
         if fill-len == 0 {
@@ -69,7 +69,7 @@
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
-    if type(cell-align) == _array_type {
+    if type(cell-align) == _array-type {
         let align-len = cell-align.len()
 
         if align-len == 0 {
@@ -89,7 +89,7 @@
         }
     }
 
-    if cell-align != auto and type(cell-align) not in (_align_type, _2d_align_type) {
+    if cell-align != auto and type(cell-align) not in (_align-type, _2d_align-type) {
         panic("Tablex error: Invalid alignment specified (must be either a function (column, row) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
@@ -116,7 +116,7 @@
 // (auto, 1fr, ...) is ignored.
 #let sum-fixed-size-tracks(tracks) = {
     tracks.fold(0pt, (acc, el) => {
-        if type(el) == _length_type {
+        if type(el) == _length-type {
             acc + el
         } else {
             acc
@@ -127,11 +127,11 @@
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
 #let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
-    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction_type)
+    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction-type)
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
 
-    if type(gutter) == _fraction_type {
+    if type(gutter) == _fraction-type {
         amount-frac += (gutter / 1fr) * (tracks.len() - 1)
     }
 
@@ -141,7 +141,7 @@
         0pt
     }
 
-    if type(gutter) == _fraction_type {
+    if type(gutter) == _fraction-type {
         gutter = frac-width * (gutter / 1fr)
     }
 
@@ -203,7 +203,7 @@
         let i = i-col.at(0)
         let col = i-col.at(1)
 
-        if type(col) == _length_type {
+        if type(col) == _length-type {
             size += col
         }
     }
@@ -222,7 +222,7 @@
         let i = i-row.at(0)
         let row = i-row.at(1)
 
-        if type(row) == _length_type {
+        if type(row) == _length-type {
             size += row
         }
     }
@@ -334,7 +334,7 @@
 
 #let determine-column-sizes(grid: (), page-width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
-        if type(c) in (_length_type, _rel_len_type, _ratio_type) {
+        if type(c) in (_length-type, _rel_len-type, _ratio-type) {
             convert-length-to-pt(c, styles: styles, page-size: page-width)
         } else if c == none {
             0pt
@@ -345,7 +345,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(col-gutter) == _length_type {
+    let fixed-size-gutter = if type(col-gutter) == _length-type {
         col-gutter
     } else {
         0pt
@@ -384,7 +384,7 @@
             }
 
             columns = columns.map(c => {
-                if type(c) == _fraction_type {
+                if type(c) == _fraction-type {
                     0pt  // no space left to be divided
                 } else {
                     c
@@ -393,7 +393,7 @@
         }
     } else {
         columns = columns.map(c => {
-            if c == auto or type(c) == _fraction_type {
+            if c == auto or type(c) == _fraction-type {
                 0pt  // no space remaining!
             } else {
                 c
@@ -477,7 +477,7 @@
 
 #let determine-row-sizes(grid: (), page-height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
-        if type(r) in (_length_type, _rel_len_type, _ratio_type) {
+        if type(r) in (_length-type, _rel_len-type, _ratio-type) {
             convert-length-to-pt(r, styles: styles, page-size: page-height)
         } else {
             r
@@ -493,7 +493,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(row-gutter) == _length_type {
+    let fixed-size-gutter = if type(row-gutter) == _length-type {
         row-gutter
     } else {
         0pt
@@ -510,7 +510,7 @@
     } else {
         (
             rows: rows.map(r => {
-                if type(r) == _fraction_type {  // no space remaining in this page or box
+                if type(r) == _fraction-type {  // no space remaining in this page or box
                     0pt
                 } else {
                     r

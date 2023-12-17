@@ -14,7 +14,7 @@
 #let parse-stroke(stroke) = {
     if is-color(stroke) {
         stroke + 1pt
-    } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
+    } else if type(stroke) in (_length-type, _rel_len-type, _ratio-type, _stroke-type, _dict-type) or stroke in (none, auto) {
         stroke
     } else {
         panic("Invalid stroke '" + repr(stroke) + "'.")
@@ -29,7 +29,7 @@
     if line.expand in (none, (none, none), auto, (auto, auto)) {
         return (none, none)
     }
-    if type(line.expand) != _array_type {
+    if type(line.expand) != _array-type {
         line.expand = (line.expand, line.expand)
     }
 

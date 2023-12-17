@@ -8,13 +8,13 @@
 
 // Is this a valid dict created by this library?
 #let is-tablex-dict(x) = (
-    type(x) == _dict_type
+    type(x) == _dict-type
         and "tablex-dict-type" in x
 )
 
-#let is-tablex-dict-type(x, ..dict_types) = (
+#let is-tablex-dict-type(x, ..dict-types) = (
     is-tablex-dict(x)
-        and x.tablex-dict-type in dict_types.pos()
+        and x.tablex-dict-type in dict-types.pos()
 )
 
 #let is-tablex-cell(x) = is-tablex-dict-type(x, "cell")
@@ -24,11 +24,11 @@
 #let is-tablex-occupied(x) = is-tablex-dict-type(x, "occupied")
 
 #let table-item-convert(item, keep_empty: true) = {
-    if type(item) == _function_type {  // dynamic cell content
+    if type(item) == _function-type {  // dynamic cell content
         cellx(item)
     } else if keep_empty and item == () {
         item
-    } else if type(item) != _dict_type or "tablex-dict-type" not in item {
+    } else if type(item) != _dict-type or "tablex-dict-type" not in item {
         cellx[#item]
     } else {
         item
@@ -67,7 +67,7 @@
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
             if (is-tablex-cell(cell)
-                    and type(cell.y) in (_int_type, _float_type)
+                    and type(cell.y) in (_int-type, _float-type)
                     and cell.y > acc) {
                 cell.y
             } else {
@@ -79,7 +79,7 @@
         if is-tablex-cell(item) and item.x == auto and item.y == auto {
             // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
-        } else if type(item) == _content_type {
+        } else if type(item) == _content-type {
             len += 1
         }
     }
@@ -95,36 +95,36 @@
 
 // Check if this length is infinite.
 #let is-infinite-len(len) = {
-    type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
+    type(len) in (_ratio-type, _fraction-type, _rel_len-type, _length-type) and "inf" in repr(len)
 }
 
-// Check if the given length has type '_length_type' and no 'em' component.
+// Check if the given length has type '_length-type' and no 'em' component.
 #let is-purely-pt-len(len) = {
-    type(len) == _length_type and "em" not in repr(len)
+    type(len) == _length-type and "em" not in repr(len)
 }
 
 // Check if this is a valid color (color, gradient or pattern).
 #let is-color(val) = {
-    type(val) == _color_type or str(type(val)) in ("gradient", "pattern")
+    type(val) == _color-type or str(type(val)) in ("gradient", "pattern")
 }
 
 #let validate-cols-rows(columns, rows, items: ()) = {
-    if type(columns) == _int_type {
+    if type(columns) == _int-type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
 
         columns = (auto,) * columns
     }
 
-    if type(rows) == _int_type {
+    if type(rows) == _int-type {
         assert(rows >= 0, message: "Error: Cannot have a negative amount of rows.")
         rows = (auto,) * rows
     }
 
-    if type(columns) != _array_type {
+    if type(columns) != _array-type {
         columns = (columns,)
     }
 
-    if type(rows) != _array_type {
+    if type(rows) != _array-type {
         rows = (rows,)
     }
 
@@ -140,7 +140,7 @@
 
     let col_row_is_valid(col_row) = (
         (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
-            _fraction_type, _length_type, _rel_len_type, _ratio_type
+            _fraction-type, _length-type, _rel_len-type, _ratio-type
             ))
     )
 

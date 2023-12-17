@@ -166,7 +166,7 @@
         let item = items.at(i)
 
         // allow specifying () to change vline position
-        if type(item) == _array_type and item.len() == 0 {
+        if type(item) == _array-type and item.len() == 0 {
             if x == 0 and y == 0 {  // increment vline's secondary counter
                 prev_x += 1
             }
@@ -242,7 +242,7 @@
         }
 
         let content = cell.content
-        let content = if type(content) == _function_type {
+        let content = if type(content) == _function-type {
             let res = content(this_x, this_y)
             if is-tablex-cell(res) {
                 cell = res
@@ -260,7 +260,7 @@
             panic("Error: Cell with function as content returned another cell with 'none' as x or y!")
         }
 
-        if type(this_x) != _int_type or type(this_y) != _int_type {
+        if type(this_x) != _int-type or type(this_y) != _int-type {
             panic("Error: Cell coordinates must be integers. Invalid pair: " + repr((this_x, this_y)))
         }
 
