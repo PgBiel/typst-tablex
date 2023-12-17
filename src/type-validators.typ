@@ -23,10 +23,10 @@
 #let is-some-tablex-line(x) = is-tablex-dict-type(x, "hline", "vline")
 #let is-tablex-occupied(x) = is-tablex-dict-type(x, "occupied")
 
-#let table-item-convert(item, keep_empty: true) = {
+#let table-item-convert(item, keep-empty: true) = {
     if type(item) == _function-type {  // dynamic cell content
         cellx(item)
-    } else if keep_empty and item == () {
+    } else if keep-empty and item == () {
         item
     } else if type(item) != _dict-type or "tablex-dict-type" not in item {
         cellx[#item]
@@ -35,25 +35,25 @@
     }
 }
 
-#let rowspanx(length, content, ..cell_options) = {
+#let rowspanx(length, content, ..cell-options) = {
     if is-tablex-cell(content) {
-        (..content, rowspan: length, ..cell_options.named())
+        (..content, rowspan: length, ..cell-options.named())
     } else {
         cellx(
             content,
             rowspan: length,
-            ..cell_options.named())
+            ..cell-options.named())
     }
 }
 
-#let colspanx(length, content, ..cell_options) = {
+#let colspanx(length, content, ..cell-options) = {
     if is-tablex-cell(content) {
-        (..content, colspan: length, ..cell_options.named())
+        (..content, colspan: length, ..cell-options.named())
     } else {
         cellx(
             content,
             colspan: length,
-            ..cell_options.named())
+            ..cell-options.named())
     }
 }
 
@@ -63,7 +63,7 @@
     let len = 0
 
     // maximum explicit 'y' specified
-    let max_explicit_y = items
+    let max-explicit-y = items
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
             if (is-tablex-cell(cell)
@@ -86,7 +86,7 @@
 
     let rows(len) = calc.ceil(len / col-len)
 
-    while rows(len) < max_explicit_y {
+    while rows(len) < max-explicit-y {
         len += col-len
     }
 
@@ -138,31 +138,31 @@
         rows = (auto,)
     }
 
-    let col_row_is_valid(col_row) = (
-        (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
+    let col-row-is-valid(col-row) = (
+        (not is-infinite-len(col-row)) and (col-row == auto or type(col-row) in (
             _fraction-type, _length-type, _rel-len-type, _ratio-type
             ))
     )
 
-    if not columns.all(col_row_is_valid) {
+    if not columns.all(col-row-is-valid) {
         panic("Invalid column sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
-    if not rows.all(col_row_is_valid) {
+    if not rows.all(col-row-is-valid) {
         panic("Invalid row sizes (must all be 'auto' or a valid, finite length specifier).")
     }
 
     let col-len = columns.len()
 
-    let grid_len = get-expected-grid-len(items, col-len: col-len)
+    let grid-len = get-expected-grid-len(items, col-len: col-len)
 
-    let expected_rows = calc.ceil(grid_len / col-len)
+    let expected-rows = calc.ceil(grid-len / col-len)
 
     // more cells than expected => add rows
-    if rows.len() < expected_rows {
-        let missing_rows = expected_rows - rows.len()
+    if rows.len() < expected-rows {
+        let missing-rows = expected-rows - rows.len()
 
-        rows += (rows.last(),) * missing_rows
+        rows += (rows.last(),) * missing-rows
     }
 
     (columns: columns, rows: rows, items: ())
