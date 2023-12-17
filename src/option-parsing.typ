@@ -128,10 +128,10 @@
     let row-len = grid-count-rows(grid)
 
     for row in range(row-len) {
-        let original_cells = grid-get-row(grid, row)
+        let original-cells = grid-get-row(grid, row)
 
         // occupied cells = none for the outer user
-        let cells = map-rows(row, original_cells.map(c => {
+        let cells = map-rows(row, original-cells.map(c => {
             if is-tablex-occupied(c) { none } else { c }
         }))
 
@@ -140,14 +140,14 @@
         }
 
         // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i_c => is-tablex-cell(original_cells.at(i_c.at(0))))
+        let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
 
-        if cells.any(i_c => not is-tablex-cell(i_c.at(1))) {
+        if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
             panic("Tablex error: 'map-rows' returned a non-cell.")
         }
 
-        if cells.any(i_c => {
-            let c = i_c.at(1)
+        if cells.any(i-c => {
+            let c = i-c.at(1)
             let x = c.x
             let y = c.y
             type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
@@ -155,31 +155,31 @@
             panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
         }
 
-        if cells.any(i_c => i_c.at(1).y != row) {
+        if cells.any(i-c => i-c.at(1).y != row) {
             panic("Tablex error: 'map-rows' returned a cell in a different row (the 'y' must be kept the same).")
         }
 
-        if cells.any(i_c => {
-            let i = i_c.at(0)
-            let c = i_c.at(1)
-            let orig_c = original_cells.at(i)
+        if cells.any(i-c => {
+            let i = i-c.at(0)
+            let c = i-c.at(1)
+            let orig-c = original-cells.at(i)
 
-            c.colspan != orig_c.colspan or c.rowspan != orig_c.rowspan
+            c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
         }) {
             panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-rows'.")
         }
 
-        for i_cell in cells {
-            let cell = i_cell.at(1)
+        for i-cell in cells {
+            let cell = i-cell.at(1)
             grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
         }
     }
 
     for column in range(col-len) {
-        let original_cells = grid-get-column(grid, column)
+        let original-cells = grid-get-column(grid, column)
 
         // occupied cells = none for the outer user
-        let cells = map-cols(column, original_cells.map(c => {
+        let cells = map-cols(column, original-cells.map(c => {
             if is-tablex-occupied(c) { none } else { c }
         }))
 
@@ -188,14 +188,14 @@
         }
 
         // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i_c => is-tablex-cell(original_cells.at(i_c.at(0))))
+        let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
 
-        if cells.any(i_c => not is-tablex-cell(i_c.at(1))) {
+        if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
             panic("Tablex error: 'map-cols' returned a non-cell.")
         }
 
-        if cells.any(i_c => {
-            let c = i_c.at(1)
+        if cells.any(i-c => {
+            let c = i-c.at(1)
             let x = c.x
             let y = c.y
             type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
@@ -203,22 +203,22 @@
             panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
         }
 
-        if cells.any(i_c => i_c.at(1).x != column) {
+        if cells.any(i-c => i-c.at(1).x != column) {
             panic("Tablex error: 'map-cols' returned a cell in a different column (the 'x' must be kept the same).")
         }
 
-        if cells.any(i_c => {
-            let i = i_c.at(0)
-            let c = i_c.at(1)
-            let orig_c = original_cells.at(i)
+        if cells.any(i-c => {
+            let i = i-c.at(0)
+            let c = i-c.at(1)
+            let orig-c = original-cells.at(i)
 
-            c.colspan != orig_c.colspan or c.rowspan != orig_c.rowspan
+            c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
         }) {
             panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-cols'.")
         }
 
-        for i_cell in cells {
-            let cell = i_cell.at(1)
+        for i-cell in cells {
+            let cell = i-cell.at(1)
             cell.content = [#cell.content]
             grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
         }
