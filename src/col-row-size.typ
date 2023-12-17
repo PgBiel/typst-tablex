@@ -89,7 +89,7 @@
         }
     }
 
-    if cell-align != auto and type(cell-align) not in (_align-type, _2d_align-type) {
+    if cell-align != auto and type(cell-align) not in (_align-type, _2d-align-type) {
         panic("Tablex error: Invalid alignment specified (must be either a function (column, row) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
@@ -334,7 +334,7 @@
 
 #let determine-column-sizes(grid: (), page-width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
-        if type(c) in (_length-type, _rel_len-type, _ratio-type) {
+        if type(c) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(c, styles: styles, page-size: page-width)
         } else if c == none {
             0pt
@@ -477,7 +477,7 @@
 
 #let determine-row-sizes(grid: (), page-height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
-        if type(r) in (_length-type, _rel_len-type, _ratio-type) {
+        if type(r) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(r, styles: styles, page-size: page-height)
         } else {
             r

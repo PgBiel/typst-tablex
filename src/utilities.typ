@@ -260,7 +260,7 @@
     }
 
     // The length part is the pt part + em part.
-    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len-type` value,
+    // Note: we cannot use `len - ratio-part` as that returns a `_rel-len-type` value,
     // not a `_length-type` value.
     let length-part-pt = convert-length-type-to-pt(pt-part + em-part, styles: styles)
 
@@ -287,7 +287,7 @@
         convert-ratio-type-to-pt(len, page-size)
     } else if type(len) == _fraction-type {
         convert-fraction-type-to-pt(len, frac-amount, frac-total)
-    } else if type(len) == _rel_len-type {
+    } else if type(len) == _rel-len-type {
         convert-relative-type-to-pt(len, styles, page-size: page-size)
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
@@ -300,7 +300,7 @@
     let stroke = default-if-auto(stroke, stroke-auto)
     if type(stroke) == _length-type {
         convert-length-to-pt(stroke, styles: styles)
-    } else if type(stroke) in (_rel_len-type, _ratio-type) {
+    } else if type(stroke) in (_rel-len-type, _ratio-type) {
         panic(no-ratio-error)
     } else if is-color(stroke) {
         1pt
@@ -334,7 +334,7 @@
             let len = eval(s)
             if type(len) == _length-type {
                 convert-length-to-pt(len, styles: styles)
-            } else if type(len) in (_rel_len-type, _ratio-type) {
+            } else if type(len) in (_rel-len-type, _ratio-type) {
                 panic(no-ratio-error)
             } else {
                 1pt  // should be unreachable
@@ -344,7 +344,7 @@
         let thickness = stroke.thickness
         if type(thickness) == _length-type {
             convert-length-to-pt(thickness, styles: styles)
-        } else if type(thickness) in (_rel_len-type, _ratio-type) {
+        } else if type(thickness) in (_rel-len-type, _ratio-type) {
             panic(no-ratio-error)
         } else {
             1pt

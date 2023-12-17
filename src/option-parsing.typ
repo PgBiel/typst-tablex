@@ -30,7 +30,7 @@
                     e
                 } else {
                     e = default-if-auto(e, 0pt)
-                    if type(e) not in (_length-type, _rel_len-type, _ratio-type) {
+                    if type(e) not in (_length-type, _rel-len-type, _ratio-type) {
                         panic("'expand' argument to lines must be a pair (length, length).")
                     }
 
@@ -78,11 +78,11 @@
     col-gutter = default-if-auto(col-gutter, 0pt)
     row-gutter = default-if-auto(row-gutter, 0pt)
 
-    if type(col-gutter) in (_length-type, _rel_len-type, _ratio-type) {
+    if type(col-gutter) in (_length-type, _rel-len-type, _ratio-type) {
         col-gutter = convert-length-to-pt(col-gutter, styles: styles, page-size: page-width)
     }
 
-    if type(row-gutter) in (_length-type, _rel_len-type, _ratio-type) {
+    if type(row-gutter) in (_length-type, _rel-len-type, _ratio-type) {
         row-gutter = convert-length-to-pt(row-gutter, styles: styles, page-size: page-width)
     }
 

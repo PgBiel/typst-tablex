@@ -14,7 +14,7 @@
 #let parse-stroke(stroke) = {
     if is-color(stroke) {
         stroke + 1pt
-    } else if type(stroke) in (_length-type, _rel_len-type, _ratio-type, _stroke-type, _dict-type) or stroke in (none, auto) {
+    } else if type(stroke) in (_length-type, _rel-len-type, _ratio-type, _stroke-type, _dict-type) or stroke in (none, auto) {
         stroke
     } else {
         panic("Invalid stroke '" + repr(stroke) + "'.")

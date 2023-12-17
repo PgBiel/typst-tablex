@@ -95,7 +95,7 @@
 
 // Check if this length is infinite.
 #let is-infinite-len(len) = {
-    type(len) in (_ratio-type, _fraction-type, _rel_len-type, _length-type) and "inf" in repr(len)
+    type(len) in (_ratio-type, _fraction-type, _rel-len-type, _length-type) and "inf" in repr(len)
 }
 
 // Check if the given length has type '_length-type' and no 'em' component.
@@ -140,7 +140,7 @@
 
     let col_row_is_valid(col_row) = (
         (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
-            _fraction-type, _length-type, _rel_len-type, _ratio-type
+            _fraction-type, _length-type, _rel-len-type, _ratio-type
             ))
     )
 

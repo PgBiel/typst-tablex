@@ -22,7 +22,7 @@
 #let _color-type = type(red)
 #let _stroke-type = type(red + 5pt)
 #let _length-type = type(5pt)
-#let _rel_len-type = type(100% + 5pt)
+#let _rel-len-type = type(100% + 5pt)
 #let _ratio-type = type(100%)
 #let _int-type = type(5)
 #let _float-type = type(5.0)
@@ -32,4 +32,4 @@
 // note: since 0.8.0, alignment and 2d alignment are the same
 // but keep it like this for pre-0.8.0
 #let _align-type = type(left)
-#let _2d_align-type = type(top + left)
+#let _2d-align-type = type(top + left)
