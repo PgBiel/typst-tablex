@@ -13,9 +13,9 @@
 #import "utilities.typ": *
 // -- end imports --
 
-#let create-grid(width, initial_height) = (
+#let create-grid(width, initial-height) = (
     tablex-dict-type: "grid",
-    items: init-array(width * initial_height),
+    items: init-array(width * initial-height),
     width: width
 )
 
@@ -68,20 +68,20 @@
 }
 
 // Expand grid to the given coords (add the missing cells)
-#let grid-expand-to(grid, x, y, fill_with: (grid) => none) = {
+#let grid-expand-to(grid, x, y, fill-with: (grid) => none) = {
     let rows = grid-count-rows(grid)
     let rowws = rows
 
     // quickly add missing rows
     while rows < y {
-        grid.items += (fill_with(grid),) * grid.width
+        grid.items += (fill-with(grid),) * grid.width
         rows += 1
     }
 
     let now = grid-index-to-pos(grid, grid.items.len() - 1)
     // now columns and/or last missing row
     while not grid-has-pos(grid, x, y) {
-        grid.items.push(fill_with(grid))
+        grid.items.push(fill-with(grid))
     }
     let new = grid-index-to-pos(grid, grid.items.len() - 1)
 
@@ -105,12 +105,12 @@
     grid, x: 0, y: 0, x-limit: 0, y-limit: 0
 ) = {
     let cell = (x, y)
-    let there_is_next(cell_pos) = {
-        let grid_cell = grid-at(grid, ..cell_pos)
-        grid_cell != none
+    let there-is-next(cell-pos) = {
+        let grid-cell = grid-at(grid, ..cell-pos)
+        grid-cell != none
     }
 
-    while there_is_next(cell) {
+    while there-is-next(cell) {
         x += 1
 
         if x >= x-limit {
@@ -140,35 +140,35 @@
     let hlines = ()
     let vlines = ()
 
-    let prev_x = 0
-    let prev_y = 0
+    let prev-x = 0
+    let prev-y = 0
 
     let x = 0
     let y = 0
 
-    let first_cell_reached = false  // if true, hline should always be placed after the current row
-    let row_wrapped = false  // if true, a vline should be added to the end of a row
+    let first-cell-reached = false  // if true, hline should always be placed after the current row
+    let row-wrapped = false  // if true, a vline should be added to the end of a row
 
-    let range_of_items = range(items.len())
+    let range-of-items = range(items.len())
 
-    let new_empty_cell(grid, index: auto) = {
-        let empty_cell = cellx[]
+    let new-empty-cell(grid, index: auto) = {
+        let empty-cell = cellx[]
         let index = default-if-auto(index, grid.items.len())
-        let new_cell_pos = grid-index-to-pos(grid, index)
-        empty_cell.x = new_cell_pos.at(0)
-        empty_cell.y = new_cell_pos.at(1)
+        let new-cell-pos = grid-index-to-pos(grid, index)
+        empty-cell.x = new-cell-pos.at(0)
+        empty-cell.y = new-cell-pos.at(1)
 
-        empty_cell
+        empty-cell
     }
 
     // go through all input
-    for i in range_of_items {
+    for i in range-of-items {
         let item = items.at(i)
 
         // allow specifying () to change vline position
         if type(item) == _array-type and item.len() == 0 {
             if x == 0 and y == 0 {  // increment vline's secondary counter
-                prev_x += 1
+                prev-x += 1
             }
 
             continue  // ignore all '()'
@@ -179,28 +179,28 @@
 
         if is-some-tablex-line(item) {  // detect lines' x, y
             if is-tablex-hline(item) {
-                let this_y = if first_cell_reached {
-                    prev_y + 1
+                let this-y = if first-cell-reached {
+                    prev-y + 1
                 } else {
-                    prev_y
+                    prev-y
                 }
 
-                item.y = default-if-auto(item.y, this_y)
+                item.y = default-if-auto(item.y, this-y)
 
                 hlines.push(item)
             } else if is-tablex-vline(item) {
                 if item.x == auto {
                     if x == 0 and y == 0 {  // placed before any elements
-                        item.x = prev_x
-                        prev_x += 1  // use this as a 'secondary counter'
+                        item.x = prev-x
+                        prev-x += 1  // use this as a 'secondary counter'
                                      // in the meantime
 
-                        if prev_x > x-limit + 1 {
+                        if prev-x > x-limit + 1 {
                             panic("Error: Specified way too many vlines or empty () cells before the first row of the table. (Note that () is used to separate vline()s at the beginning of the table.)  Please specify at most " + str(x-limit + 1) + " empty cells or vlines before the first cell of the table.")
                         }
-                    } else if row_wrapped {
-                        item.x = x-limit  // allow v_line at the last column
-                        row_wrapped = false
+                    } else if row-wrapped {
+                        item.x = x-limit  // allow v-line at the last column
+                        row-wrapped = false
                     } else {
                         item.x = x
                     }
@@ -218,36 +218,36 @@
 
         assert(is-tablex-cell(cell), message: "All table items must be cells or lines.")
 
-        first_cell_reached = true
+        first-cell-reached = true
 
-        let this_x = default-if-auto(cell.x, x)
-        let this_y = default-if-auto(cell.y, y)
+        let this-x = default-if-auto(cell.x, x)
+        let this-y = default-if-auto(cell.y, y)
 
         if cell.x == none or cell.y == none {
             panic("Error: Received cell with 'none' as x or y.")
         }
 
-        if this_x == none or this_y == none {
-            panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: " + repr((prev_x, prev_y)) + ", new cell: " + repr(cell) + ")")
+        if this-x == none or this-y == none {
+            panic("Internal tablex error: Grid wasn't large enough to fit the given cells. (Previous position: " + repr((prev-x, prev-y)) + ", new cell: " + repr(cell) + ")")
         }
 
-        cell.x = this_x
-        cell.y = this_y
+        cell.x = this-x
+        cell.y = this-y
         cell = table-item-convert(map-cells(cell))
 
         assert(is-tablex-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
 
-        if row_wrapped {
-            row_wrapped = false
+        if row-wrapped {
+            row-wrapped = false
         }
 
         let content = cell.content
         let content = if type(content) == _function-type {
-            let res = content(this_x, this_y)
+            let res = content(this-x, this-y)
             if is-tablex-cell(res) {
                 cell = res
-                this_x = cell.x
-                this_y = cell.y
+                this-x = cell.x
+                this-y = cell.y
                 [#res.content]
             } else {
                 [#res]
@@ -256,56 +256,56 @@
             [#content]
         }
 
-        if this_x == none or this_y == none {
+        if this-x == none or this-y == none {
             panic("Error: Cell with function as content returned another cell with 'none' as x or y!")
         }
 
-        if type(this_x) != _int-type or type(this_y) != _int-type {
-            panic("Error: Cell coordinates must be integers. Invalid pair: " + repr((this_x, this_y)))
+        if type(this-x) != _int-type or type(this-y) != _int-type {
+            panic("Error: Cell coordinates must be integers. Invalid pair: " + repr((this-x, this-y)))
         }
 
         cell.content = content
 
         // up to which 'y' does this cell go
-        let max_x = this_x + cell.colspan - 1
-        let max_y = this_y + cell.rowspan - 1
+        let max-x = this-x + cell.colspan - 1
+        let max-y = this-y + cell.rowspan - 1
 
-        if this_x >= x-limit {
-            panic("Error: Cell at " + repr((this_x, this_y)) + " is placed at an inexistent column.")
+        if this-x >= x-limit {
+            panic("Error: Cell at " + repr((this-x, this-y)) + " is placed at an inexistent column.")
         }
 
-        if max_x >= x-limit {
-            panic("Error: Cell at " + repr((this_x, this_y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
+        if max-x >= x-limit {
+            panic("Error: Cell at " + repr((this-x, this-y)) + " has a colspan of " + repr(cell.colspan) + ", which would exceed the available columns.")
         }
 
-        let cell_positions = positions-spanned-by(cell, x: this_x, y: this_y, x-limit: x-limit, y-limit: none)
+        let cell-positions = positions-spanned-by(cell, x: this-x, y: this-y, x-limit: x-limit, y-limit: none)
 
-        for position in cell_positions {
+        for position in cell-positions {
             let px = position.at(0)
             let py = position.at(1)
-            let currently_there = grid-at(grid, px, py)
+            let currently-there = grid-at(grid, px, py)
 
-            if currently_there != none {
-                let parent_cell = get-parent-cell(currently_there, grid: grid)
+            if currently-there != none {
+                let parent-cell = get-parent-cell(currently-there, grid: grid)
 
-                panic("Error: Multiple cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this_x, this_y)) + ", and one starting at " + repr((parent_cell.x, parent_cell.y)))
+                panic("Error: Multiple cells attempted to occupy the cell position at " + repr((px, py)) + ": one starting at " + repr((this-x, this-y)) + ", and one starting at " + repr((parent-cell.x, parent-cell.y)))
             }
 
             // initial position => assign it to the cell's x/y
-            if position == (this_x, this_y) {
-                cell.x = this_x
-                cell.y = this_y
+            if position == (this-x, this-y) {
+                cell.x = this-x
+                cell.y = this-y
 
                 // expand grid to allow placing this cell (including colspan / rowspan)
-                let grid_expand_res = grid-expand-to(grid, grid.width - 1, max_y)
+                let grid-expand-res = grid-expand-to(grid, grid.width - 1, max-y)
 
-                grid = grid_expand_res
+                grid = grid-expand-res
                 y-limit = grid-count-rows(grid)
 
-                let index = grid-index-at(this_x, this_y)
+                let index = grid-index-at(this-x, this-y)
 
                 if index > grid.items.len() {
-                    panic("Internal tablex error: Could not expand grid to include cell at " + repr((this_x, this_y)))
+                    panic("Internal tablex error: Could not expand grid to include cell at " + repr((this-x, this-y)))
                 }
                 grid.items.at(index) = cell
                 items.at(i) = cell
@@ -314,35 +314,35 @@
             } else {
                 let index = grid-index-at(px, py)
 
-                grid.items.at(index) = occupied(x: px, y: py, parent-x: this_x, parent-y: this_y)  // indicate this position's parent cell (to join them later)
+                grid.items.at(index) = occupied(x: px, y: py, parent-x: this-x, parent-y: this-y)  // indicate this position's parent cell (to join them later)
             }
         }
 
-        let next_pos = next-available-position(grid, x: this_x, y: this_y, x-limit: x-limit, y-limit: y-limit)
+        let next-pos = next-available-position(grid, x: this-x, y: this-y, x-limit: x-limit, y-limit: y-limit)
 
-        prev_x = this_x
-        prev_y = this_y
+        prev-x = this-x
+        prev-y = this-y
 
-        x = next_pos.at(0)
-        y = next_pos.at(1)
+        x = next-pos.at(0)
+        y = next-pos.at(1)
 
-        if prev_y != y {
-            row_wrapped = true  // we changed rows!
+        if prev-y != y {
+            row-wrapped = true  // we changed rows!
         }
     }
 
     // for missing cell positions: add empty cell
-    for index_item in enumerate(grid.items) {
-        let index = index_item.at(0)
-        let item = index_item.at(1)
+    for index-item in enumerate(grid.items) {
+        let index = index-item.at(0)
+        let item = index-item.at(1)
         if item == none {
-            grid.items.at(index) = new_empty_cell(grid, index: index)
+            grid.items.at(index) = new-empty-cell(grid, index: index)
         }
     }
 
     // while there are incomplete rows for some reason, add empty cells
     while calc-mod(grid.items.len(), grid.width) != 0 {
-        grid.items.push(new_empty_cell(grid))
+        grid.items.push(new-empty-cell(grid))
     }
 
     (
