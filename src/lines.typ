@@ -55,9 +55,9 @@
 
 #let draw-hline(
     hline,
-    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
+    initial-x: 0, initial-y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
     styles: none,
-    rightmost_x: 0, rtl: false,
+    rightmost-x: 0, rtl: false,
 ) = {
     let start = hline.start
     let end = hline.end
@@ -81,26 +81,26 @@
         right-expand += largest-stroke(default-if-auto-or-none(end, columns.len())) / 2  // close stroke gap to the right
     }
 
-    let y = height-between(start: initial_y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
-    let start_x = width-between(start: initial_x, end: start, columns: columns, gutter: gutter, pre-gutter: false) - left-expand
-    let end_x = width-between(start: initial_x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true) + right-expand
+    let y = height-between(start: initial-y, end: hline.y, rows: rows, gutter: gutter, pre-gutter: pre-gutter)
+    let start-x = width-between(start: initial-x, end: start, columns: columns, gutter: gutter, pre-gutter: false) - left-expand
+    let end-x = width-between(start: initial-x, end: end, columns: columns, gutter: gutter, pre-gutter: hline.stop-pre-gutter == true) + right-expand
 
-    if end_x - start_x < 0pt {
+    if end-x - start-x < 0pt {
         return  // negative length
     }
 
     if rtl {
         // invert the line (start from the right instead of from the left)
-        start_x = rightmost_x - start_x
-        end_x = rightmost_x - end_x
+        start-x = rightmost-x - start-x
+        end-x = rightmost-x - end-x
     }
 
     let start = (
-        start_x,
+        start-x,
         y
     )
     let end = (
-        end_x,
+        end-x,
         y
     )
 
@@ -115,10 +115,10 @@
 
 #let draw-vline(
     vline,
-    initial_x: 0, initial_y: 0, columns: (), rows: (), stroke: auto,
+    initial-x: 0, initial-y: 0, columns: (), rows: (), stroke: auto,
     gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false,
     styles: none,
-    rightmost_x: 0, rtl: false,
+    rightmost-x: 0, rtl: false,
 ) = {
     let start = vline.start
     let end = vline.end
@@ -142,26 +142,26 @@
         bottom-expand += largest-stroke(default-if-auto-or-none(end, rows.len())) / 2  // close stroke gap to the bottom
     }
 
-    let x = width-between(start: initial_x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
-    let start_y = height-between(start: initial_y, end: start, rows: rows, gutter: gutter) - top-expand
-    let end_y = height-between(start: initial_y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter or vline.stop-pre-gutter == true) + bottom-expand
+    let x = width-between(start: initial-x, end: vline.x, columns: columns, gutter: gutter, pre-gutter: pre-gutter)
+    let start-y = height-between(start: initial-y, end: start, rows: rows, gutter: gutter) - top-expand
+    let end-y = height-between(start: initial-y, end: end, rows: rows, gutter: gutter, pre-gutter: stop-before-row-gutter or vline.stop-pre-gutter == true) + bottom-expand
 
-    if end_y - start_y < 0pt {
+    if end-y - start-y < 0pt {
         return  // negative length
     }
 
     if rtl {
         // invert the vertical line's x pos (start from the right instead of from the left)
-        x = rightmost_x - x
+        x = rightmost-x - x
     }
 
     let start = (
         x,
-        start_y
+        start-y
     )
     let end = (
         x,
-        end_y
+        end-y
     )
 
     if stroke != auto {
