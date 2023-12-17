@@ -28,7 +28,7 @@
 // 'cell-box' contains the generated cell content box.
 // Requires x, y, width, height in length units.
 // x, y are relative to the table's (0pt, 0pt).
-#let draw-cetz-cell(cetz-draw, cell-box, x: none, y: none, width: none, height: none) = {
+#let draw-cetz-cell(cetz-draw, cell, cell-box, x: none, y: none, width: none, height: none) = {
   assert(type(x) == _length-type and type(y) == _length-type, message: "Tablex error: Cell x and y must be lengths. Got: " + repr(x) + ", " + repr(y))
   assert(type(width) == _length-type and type(height) == _length-type, message: "Tablex error: Cell width and height must be lengths. Got: " + repr(width) + ", " + repr(height))
 
@@ -39,8 +39,11 @@
   let top-left = convert-coords-to-cetz-units(x, y)
   let bottom-right = convert-coords-to-cetz-units(x + width, y + height)
 
+  // TODO: customize prefix, or even allow a function
+  let node-name = "tbx-" + str(cell.x) + "-" + str(cell.y)
+
   // cetz-draw.rect(top-left, bottom-right, fill: fill, stroke: none)
-  cetz-draw.content(top-left, bottom-right, cell-box)
+  cetz-draw.content(top-left, bottom-right, cell-box, name: node-name)
 }
 
 // Draws a line in cetz with the specified information.
@@ -118,7 +121,7 @@
       align-default: ctx.align,
       fill-default: ctx.fill)
 
-    draw-cetz-cell(cell-box, x: x, y: y, width: width, height: height)
+    draw-cetz-cell(cell, cell-box, x: x, y: y, width: width, height: height)
   }
 
   for line in lines {
