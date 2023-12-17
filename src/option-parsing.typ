@@ -264,3 +264,23 @@
 
     header-hlines-have-priority
 }
+
+#let validate-renderer(renderer) = {
+    assert(renderer in ("old", "cetz"), message: "Tablex error: 'renderer' option must be either \"old\" or \"cetz\".")
+
+    renderer
+}
+
+#let validate-renderer-args(renderer-args, renderer: none) = {
+    assert(type(renderer-args) == _dict-type, message: "Tablex error: 'renderer-args' option must be a dictionary.")
+    if renderer == "old" {
+        assert(renderer-args == (:), message: "Tablex error: renderer 'old' does not accept any keys in 'renderer-args'.")
+    } else if renderer == "cetz" {
+        assert("styles" in renderer-args, message: "Tablex error: renderer 'cetz' requires 'styles' in the 'renderer-args'.")
+        assert(renderer-args.keys().all(key => key == "styles"), message: "Tablex error: renderer 'cetz' does not accept any keys in 'renderer-args' other than 'styles'. Provided keys: " + renderer-args.keys().map(repr).join(", "))
+    } else {
+        panic("Internal tablex error: Unexpected renderer '" + renderer + "'.")
+    }
+
+    renderer-args
+}
