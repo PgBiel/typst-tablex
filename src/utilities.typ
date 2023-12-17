@@ -25,19 +25,19 @@
         panic("Cell colspan must be 1 or greater (bad cell: " + repr((x, y)) + ")")
     }
 
-    let max_x = x + colspan
-    let max_y = y + rowspan
+    let max-x = x + colspan
+    let max-y = y + rowspan
 
     if x-limit != none {
-        max_x = calc.min(x-limit, max_x)
+        max-x = calc.min(x-limit, max-x)
     }
 
     if y-limit != none {
-        max_y = calc.min(y-limit, max_y)
+        max-y = calc.min(y-limit, max-y)
     }
 
-    for x in range(x, max_x) {
-        for y in range(y, max_y) {
+    for x in range(x, max-x) {
+        for y in range(y, max-y) {
             result.push((x, y))
         }
     }
@@ -46,20 +46,20 @@
 }
 
 // initialize an array with a certain element or init function, repeated
-#let init-array(amount, element: none, init_function: none) = {
+#let init-array(amount, element: none, init-function: none) = {
     let nones = ()
 
-    if init_function == none {
-        init_function = () => element
+    if init-function == none {
+        init-function = () => element
     }
 
-    range(amount).map(i => init_function())
+    range(amount).map(i => init-function())
 }
 
 // Default 'x' to a certain value if it is equal to the forbidden value
 // ('none' by default)
-#let default-if-not(x, default, if_isnt: none) = {
-    if x == if_isnt {
+#let default-if-not(x, default, if-isnt: none) = {
+    if x == if-isnt {
         default
     } else {
         x
@@ -67,10 +67,10 @@
 }
 
 // Default 'x' to a certain value if it is none
-#let default-if-none(x, default) = default-if-not(x, default, if_isnt: none)
+#let default-if-none(x, default) = default-if-not(x, default, if-isnt: none)
 
 // Default 'x' to a certain value if it is auto
-#let default-if-auto(x, default) = default-if-not(x, default, if_isnt: auto)
+#let default-if-auto(x, default) = default-if-not(x, default, if-isnt: auto)
 
 // Default 'x' to a certain value if it is auto or none
 #let default-if-auto-or-none(x, default) = if x in (auto, none) {
