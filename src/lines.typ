@@ -58,7 +58,9 @@
     initial-x: 0, initial-y: 0, columns: (), rows: (), stroke: auto, vlines: (), gutter: none, pre-gutter: false,
     styles: none,
     rightmost-x: 0, rtl: false,
+    line: (hline, ..args) => line(..args),
 ) = {
+    let line = line.with(hline)
     let start = hline.start
     let end = hline.end
     let stroke-auto = parse-stroke(stroke)
@@ -119,7 +121,9 @@
     gutter: none, hlines: (), pre-gutter: false, stop-before-row-gutter: false,
     styles: none,
     rightmost-x: 0, rtl: false,
+    line: (vline, ..args) => line(..args),
 ) = {
+    let line = line.with(vline)
     let start = vline.start
     let end = vline.end
     let stroke-auto = parse-stroke(stroke)
