@@ -276,8 +276,9 @@
     if renderer == "old" {
         assert(renderer-args == (:), message: "Tablex error: renderer 'old' does not accept any keys in 'renderer-args'.")
     } else if renderer == "cetz" {
+        let valid-args = ("styles", "cell-cetz-names")
         assert("styles" in renderer-args, message: "Tablex error: renderer 'cetz' requires 'styles' in the 'renderer-args'.")
-        assert(renderer-args.keys().all(key => key == "styles"), message: "Tablex error: renderer 'cetz' does not accept any keys in 'renderer-args' other than 'styles'. Provided keys: " + renderer-args.keys().map(repr).join(", "))
+        assert(renderer-args.keys().all(key => key in valid-args), message: "Tablex error: renderer 'cetz' does not accept any keys in 'renderer-args' other than " + valid-args.map(repr).join(", ") + ". Provided keys: " + renderer-args.keys().map(repr).join(", "))
     } else {
         panic("Internal tablex error: Unexpected renderer '" + renderer + "'.")
     }
