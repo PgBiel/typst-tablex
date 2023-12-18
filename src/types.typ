@@ -1,6 +1,7 @@
 // #01
 // Basic types for tablex.
 
+// A horizontal line.
 #let hlinex(
     start: 0, end: auto, y: auto,
     stroke: auto,
@@ -20,6 +21,7 @@
     parent: none,  // if hline was broken into multiple
 )
 
+// A vertical line.
 #let vlinex(
     start: 0, end: auto, x: auto,
     stroke: auto,
@@ -39,11 +41,15 @@
     parent: none,
 )
 
-#let cellx(content,
+// Holds data for a single tablex cell.
+// render: options passed to the renderer during rendering stage
+#let cellx(
+    content,
     x: auto, y: auto,
     rowspan: 1, colspan: 1,
     fill: auto, align: auto,
-    inset: auto
+    inset: auto,
+    render: none,
 ) = (
     tablex-dict-type: "cell",
     content: content,
@@ -52,10 +58,13 @@
     align: align,
     fill: fill,
     inset: inset,
+    render: render,
     x: x,
     y: y,
 )
 
+// A cell which was merged with another one.
+// Indicates its position in the grid is occupied by its parent cell.
 #let occupied(x: 0, y: 0, parent-x: none, parent-y: none) = (
     tablex-dict-type: "occupied",
     x: x,
