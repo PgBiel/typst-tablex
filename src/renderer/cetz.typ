@@ -1,5 +1,5 @@
 #import "row-groups.typ": generate-row-groups
-#import "../common.typ": _length-type, _array-type
+#import "../common.typ": _length-type, _array-type, _dict-type, _str-type, _function-type
 #import "../type-validators.typ": is-tablex-hline, is-tablex-vline
 #import "../col-row-size.typ": make-cell-box
 #import "../width-height.typ": cell-width, cell-height, width-between, height-between
@@ -28,9 +28,12 @@
 // 'cell-box' contains the generated cell content box.
 // Requires x, y, width, height in length units.
 // x, y are relative to the table's (0pt, 0pt).
-#let draw-cetz-cell(cetz-draw, cell, cell-box, x: none, y: none, width: none, height: none) = {
+#let draw-cetz-cell(cetz-draw, cell, cell-box, renderer-args: none, x: none, y: none, width: none, height: none) = {
   assert(type(x) == _length-type and type(y) == _length-type, message: "Tablex error: Cell x and y must be lengths. Got: " + repr(x) + ", " + repr(y))
   assert(type(width) == _length-type and type(height) == _length-type, message: "Tablex error: Cell width and height must be lengths. Got: " + repr(width) + ", " + repr(height))
+  assert(
+    cell.render == none or type(cell.render) == _dict-type,
+    message: "Tablex error: Cell at x=" + str(cell.x) + ", y=" + str(cell.y) + " had a 'render' property which wasn't a dictionary or none (got type '" + str(type(cell.render)) + "').")
 
   // TODO: specify cetz unit different from 1cm
   let (x-cetz, y-cetz, width-cetz, height-cetz) = (x, y, width, height).map(convert-length-to-cetz-units)
@@ -40,10 +43,38 @@
   let bottom-right = convert-coords-to-cetz-units(x + width, y + height)
 
   // TODO: customize prefix, or even allow a function
-  let node-name = "tbx-" + str(cell.x) + "-" + str(cell.y)
+  let node-name = if cell.render != none and "cetz-name" in cell.render {
+    assert(type(cell.render.cetz-name) == _str-type, message: "Tablex error: Cell at x=" + str(cell.x) + ", y=" + str(cell.y) + " has a 'render.cetz-name' property which isn't a string, but a '" + str(type(cell.render.cetz-name)) + "'.")
 
-  // cetz-draw.rect(top-left, bottom-right, fill: fill, stroke: none)
-  cetz-draw.content(top-left, bottom-right, cell-box, name: node-name)
+    cell.render.cetz-name
+  } else if renderer-args != none and "cell-cetz-names" in renderer-args {
+    let cell-names = renderer-args.cell-cetz-names
+    if cell-names == none {
+      none
+    } else if type(cell-names) == _dict-type and "prefix" in cell-names {
+      assert(type(cell-names.prefix) == _str-type, message: "Tablex error: 'renderer-args.cell-cetz-names.prefix' must be a string, not '" + str(type(cell-names.prefix)) + "'.")
+
+      cell-names.prefix + str(cell.x) + "-" + str(cell.y)
+    } else if type(cell-names) == _function-type {
+      let generated-name = cell-names(cell.x, cell.y)
+      assert(type(generated-name) == _str-type, message: "Tablex error: 'renderer-args.cell-cetz-names' was a function and returned something that isn't a string, but a '" + str(type(generated-name)) + "', for the CeTZ name of the cell at x=" + str(cell.x) + ", y=" + str(cell.y) + ".")
+
+      generated-name
+    } else {
+      panic("Tablex error: 'renderer-args.cell-cetz-names' must be a dictionary of the form (prefix: \"string\") or a function, not the given " + str(type(cell-names)) + ".")
+    }
+  } else {
+    // Default to "tbx-" prefix
+    "tbx-" + str(cell.x) + "-" + str(cell.y)
+  }
+
+  // options which might not be included
+  let extra-options = (:)
+  if node-name != none {
+    extra-options.name = node-name
+  }
+
+  cetz-draw.content(top-left, bottom-right, cell-box, ..extra-options)
 }
 
 // Draws a line in cetz with the specified information.
@@ -121,7 +152,7 @@
       align-default: ctx.align,
       fill-default: ctx.fill)
 
-    draw-cetz-cell(cell, cell-box, x: x, y: y, width: width, height: height)
+    draw-cetz-cell(cell, cell-box, renderer-args: ctx.renderer-args, x: x, y: y, width: width, height: height)
   }
 
   for line in lines {
