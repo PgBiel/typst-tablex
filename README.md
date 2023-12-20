@@ -354,7 +354,7 @@ Another example (summing columns):
 #gridx(
   columns: 3,
   rows: 6,
-  fill: (col, row) => (blue, red, green).at(calc.mod(row + col - 1, 3)),
+  fill: (col, row) => (blue, red, green).at(calc.rem(row + col - 1, 3)),
   map-cols: (col, cells) => {
     let last = cells.last()
     last.content = [
