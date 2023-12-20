@@ -7,6 +7,9 @@
 
 If you'd like to appear here, [consider sponsoring the project!](https://github.com/sponsors/PgBiel)
 
+<!-- sponsors -->
+<!-- sponsors -->
+
 ## Table of Contents
 
 * [Usage](#usage)
