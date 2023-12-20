@@ -7,6 +7,11 @@
 
 If you'd like to appear here, [consider sponsoring the project!](https://github.com/sponsors/PgBiel)
 
+<!-- manual -->
+<p align="center">
+<a href="https://github.com/felipeacsi"><img src="https://github.com/felipeacsi.png" width="50px" alt="felipeacsi" /></a>
+</p>
+<!-- manual -->
 <!-- sponsors -->
 <!-- sponsors -->
 
