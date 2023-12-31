@@ -128,14 +128,10 @@
             let first-y = none
             let rightmost-x = none
 
-            let row-heights = 0pt
+            let row-heights = array-sum(rows.slice(start-y, end-y + 1), zero: 0pt)
 
             let first-row = true
             for row in group-rows {
-                if row.len() > 0 {
-                    let first-cell = row.at(0)
-                    row-heights += rows.at(first-cell.cell.y)
-                }
                 for cell-box in row {
                     let x = cell-box.cell.x
                     let y = cell-box.cell.y
