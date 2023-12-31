@@ -22,6 +22,11 @@
   int(0 <= x) - int(x < 0)
 }
 
+// Polyfill for array sum (.sum() is Typst 0.3.0+).
+#let array-sum(arr, zero: 0) = {
+  arr.fold(zero, (a, x) => a + x)
+}
+
 // get the types of things so we can compare with them
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
 #let _array-type = type(())
