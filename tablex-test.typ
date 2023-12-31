@@ -1086,3 +1086,70 @@ Combining em and pt (with a stroke object):
   "","","","","",
 
 )
+
+*Extra rows should inherit the last row size (Issue \#97)*
+
+#tablex(
+  rows: 5pt,
+  cellx(x: 0, y: 1)[a\ a\ a\ a]
+)
+#v(4em)
+
+#[
+    #tablex(
+        align: center + horizon,
+        rows: 5mm,
+        columns: (7mm, 10mm, 23mm, 15mm, 10mm, 70mm, 5mm, 5mm, 5mm, 5mm, 12mm, 18mm),
+        ..range(5), cellx(rowspan: 3, colspan: 7)[],
+        ..range(5),
+        ..range(5),
+
+        ..range(5), rowspanx(5)[], colspanx(3)[], colspanx(2)[], [],
+        ..range(5), rowspanx(3)[], rowspanx(3)[], rowspanx(3)[], cellx(rowspan: 3, colspan: 2)[], rowspanx(3)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3), colspanx(4)[], colspanx(2)[],
+
+        colspanx(2)[], ..range(3), rowspanx(3)[], cellx(rowspan: 3, colspan: 6)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+    )
+
+    #tablex(
+        align: center + horizon,
+        rows: 5mm,
+        columns: (7mm, 10mm, 23mm, 15mm, 10mm, 70mm, 5mm, 5mm, 5mm, 5mm, 12mm, 18mm),
+        ..range(5), cellx(x: 5, rowspan: 3, colspan: 7)[],
+        ..range(5),
+        ..range(5),
+
+        ..range(5), rowspanx(5)[], colspanx(3)[], colspanx(2)[], [],
+        ..range(5), rowspanx(3)[], rowspanx(3)[], rowspanx(3)[], cellx(rowspan: 3, colspan: 2)[], rowspanx(3)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3), colspanx(4)[], colspanx(2)[],
+
+        colspanx(2)[], ..range(3), rowspanx(3)[], cellx(rowspan: 3, colspan: 6)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+    )
+
+    #tablex(
+        align: center + horizon,
+        rows: 5mm,
+        columns: (7mm, 10mm, 23mm, 15mm, 10mm, 70mm, 5mm, 5mm, 5mm, 5mm, 12mm, 18mm),
+        cellx(x: 5, rowspan: 3, colspan: 7)[],
+        ..range(5),
+        ..range(5),
+
+        ..range(5), rowspanx(5)[], colspanx(3)[], colspanx(2)[], [],
+        ..range(5), rowspanx(3)[], rowspanx(3)[], rowspanx(3)[], cellx(rowspan: 3, colspan: 2)[], rowspanx(3)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3), colspanx(4)[], colspanx(2)[],
+
+        colspanx(2)[], ..range(3), rowspanx(3)[], cellx(rowspan: 3, colspan: 6)[],
+        colspanx(2)[], ..range(3),
+        colspanx(2)[], ..range(3),
+    )
+]
