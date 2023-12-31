@@ -1040,3 +1040,22 @@ Combining em and pt (with a stroke object):
       vlinex(expand: -(2% + 2pt + 2em)),
     )
 )
+
+*Full-width rowspans displayed with the wrong height (Issue \#105)*
+
+#tablex(
+  columns: (auto, auto, auto, auto),
+  colspanx(4, rowspanx(3)[ONE]),
+  [TWO], [THREE], [FOUR], [FIVE],
+)
+
+#block(breakable: false)[
+    a
+
+    #tablex(
+    columns: 3,
+    colspanx(3, rowspanx(2)[a])
+    )
+
+    b
+]
