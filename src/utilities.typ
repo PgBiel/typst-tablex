@@ -318,6 +318,12 @@
     } else if is-color(stroke) {
         1pt
     } else if type(stroke) == _stroke-type {
+        if typst-fields-supported {
+            // No need for any repr() parsing, just use the thickness field.
+            let thickness = default-if-auto(stroke.thickness, 1pt)
+            return convert-length-to-pt(thickness, styles: styles)
+        }
+
         // support:
         // - 2pt / 2em / 2cm / 2in   + color
         // - 2.5pt / 2.5em / ...  + color
