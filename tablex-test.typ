@@ -858,6 +858,42 @@ Combining em and pt (with a stroke object):
 #convert-length-to-pt-test(-0.005% - 0.005pt + 0em, -0.01pt)
 #convert-length-to-pt-test(-0.005% - 0.005pt - 0.005em, -0.015pt)
 
+// Stroke thickness calculation
+#let stroke-thickness-test(
+    value, expected,
+    compare-repr: false,
+) = {
+    set text(size: 1pt)  // Set 1em to 1pt
+    style(styles => {
+        let actual = stroke-len(
+            value,
+            styles: styles,
+        )
+
+        assert(type(actual) == _length_type)
+
+        // Re-assign so we can modify the variable
+        let expected = expected
+        if compare-repr {
+            expected = repr(expected)
+            actual = repr(actual)
+        }
+        assert(expected == actual, message: "Expected " + repr(expected) + ", found " + repr(actual))
+    })
+}
+
+#stroke-thickness-test(2pt, 2pt)
+#stroke-thickness-test(2pt + 1em, 3pt)
+#stroke-thickness-test(2pt + red, 2pt)
+#stroke-thickness-test(2pt + 2em + red, 4pt)
+#stroke-thickness-test(2.2pt - 2.2em + red, 0pt)
+#stroke-thickness-test(0.005em + black, 0.005pt)
+#stroke-thickness-test(red, 1pt)
+#stroke-thickness-test((does-not-specify-thickness: 5), 1pt)
+#stroke-thickness-test((thickness: 5pt + 2em, what: 55%), 7pt)
+#stroke-thickness-test((thickness: 5pt + 2.005em, what: 55%), 7.005pt)
+#stroke-thickness-test(rect(stroke: 2.002pt - 3.003em + red).stroke, -1.001pt, compare-repr: true)
+
 *Line expansion - issue \#74:*
 
 #let wrap-for-linex-expansion-test(tabx) = {
