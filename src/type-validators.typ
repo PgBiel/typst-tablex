@@ -100,7 +100,7 @@
 
 // Check if the given length has type '_length-type' and no 'em' component.
 #let is-purely-pt-len(len) = {
-    type(len) == _length-type and "em" not in repr(len)
+    type(len) == _length-type and ((typst-fields-supported and len.em == 0) or (not typst-fields-supported and "em" not in repr(len)))
 }
 
 // Check if this is a valid color (color, gradient or pattern).
