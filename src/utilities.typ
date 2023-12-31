@@ -9,7 +9,7 @@
 // Typst 0.9.0 uses a minus sign ("−"; U+2212 MINUS SIGN) for negative numbers.
 // Before that, it used a hyphen minus ("-"; U+002D HYPHEN MINUS), so we use
 // regex alternation to match either of those.
-#let NUMBER-REGEX-STRING = "(−|-)?\\d*\\.?\\d+"
+#let NUMBER-REGEX-STRING = "(?:−|-)?\\d*\\.?\\d+"
 
 // Which positions does a cell occupy
 // (Usually just its own, but increases if colspan / rowspan
@@ -306,14 +306,10 @@
         1pt
     } else if type(stroke) == _stroke-type {
         // support:
-        // - 5
-        // - 5.5
-        let maybe-float-regex = "(?:\\d+(?:\\.\\d+)?)"
-        // support:
         // - 2pt / 2em / 2cm / 2in   + color
         // - 2.5pt / 2.5em / ...  + color
         // - 2pt + 3em   + color
-        let len-regex = "(?:" + maybe-float-regex + "(?:em|pt|cm|in|%)(?:\\s+\\+\\s+" + maybe-float-regex + "em)?)"
+        let len-regex = "(?:" + NUMBER-REGEX-STRING + "(?:em|pt|cm|in|%)(?:\\s+\\+\\s+" + NUMBER-REGEX-STRING + "em)?)"
         let r = regex("^" + len-regex)
         let s = repr(stroke).find(r)
 
