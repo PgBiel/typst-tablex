@@ -129,6 +129,18 @@
 //
 // styles: from style()
 #let measure-pt(len, styles) = {
+    if typst-fields-supported {
+        // We can use fields to separate em from pt.
+        let pt = len.abs
+        let em = len.em
+        // Measure with abs (and later multiply by the sign) so negative em works.
+        // Otherwise it would return 0pt, and we would need to measure again with abs.
+        let measured-em = calc-sign(em) * measure(box(width: calc.abs(em) * 1em), styles).width
+
+        return pt + measured-em
+    }
+
+    // Fields not supported, so we have to measure twice when em can be negative.
     let measured-pt = measure(box(width: len), styles).width
 
     // If the measured length is positive, `len` must have overall been positive.
@@ -151,7 +163,7 @@
 // styles: from style()
 #let convert-length-type-to-pt(len, styles: none) = {
     // repr examples: "1pt", "1em", "0.5pt", "0.5em", "1pt + 1em", "-0.5pt + -0.5em"
-    if "em" not in repr(len) {
+    if is-purely-pt-len(len) {
         // No need to do any conversion because it must already be in pt.
         return len
     }
@@ -217,15 +229,16 @@
 // styles: from style()
 // page-size: equivalent to 100% (optional because the length may not have a ratio component)
 #let convert-relative-type-to-pt(len, styles, page-size: none) = {
+    if typst-fields-supported or eval(repr(0.00005em)) != 0.00005em {
+        // em repr changed in 0.11.0 => need to use fields here
+        // or use fields if they're supported anyway
+        return convert-ratio-type-to-pt(len.ratio, page-size) + convert-length-type-to-pt(len.length, styles: styles)
+    }
+
     // We will need to draw a line for measurement later,
     // so we need the styles.
     if styles == none {
         panic("Cannot convert relative length to pt ('styles' not specified).")
-    }
-
-    if eval(repr(0.00005em)) != 0.00005em {
-        // em repr changed in 0.11.0 => can safely use fields here
-        return convert-ratio-type-to-pt(len.ratio, page-size) + convert-length-type-to-pt(len.length, styles: styles)
     }
 
     // Note on precision: the `repr` for em components is precise, unlike
@@ -305,6 +318,12 @@
     } else if is-color(stroke) {
         1pt
     } else if type(stroke) == _stroke-type {
+        if typst-fields-supported {
+            // No need for any repr() parsing, just use the thickness field.
+            let thickness = default-if-auto(stroke.thickness, 1pt)
+            return convert-length-to-pt(thickness, styles: styles)
+        }
+
         // support:
         // - 2pt / 2em / 2cm / 2in   + color
         // - 2.5pt / 2.5em / ...  + color
