@@ -21,6 +21,11 @@
   int(0 <= x) - int(x < 0)
 }
 
+// Polyfill for array sum (.sum() is Typst 0.3.0+).
+#let array-sum(arr, zero: 0) = {
+  arr.fold(zero, (a, x) => a + x)
+}
+
 // get the types of things so we can compare with them
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
 #let _array_type = type(())
@@ -2023,14 +2028,10 @@
             let first_y = none
             let rightmost_x = none
 
-            let row_heights = 0pt
+            let row_heights = array-sum(rows.slice(start-y, end-y + 1), zero: 0pt)
 
             let first_row = true
             for row in group-rows {
-                if row.len() > 0 {
-                    let first_cell = row.at(0)
-                    row_heights += rows.at(first_cell.cell.y)
-                }
                 for cell_box in row {
                     let x = cell_box.cell.x
                     let y = cell_box.cell.y

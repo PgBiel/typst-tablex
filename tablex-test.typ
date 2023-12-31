@@ -1038,3 +1038,49 @@ Combining em and pt (with a stroke object):
       vlinex(expand: -(2% + 2pt + 2em)),
     )
 )
+
+*Full-width rowspans displayed with the wrong height (Issue \#105)*
+
+#tablex(
+  columns: (auto, auto, auto, auto),
+  colspanx(4, rowspanx(3)[ONE]),
+  [TWO], [THREE], [FOUR], [FIVE],
+)
+
+#block(breakable: false)[
+    a
+
+    #tablex(
+    columns: 3,
+    colspanx(3, rowspanx(2)[a])
+    )
+
+    b
+]
+
+*More overlapping rowspans (Issue \#82)*
+
+#tablex(
+  auto-lines: false,
+  stroke: 1pt,
+  columns: (auto,auto,auto,auto),
+  align:center,
+  //hlinex(),
+  //vlinex(), vlinex(), vlinex(),vlinex(),
+  [Name], [He],[Rack],[Beschreibung],
+  hlinex(),
+  cellx(rowspan:2,align:center)["mt01"], cellx(fill: rgb("#b9edffff"), align: left,rowspan:2)[42],
+  cellx(rowspan:2,align:center)["WAT"],
+  //hlinex(),
+  cellx(rowspan:2,align:center)["Löschgasflasche"],
+  cellx(rowspan:2,align:center)["mt2"], cellx(fill: rgb("#b9edffff"), align: left,rowspan:2)[41],
+  cellx(rowspan:2,align:center)["WAT"],"test",
+  (""),"","","","",
+  cellx(rowspan:2,align:center)["mt3"], cellx(fill: rgb("#b9edffff"), align: left,rowspan:2)[40],
+  cellx(rowspan:2,align:center)["WAT"],"test",
+  "","","","","",
+  cellx(rowspan:2,align:center)["mt3"], cellx(fill: rgb("#b9edffff"), align: left,rowspan:2)[40],
+  cellx(rowspan:2,align:center)["WAT"],"test",
+  "","","","","",
+
+)
