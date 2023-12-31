@@ -165,8 +165,11 @@
     let vlines = grid-info.vlines
     let items = grid-info.items
 
+    // When there are more rows than the user specified, we ensure they have
+    // the same size as the last specified row.
+    let last-row-size = if rows.len() == 0 { auto } else { rows.last() }
     for _ in range(grid-info.new-row-count - row-len) {
-        rows.push(auto)  // add new rows (due to extra cells)
+        rows.push(last-row-size)  // add new rows (due to extra cells)
     }
 
     let col-len = columns.len()
