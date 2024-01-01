@@ -323,7 +323,7 @@
     // either none needs to be resized (all are smaller than the fair share)
     // or all columns to be resized are larger than the fair share.
     let last-share
-    let fair-share = float("-inf") * 1pt
+    let fair-share = none
     let fair-share-should-change = true
 
     // 1. Rule out auto columns from resizing, and determine the final fair share
@@ -347,7 +347,7 @@
             // 2. If it is larger than the last fair share,
             // then it wasn't already excluded in any previous
             // iterations.
-            if col <= fair-share and col > last-share {
+            if col <= fair-share and (last-share == none or col > last-share) {
                 remaining -= col
                 auto-cols-to-resize -= 1
                 fair-share-should-change = true
