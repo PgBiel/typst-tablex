@@ -1151,3 +1151,16 @@ Combining em and pt (with a stroke object):
         colspanx(2)[], ..range(3),
     )
 ]
+
+#set page("a4")
+
+*Overflowing cells (Issues \#48 and \#75)*
+
+#tablex(
+  columns: 3,
+  [a: #lorem(7)], [b: $T h i s I s A L o n g A n d R a n d o m M a t h E p r e s s i o n$], [c]
+)
+
+#tablex(columns: (auto, auto, auto, auto),
+  [lorem_ipsum_dolor_sit_amet], [lorem], [lorem_ipsum_dolor_sit_amet_consectetur_adipisici], [lorem],
+)

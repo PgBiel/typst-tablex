@@ -1286,41 +1286,74 @@
     (total: total_auto_size, sizes: auto_sizes, columns: new_columns)
 }
 
-#let fit-auto-columns(available: 0pt, auto_cols: none, columns: none) = {
+// Try to reduce the width of auto columns so that the table fits within the
+// page width.
+// Fair version of the algorithm, tries to shrink the minimum amount of columns
+// possible. The same algorithm used by native tables.
+// Auto columns that are too wide will receive equal amounts of the remaining
+// width (the "fair-share").
+#let fit-auto-columns(available: 0pt, auto-cols: none, columns: none) = {
     if is-infinite-len(available) {
         // infinite space available => don't modify columns
         return columns
     }
 
+    // Remaining space to share between auto columns.
+    // Starts as all of the available space (excluding fixed-width columns).
+    // Will reduce as we exclude auto columns from being resized.
     let remaining = available
-    let auto_cols_remaining = auto_cols.len()
+    let auto-cols-to-resize = auto-cols.len()
 
-    if auto_cols_remaining <= 0 {
+    if auto-cols-to-resize <= 0 {
         return columns
     }
 
-    let fair_share = remaining / auto_cols_remaining
+    // The fair-share must be the largest possible (to ensure maximum fairness)
+    // such that we can shrink the minimum amount of columns possible and, at the
+    // same time, ensure that the table won't cross the page width.
+    // To do this, we will try to divide the space evenly between each auto column
+    // to be resized.
+    // If one or more auto columns are smaller than that, then they don't need to be
+    // resized, so we will increase the fair share and check other columns, until
+    // either none needs to be resized (all are smaller than the fair share)
+    // or all columns to be resized are larger than the fair share.
+    let last-share
+    let fair-share = none
+    let fair-share-should-change = true
 
-    for i_col in auto_cols {
-        let i = i_col.at(0)
-        let col = i_col.at(1)
+    // 1. Rule out auto columns from resizing, and determine the final fair share
+    // (the largest possible such that no columns are smaller than it).
+    // One iteration of this 'while' runs for each attempt at a value for the fair
+    // share. Once no non-excluded columns are smaller than the fair share
+    // (which would otherwise lead to them being excluded from being resized, and the
+    // fair share would increase), the loop stops, and we can resize down all columns
+    // larger than the fair share.
+    // The loop also stops if all auto columns would be smaller than the fair share,
+    // and thus there is nothing to resize.
+    while fair-share-should-change and auto-cols-to-resize > 0 {
+        last-share = fair-share
+        fair-share = remaining / auto-cols-to-resize
+        fair-share-should-change = false
 
-        if auto_cols_remaining <= 0 {
-            return columns  // no more to share
-        }
-
-        // subtract AFTER the check!!! (Avoid off-by-one error)
-        auto_cols_remaining -= 1
-
-        if col < fair_share {  // ok, keep your size, it's less than the limit
-            remaining -= col
-
-            if auto_cols_remaining > 0 {
-                fair_share = remaining / auto_cols_remaining
+        for (_, col) in auto-cols {
+            // 1. If it is smaller than the fair share,
+            // then it can keep its size, and we should
+            // update the fair share.
+            // 2. If it is larger than the last fair share,
+            // then it wasn't already excluded in any previous
+            // iterations.
+            if col <= fair-share and (last-share == none or col > last-share) {
+                remaining -= col
+                auto-cols-to-resize -= 1
+                fair-share-should-change = true
             }
-        } else {  // you surpassed the limit!!!
-            remaining -= fair_share
-            columns.at(i) = fair_share
+        }
+    }
+
+    // 2. Resize any columns larger than the calculated fair share to the fair share.
+    for (i, col) in auto-cols {
+        if col > fair-share {
+            columns.at(i) = fair-share
         }
     }
 
@@ -1373,7 +1406,7 @@
             if page_width != 0pt {
                 columns = fit-auto-columns(
                     available: available_size,
-                    auto_cols: auto_sizes,
+                    auto-cols: auto_sizes,
                     columns: columns
                 )
             }
