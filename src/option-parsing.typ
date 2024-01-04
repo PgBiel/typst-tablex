@@ -272,6 +272,27 @@
     header-hlines-have-priority
 }
 
+// Converts the 'fit-spans' argument to a (x: bool, y: bool) dictionary.
+// Optionally use a default dictionary to fill missing arguments with.
+#let validate-fit-spans(fit-spans, default: (x: false, y: false)) = {
+    if type(fit-spans) == _bool-type {
+        fit-spans = (x: fit-spans, y: fit-spans)
+    }
+    if type(fit-spans) == _dict-type {
+        assert(fit-spans.len() > 0, message: "Tablex error: 'fit-spans', if a dictionary, must not be empty.")
+        assert(fit-spans.keys().all(k => k in ("x", "y")), message: "Tablex error: 'fit-spans', if a dictionary, must only have the keys x and y.")
+        assert(fit-spans.values().all(v => type(v) == _bool-type), message: "Tablex error: keys 'x' and 'y' in the 'fit-spans' dictionary must be booleans (true/false).")
+        for key in ("x", "y") {
+            if key in default and key not in fit-spans {
+                fit-spans.insert(key, default.at(key))
+            }
+        }
+    } else {
+        panic("Tablex error: Expected 'fit-spans' to be either a boolean or dictionary, found '" + str(type(fit-spans)) + "'")
+    }
+    fit-spans
+}
+
 #let validate-renderer(renderer) = {
     assert(renderer in ("old", "cetz"), message: "Tablex error: 'renderer' option must be either \"old\" or \"cetz\".")
 

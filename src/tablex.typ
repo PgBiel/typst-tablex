@@ -98,6 +98,28 @@
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
 //
+// fit-spans: Determine if rowspans and colspans should fit within their
+// spanned 'auto'-sized tracks (columns and rows) instead of causing them to
+// expand based on the rowspan/colspan cell's size. (Most users of tablex
+// shouldn't have to change this option.)
+// Must either be a dictionary '(x: true/false, y: true/false)' or a boolean
+// true/false (which is converted to the (x: value, y: value) format with both
+// 'x' and 'y' being set to the same value; for instance, 'true' becomes
+// '(x: true, y: true)').
+// Setting 'x' to 'false' (the default) means that colspans will cause the last
+// (rightmost) auto column they span to expand if the cell's contents are too
+// long; setting 'x' to 'true' negates this, and auto columns will ignore the
+// size of colspans. Similarly, setting 'y' to 'false' (the default) means that
+// rowspans will cause the last (bottommost) auto row they span to expand if
+// the cell's contents are too tall; setting 'y' to 'true' causes auto rows to
+// ignore the size of rowspans.
+// This setting is mostly useful when you have a colspan or a rowspan spanning
+// tracks with fractional (1fr, 2fr, ...) size, which can the fractional track
+// to have less or even zero width, compromising all other cells in it. If
+// you're facing this problem, you may want experiment with setting this option
+// to 'true' or to '(y: true)'.
+// Note that this option can also be set in a per-cell basis.
+//
 // renderer: Choose the renderer you will use.
 // Must be either "old" or "cetz".
 // Defaults to "old".
@@ -126,6 +148,7 @@
     map-vlines: none,
     map-rows: none,
     map-cols: none,
+    fit-spans: false,
     renderer: "old",
     renderer-args: (:),
     ..items
@@ -138,6 +161,7 @@
     let map-vlines = validate-map-func(map-vlines)
     let map-rows = validate-map-func(map-rows)
     let map-cols = validate-map-func(map-cols)
+    let fit-spans = validate-fit-spans(fit-spans, default: (x: false, y: false))
     let renderer = validate-renderer(renderer)
     let renderer-args = validate-renderer-args(renderer-args, renderer: renderer)
 
