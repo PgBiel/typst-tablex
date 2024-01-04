@@ -114,11 +114,13 @@
 // the cell's contents are too tall; setting 'y' to 'true' causes auto rows to
 // ignore the size of rowspans.
 // This setting is mostly useful when you have a colspan or a rowspan spanning
-// tracks with fractional (1fr, 2fr, ...) size, which can the fractional track
-// to have less or even zero width, compromising all other cells in it. If
-// you're facing this problem, you may want experiment with setting this option
-// to 'true' or to '(y: true)'.
-// Note that this option can also be set in a per-cell basis.
+// tracks with fractional (1fr, 2fr, ...) size, which can cause the fractional
+// track to have less or even zero width, compromising all other cells in it.
+// If you're facing this problem, you may want experiment with setting this
+// option to '(y: true)' (if this is affecting columns) or 'true' (for rows
+// too).
+// Note that this option can also be set in a per-cell basis through cellx().
+// See its reference for more information.
 //
 // renderer: Choose the renderer you will use.
 // Must be either "old" or "cetz".
