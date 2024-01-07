@@ -89,20 +89,13 @@
     (col: col-gutter, row: row-gutter)
 }
 
-// Accepts a map-X param, and returns its default, or validates
-// it.
-#let parse-map-func(map-func, uses-second-param: false) = {
-    if map-func in (none, auto) {
-        if uses-second-param {
-            (a, b) => b  // identity
-        } else {
-            o => o  // identity
-        }
-    } else if type(map-func) != _function-type {
-        panic("Map parameters must be functions.")
-    } else {
-        map-func
+// Accepts a map-X param, and verifies whether it's a function or none/auto.
+#let validate-map-func(map-func) = {
+    if map-func not in (none, auto) and type(map-func) != _function-type {
+        panic("Tablex error: Map parameters, if specified (not 'none'), must be functions.")
     }
+
+    map-func
 }
 
 #let apply-maps(
@@ -114,113 +107,128 @@
     map-rows: none,
     map-cols: none,
 ) = {
-    vlines = vlines.map(map-vlines)
-    if vlines.any(h => not is-tablex-vline(h)) {
-        panic("'map-vlines' function returned a non-vline.")
+    if type(map-vlines) == _function-type {
+        vlines = vlines.map(map-vlines)
+        if vlines.any(h => not is-tablex-vline(h)) {
+            panic("'map-vlines' function returned a non-vline.")
+        }
     }
 
-    hlines = hlines.map(map-hlines)
-    if hlines.any(h => not is-tablex-hline(h)) {
-        panic("'map-hlines' function returned a non-hline.")
+    if type(map-hlines) == _function-type {
+        hlines = hlines.map(map-hlines)
+        if hlines.any(h => not is-tablex-hline(h)) {
+            panic("'map-hlines' function returned a non-hline.")
+        }
+    }
+
+    let should-map-rows = type(map-rows) == _function-type
+    let should-map-cols = type(map-cols) == _function-type
+
+    if not should-map-rows and not should-map-cols {
+        return (grid: grid, hlines: hlines, vlines: vlines)
     }
 
     let col-len = grid.width
     let row-len = grid-count-rows(grid)
 
-    for row in range(row-len) {
-        let original-cells = grid-get-row(grid, row)
+    if should-map-rows {
+        for row in range(row-len) {
+            let original-cells = grid-get-row(grid, row)
 
-        // occupied cells = none for the outer user
-        let cells = map-rows(row, original-cells.map(c => {
-            if is-tablex-occupied(c) { none } else { c }
-        }))
+            // occupied cells = none for the outer user
+            let cells = map-rows(row, original-cells.map(c => {
+                if is-tablex-occupied(c) { none } else { c }
+            }))
 
-        if type(cells) != _array-type {
-            panic("Tablex error: 'map-rows' returned something that isn't an array.")
-        }
+            if type(cells) != _array-type {
+                panic("Tablex error: 'map-rows' returned something that isn't an array.")
+            }
 
-        // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
+            // only modify non-occupied cells
+            let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
 
-        if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
-            panic("Tablex error: 'map-rows' returned a non-cell.")
-        }
+            if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
+                panic("Tablex error: 'map-rows' returned a non-cell.")
+            }
 
-        if cells.any(i-c => {
-            let c = i-c.at(1)
-            let x = c.x
-            let y = c.y
-            type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
-        }) {
-            panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
-        }
+            if cells.any(i-c => {
+                let c = i-c.at(1)
+                let x = c.x
+                let y = c.y
+                type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
+            }) {
+                panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
+            }
 
-        if cells.any(i-c => i-c.at(1).y != row) {
-            panic("Tablex error: 'map-rows' returned a cell in a different row (the 'y' must be kept the same).")
-        }
+            if cells.any(i-c => i-c.at(1).y != row) {
+                panic("Tablex error: 'map-rows' returned a cell in a different row (the 'y' must be kept the same).")
+            }
 
-        if cells.any(i-c => {
-            let i = i-c.at(0)
-            let c = i-c.at(1)
-            let orig-c = original-cells.at(i)
+            if cells.any(i-c => {
+                let i = i-c.at(0)
+                let c = i-c.at(1)
+                let orig-c = original-cells.at(i)
 
-            c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
-        }) {
-            panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-rows'.")
-        }
+                c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
+            }) {
+                panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-rows'.")
+            }
 
-        for i-cell in cells {
-            let cell = i-cell.at(1)
-            grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+            for i-cell in cells {
+                let cell = i-cell.at(1)
+                grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+            }
         }
     }
 
-    for column in range(col-len) {
-        let original-cells = grid-get-column(grid, column)
+    if should-map-cols {
+        for column in range(col-len) {
+            let original-cells = grid-get-column(grid, column)
 
-        // occupied cells = none for the outer user
-        let cells = map-cols(column, original-cells.map(c => {
-            if is-tablex-occupied(c) { none } else { c }
-        }))
+            // occupied cells = none for the outer user
+            let cells = map-cols(column, original-cells.map(c => {
+                if is-tablex-occupied(c) { none } else { c }
+            }))
 
-        if type(cells) != _array-type {
-            panic("Tablex error: 'map-cols' returned something that isn't an array.")
-        }
+            if type(cells) != _array-type {
+                panic("Tablex error: 'map-cols' returned something that isn't an array.")
+            }
 
-        // only modify non-occupied cells
-        let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
+            // only modify non-occupied cells
+            let cells = enumerate(cells).filter(i-c => is-tablex-cell(original-cells.at(i-c.at(0))))
 
-        if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
-            panic("Tablex error: 'map-cols' returned a non-cell.")
-        }
+            if cells.any(i-c => not is-tablex-cell(i-c.at(1))) {
+                panic("Tablex error: 'map-cols' returned a non-cell.")
+            }
 
-        if cells.any(i-c => {
-            let c = i-c.at(1)
-            let x = c.x
-            let y = c.y
-            type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
-        }) {
-            panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
-        }
+            if cells.any(i-c => {
+                let c = i-c.at(1)
+                let x = c.x
+                let y = c.y
+                type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len
+            }) {
+                panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
+            }
 
-        if cells.any(i-c => i-c.at(1).x != column) {
-            panic("Tablex error: 'map-cols' returned a cell in a different column (the 'x' must be kept the same).")
-        }
+            if cells.any(i-c => i-c.at(1).x != column) {
+                panic("Tablex error: 'map-cols' returned a cell in a different column (the 'x' must be kept the same).")
+            }
 
-        if cells.any(i-c => {
-            let i = i-c.at(0)
-            let c = i-c.at(1)
-            let orig-c = original-cells.at(i)
+            if cells.any(i-c => {
+                let i = i-c.at(0)
+                let c = i-c.at(1)
+                let orig-c = original-cells.at(i)
 
-            c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
-        }) {
-            panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-cols'.")
-        }
+                c.colspan != orig-c.colspan or c.rowspan != orig-c.rowspan
+            }) {
+                panic("Tablex error: Please do not change the colspan or rowspan of a cell in 'map-cols'.")
+            }
 
-        for i-cell in cells {
-            let cell = i-cell.at(1)
-            cell.content = [#cell.content]
-            grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+            for i-cell in cells {
+                let cell = i-cell.at(1)
+                cell.content = [#cell.content]
+                grid.items.at(grid-index-at(cell.x, cell.y, grid: grid)) = cell
+            }
         }
     }
 

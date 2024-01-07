@@ -130,7 +130,7 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate-grid(items, x-limit: 0, y-limit: 0, map-cells: c => c) = {
+#let generate-grid(items, x-limit: 0, y-limit: 0, map-cells: none) = {
     // init grid as a matrix
     // y-limit  x   x-limit
     let grid = create-grid(x-limit, y-limit)
@@ -233,7 +233,10 @@
 
         cell.x = this-x
         cell.y = this-y
-        cell = table-item-convert(map-cells(cell))
+
+        if type(map-cells) == _function-type {
+            cell = table-item-convert(map-cells(cell))
+        }
 
         assert(is-tablex-cell(cell), message: "Tablex error: 'map-cells' returned something that isn't a valid cell.")
 
