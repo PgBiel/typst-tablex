@@ -127,7 +127,7 @@
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
 #let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
-    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction-type)
+    let frac-tracks = tracks.enumerate().filter(t => type(t.at(1)) == _fraction-type)
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
 
@@ -161,7 +161,7 @@
     let cell-cols = range(cell.x, cell.x + cell.colspan)
     let last-auto-col = none
 
-    for i-col in enumerate(columns).filter(i-col => i-col.at(0) in cell-cols) {
+    for i-col in columns.enumerate().filter(i-col => i-col.at(0) in cell-cols) {
         let i = i-col.at(0)
         let col = i-col.at(1)
 
@@ -179,7 +179,7 @@
     let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let last-auto-row = none
 
-    for i-row in enumerate(rows).filter(i-row => i-row.at(0) in cell-rows) {
+    for i-row in rows.enumerate().filter(i-row => i-row.at(0) in cell-rows) {
         let i = i-row.at(0)
         let row = i-row.at(1)
 
@@ -199,7 +199,7 @@
     let cell-cols = range(cell.x, cell.x + cell.colspan)
     let size = 0pt
 
-    for i-col in enumerate(columns).filter(i-col => i-col.at(0) in cell-cols) {
+    for i-col in columns.enumerate().filter(i-col => i-col.at(0) in cell-cols) {
         let i = i-col.at(0)
         let col = i-col.at(1)
 
@@ -218,7 +218,7 @@
     let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let size = 0pt
 
-    for i-row in enumerate(rows).filter(i-row => i-row.at(0) in cell-rows) {
+    for i-row in rows.enumerate().filter(i-row => i-row.at(0) in cell-rows) {
         let i = i-row.at(0)
         let row = i-row.at(1)
 
@@ -236,7 +236,7 @@
     let auto-sizes = ()
     let new-columns = columns
 
-    for i-col in enumerate(columns) {
+    for i-col in columns.enumerate() {
         let i = i-col.at(0)
         let col = i-col.at(1)
 
@@ -451,7 +451,7 @@
     let auto-sizes = ()
     let new-rows = rows
 
-    for i-row in enumerate(rows) {
+    for i-row in rows.enumerate() {
         let i = i-row.at(0)
         let row = i-row.at(1)
 

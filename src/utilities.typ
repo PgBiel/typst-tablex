@@ -88,24 +88,6 @@
     calc.max(a, b)
 }
 
-// Backwards-compatible enumerate
-#let enumerate(arr) = {
-    if type(arr) != _array-type {
-        return arr
-    }
-
-    let new-arr = ()
-    let i = 0
-
-    for x in arr {
-        new-arr.push((i, x))
-
-        i += 1
-    }
-
-    new-arr
-}
-
 // Gets the topmost parent of a line.
 #let get-top-parent(line) = {
     let previous = none

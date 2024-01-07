@@ -335,7 +335,7 @@
     }
 
     // for missing cell positions: add empty cell
-    for index-item in enumerate(grid.items) {
+    for index-item in grid.items.enumerate() {
         let index = index-item.at(0)
         let item = index-item.at(1)
         if item == none {
