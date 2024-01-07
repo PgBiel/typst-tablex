@@ -144,6 +144,10 @@
                 panic("Tablex error: 'map-rows' returned something that isn't an array.")
             }
 
+            if cells.len() != original-cells.len() {
+                panic("Tablex error: 'map-rows' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
+            }
+
             for (i, cell) in enumerate(cells) {
                 let orig-cell = original-cells.at(i)
                 if not is-tablex-cell(orig-cell) {
@@ -185,6 +189,10 @@
 
             if type(cells) != _array-type {
                 panic("Tablex error: 'map-cols' returned something that isn't an array.")
+            }
+
+            if cells.len() != original-cells.len() {
+                panic("Tablex error: 'map-cols' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
             }
 
             for (i, cell) in enumerate(cells) {
