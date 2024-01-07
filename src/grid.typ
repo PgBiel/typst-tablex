@@ -284,8 +284,7 @@
         let cell-positions = positions-spanned-by(cell, x: this-x, y: this-y, x-limit: x-limit, y-limit: none)
 
         for position in cell-positions {
-            let px = position.at(0)
-            let py = position.at(1)
+            let (px, py) = position
             let currently-there = grid-at(grid, px, py)
 
             if currently-there != none {
@@ -335,9 +334,7 @@
     }
 
     // for missing cell positions: add empty cell
-    for index-item in grid.items.enumerate() {
-        let index = index-item.at(0)
-        let item = index-item.at(1)
+    for (index, item) in grid.items.enumerate() {
         if item == none {
             grid.items.at(index) = new-empty-cell(grid, index: index)
         }

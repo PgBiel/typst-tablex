@@ -145,10 +145,7 @@
         gutter = frac-width * (gutter / 1fr)
     }
 
-    for i-size in frac-tracks {
-        let i = i-size.at(0)
-        let size = i-size.at(1)
-
+    for (i, size) in frac-tracks {
         tracks.at(i) = frac-width * (size / 1fr)
     }
 
@@ -161,11 +158,8 @@
     let cell-cols = range(cell.x, cell.x + cell.colspan)
     let last-auto-col = none
 
-    for i-col in columns.enumerate().filter(i-col => i-col.at(0) in cell-cols) {
-        let i = i-col.at(0)
-        let col = i-col.at(1)
-
-        if col == auto {
+    for (i, col) in columns.enumerate() {
+        if i in cell-cols and col == auto {
             last-auto-col = max-if-not-none(last-auto-col, i)
         }
     }
@@ -179,11 +173,8 @@
     let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let last-auto-row = none
 
-    for i-row in rows.enumerate().filter(i-row => i-row.at(0) in cell-rows) {
-        let i = i-row.at(0)
-        let row = i-row.at(1)
-
-        if row == auto {
+    for (i, row) in rows.enumerate() {
+        if i in cell-rows and row == auto {
             last-auto-row = max-if-not-none(last-auto-row, i)
         }
     }
@@ -199,11 +190,8 @@
     let cell-cols = range(cell.x, cell.x + cell.colspan)
     let size = 0pt
 
-    for i-col in columns.enumerate().filter(i-col => i-col.at(0) in cell-cols) {
-        let i = i-col.at(0)
-        let col = i-col.at(1)
-
-        if type(col) == _length-type {
+    for (i, col) in columns.enumerate() {
+        if i in cell-cols and type(col) == _length-type {
             size += col
         }
     }
@@ -218,11 +206,8 @@
     let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let size = 0pt
 
-    for i-row in rows.enumerate().filter(i-row => i-row.at(0) in cell-rows) {
-        let i = i-row.at(0)
-        let row = i-row.at(1)
-
-        if type(row) == _length-type {
+    for (i, row) in rows.enumerate() {
+        if i in cell-rows and type(row) == _length-type {
             size += row
         }
     }
@@ -236,10 +221,7 @@
     let auto-sizes = ()
     let new-columns = columns
 
-    for i-col in columns.enumerate() {
-        let i = i-col.at(0)
-        let col = i-col.at(1)
-
+    for (i, col) in columns.enumerate() {
         if col == auto {
             // max cell width
             let col-size = grid-get-column(grid, i)
@@ -451,10 +433,7 @@
     let auto-sizes = ()
     let new-rows = rows
 
-    for i-row in rows.enumerate() {
-        let i = i-row.at(0)
-        let row = i-row.at(1)
-
+    for (i, row) in rows.enumerate() {
         if row == auto {
             // max cell height
             let row-size = grid-get-row(grid, i)

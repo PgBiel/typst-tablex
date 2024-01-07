@@ -86,8 +86,7 @@
     let group-rows = row-group.rows
     let hlines = row-group.hlines
     let vlines = row-group.vlines
-    let start-y = row-group.y-span.at(0)
-    let end-y = row-group.y-span.at(1)
+    let (start-y, end-y) = row-group.y-span
 
     locate(loc => {
         // let old-page = latest-page-state.at(loc)
