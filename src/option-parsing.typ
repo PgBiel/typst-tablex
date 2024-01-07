@@ -108,17 +108,23 @@
     map-cols: none,
 ) = {
     if type(map-vlines) == _function-type {
-        vlines = vlines.map(map-vlines)
-        if vlines.any(h => not is-tablex-vline(h)) {
-            panic("'map-vlines' function returned a non-vline.")
-        }
+        vlines = vlines.map(vline => {
+            let vline = map-vlines(vline)
+            if not is-tablex-vline(vline) {
+                panic("'map-vlines' function returned a non-vline.")
+            }
+            vline
+        })
     }
 
     if type(map-hlines) == _function-type {
-        hlines = hlines.map(map-hlines)
-        if hlines.any(h => not is-tablex-hline(h)) {
-            panic("'map-hlines' function returned a non-hline.")
-        }
+        hlines = hlines.map(hline => {
+            let hline = map-hlines(hline)
+            if not is-tablex-hline(hline) {
+                panic("'map-hlines' function returned a non-hline.")
+            }
+            hline
+        })
     }
 
     let should-map-rows = type(map-rows) == _function-type
