@@ -69,8 +69,7 @@
             let row-group = this-row-group
 
             // get where the row starts and where it ends
-            let start-y = row-group.y-span.at(0)
-            let end-y = row-group.y-span.at(1)
+            let (start-y, end-y) = row-group.y-span
 
             let next-y = end-y + 1
 

@@ -154,7 +154,7 @@
                 panic("Tablex error: 'map-rows' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
             }
 
-            for (i, cell) in enumerate(cells) {
+            for (i, cell) in cells.enumerate() {
                 let orig-cell = original-cells.at(i)
                 if not is-tablex-cell(orig-cell) {
                     // only modify non-occupied cells
@@ -201,7 +201,7 @@
                 panic("Tablex error: 'map-cols' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
             }
 
-            for (i, cell) in enumerate(cells) {
+            for (i, cell) in cells.enumerate() {
                 let orig-cell = original-cells.at(i)
                 if not is-tablex-cell(orig-cell) {
                     // only modify non-occupied cells
