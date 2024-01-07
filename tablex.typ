@@ -697,7 +697,24 @@
 
 // Fetches an entire row of cells (all positions with the given y).
 #let grid-get-row(grid, y) = {
-    range(grid.width).map(x => grid-at(grid, x, y))
+    let len = grid.items.len()
+    // position of the first cell in that row.
+    let first-row-pos = grid-index-at(0, y, grid: grid)
+    if len <= first-row-pos {
+        // grid isn't large enough, so no row to return
+        (none,) * grid.width
+    } else {
+        // position right after the last cell in this row
+        let next-row-pos = first-row-pos + grid.width
+        let cell-row = grid.items.slice(first-row-pos, calc.min(len, next-row-pos))
+        let cell-row-len = cell-row.len()
+        if cell-row-len < grid.width {
+            // the row isn't complete because the grid wasn't large enough.
+            let missing-cells = (none,) * (grid.width - cell-row-len)
+            cell-row += missing-cells
+        }
+        cell-row
+    }
 }
 
 // Fetches an entire column of cells (all positions with the given x).
