@@ -363,24 +363,6 @@
     calc.max(a, b)
 }
 
-// Backwards-compatible enumerate
-#let enumerate(arr) = {
-    if type(arr) != _array-type {
-        return arr
-    }
-
-    let new-arr = ()
-    let i = 0
-
-    for x in arr {
-        new-arr.push((i, x))
-
-        i += 1
-    }
-
-    new-arr
-}
-
 // Gets the topmost parent of a line.
 #let get-top-parent(line) = {
     let previous = none
@@ -930,8 +912,7 @@
         let cell_positions = positions-spanned-by(cell, x: this_x, y: this_y, x_limit: x_limit, y_limit: none)
 
         for position in cell_positions {
-            let px = position.at(0)
-            let py = position.at(1)
+            let (px, py) = position
             let currently_there = grid-at(grid, px, py)
 
             if currently_there != none {
@@ -981,9 +962,7 @@
     }
 
     // for missing cell positions: add empty cell
-    for index_item in enumerate(grid.items) {
-        let index = index_item.at(0)
-        let item = index_item.at(1)
+    for (index, item) in grid.items.enumerate() {
         if item == none {
             grid.items.at(index) = new_empty_cell(grid, index: index)
         }
@@ -1125,7 +1104,7 @@
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
 #let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
-    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction-type)
+    let frac-tracks = tracks.enumerate().filter(t => type(t.at(1)) == _fraction-type)
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
 
@@ -1143,10 +1122,7 @@
         gutter = frac-width * (gutter / 1fr)
     }
 
-    for i_size in frac-tracks {
-        let i = i_size.at(0)
-        let size = i_size.at(1)
-
+    for (i, size) in frac-tracks {
         tracks.at(i) = frac-width * (size / 1fr)
     }
 
@@ -1156,14 +1132,11 @@
 // Gets the last (rightmost) auto column a cell is inserted in, for
 // due expansion
 #let get-colspan-last-auto-col(cell, columns: none) = {
-    let cell_cols = range(cell.x, cell.x + cell.colspan)
+    let cell-cols = range(cell.x, cell.x + cell.colspan)
     let last_auto_col = none
 
-    for i_col in enumerate(columns).filter(i_col => i_col.at(0) in cell_cols) {
-        let i = i_col.at(0)
-        let col = i_col.at(1)
-
-        if col == auto {
+    for (i, col) in columns.enumerate() {
+        if i in cell-cols and col == auto {
             last_auto_col = max-if-not-none(last_auto_col, i)
         }
     }
@@ -1174,14 +1147,11 @@
 // Gets the last (bottom-most) auto row a cell is inserted in, for
 // due expansion
 #let get-rowspan-last-auto-row(cell, rows: none) = {
-    let cell_rows = range(cell.y, cell.y + cell.rowspan)
+    let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let last_auto_row = none
 
-    for i_row in enumerate(rows).filter(i_row => i_row.at(0) in cell_rows) {
-        let i = i_row.at(0)
-        let row = i_row.at(1)
-
-        if row == auto {
+    for (i, row) in rows.enumerate() {
+        if i in cell-rows and row == auto {
             last_auto_row = max-if-not-none(last_auto_row, i)
         }
     }
@@ -1194,14 +1164,11 @@
 // Useful to subtract from the total width to find out how much more
 // should an auto column extend to have that cell fit in the table.
 #let get-colspan-fixed-size-covered(cell, columns: none) = {
-    let cell_cols = range(cell.x, cell.x + cell.colspan)
+    let cell-cols = range(cell.x, cell.x + cell.colspan)
     let size = 0pt
 
-    for i_col in enumerate(columns).filter(i_col => i_col.at(0) in cell_cols) {
-        let i = i_col.at(0)
-        let col = i_col.at(1)
-
-        if type(col) == _length-type {
+    for (i, col) in columns.enumerate() {
+        if i in cell-cols and type(col) == _length-type {
             size += col
         }
     }
@@ -1213,14 +1180,11 @@
 // Useful to subtract from the total height to find out how much more
 // should an auto row extend to have that cell fit in the table.
 #let get-rowspan-fixed-size-covered(cell, rows: none) = {
-    let cell_rows = range(cell.y, cell.y + cell.rowspan)
+    let cell-rows = range(cell.y, cell.y + cell.rowspan)
     let size = 0pt
 
-    for i_row in enumerate(rows).filter(i_row => i_row.at(0) in cell_rows) {
-        let i = i_row.at(0)
-        let row = i_row.at(1)
-
-        if type(row) == _length-type {
+    for (i, row) in rows.enumerate() {
+        if i in cell-rows and type(row) == _length-type {
             size += row
         }
     }
@@ -1234,10 +1198,7 @@
     let auto_sizes = ()
     let new_columns = columns
 
-    for i_col in enumerate(columns) {
-        let i = i_col.at(0)
-        let col = i_col.at(1)
-
+    for (i, col) in columns.enumerate() {
         if col == auto {
             // max cell width
             let col_size = grid-get-column(grid, i)
@@ -1449,10 +1410,7 @@
     let auto_sizes = ()
     let new_rows = rows
 
-    for i_row in enumerate(rows) {
-        let i = i_row.at(0)
-        let row = i_row.at(1)
-
+    for (i, row) in rows.enumerate() {
         if row == auto {
             // max cell height
             let row_size = grid-get-row(grid, i)
@@ -2022,8 +1980,7 @@
     let group-rows = row-group.rows
     let hlines = row-group.hlines
     let vlines = row-group.vlines
-    let start-y = row-group.y_span.at(0)
-    let end-y = row-group.y_span.at(1)
+    let (start-y, end-y) = row-group.y_span
 
     locate(loc => {
         // let old_page = latest-page-state.at(loc)
@@ -2316,11 +2273,10 @@
         if row_group_add_counter <= 0 and header_rows_count <= 0 {
             row_group_add_counter = 1
 
-            let row_group = this_row_group
+            let row-group = this_row_group
 
             // get where the row starts and where it ends
-            let start_y = row_group.y_span.at(0)
-            let end_y = row_group.y_span.at(1)
+            let (start_y, end_y) = row-group.y_span
 
             let next_y = end_y + 1
 
@@ -2328,7 +2284,7 @@
 
             let is_header = first_row_group == none
             let content = draw-row-group(
-                row_group,
+                row-group,
                 is-header: is_header,
                 header-pages-state: header_pages,
                 first-row-group: first_row_group,
@@ -2348,7 +2304,7 @@
             )
 
             if is_header {  // this is now the header group.
-                first_row_group = (row_group: row_group, content: content)  // 'content' to repeat later
+                first_row_group = (row_group: row-group, content: content)  // 'content' to repeat later
             }
 
             (content,)
@@ -2506,7 +2462,7 @@
                 panic("Tablex error: 'map-rows' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
             }
 
-            for (i, cell) in enumerate(cells) {
+            for (i, cell) in cells.enumerate() {
                 let orig-cell = original-cells.at(i)
                 if not is-tablex-cell(orig-cell) {
                     // only modify non-occupied cells
@@ -2555,7 +2511,7 @@
                 panic("Tablex error: 'map-cols' returned " + str(cells.len()) + " cells, when it should have returned exactly " + str(original-cells.len()) + ".")
             }
 
-            for (i, cell) in enumerate(cells) {
+            for (i, cell) in cells.enumerate() {
                 let orig-cell = original-cells.at(i)
                 if not is-tablex-cell(orig-cell) {
                     // only modify non-occupied cells
