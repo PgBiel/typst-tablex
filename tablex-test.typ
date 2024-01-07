@@ -800,7 +800,7 @@ Combining em and pt (with a stroke object):
             frac-total: frac-total,
         )
 
-        assert(type(actual) == _length_type)
+        assert(type(actual) == _length-type)
         assert(expected == actual)
     })
 }
@@ -870,7 +870,7 @@ Combining em and pt (with a stroke object):
             styles: styles,
         )
 
-        assert(type(actual) == _length_type)
+        assert(type(actual) == _length-type)
 
         // Re-assign so we can modify the variable
         let expected = expected

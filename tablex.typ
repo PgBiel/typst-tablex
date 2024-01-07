@@ -28,27 +28,27 @@
 
 // get the types of things so we can compare with them
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
-#let _array_type = type(())
-#let _dict_type = type((a: 5))
-#let _bool_type = type(true)
-#let _str_type = type("")
-#let _color_type = type(red)
-#let _stroke_type = type(red + 5pt)
-#let _length_type = type(5pt)
-#let _rel_len_type = type(100% + 5pt)
-#let _ratio_type = type(100%)
-#let _int_type = type(5)
-#let _float_type = type(5.0)
-#let _fraction_type = type(5fr)
-#let _function_type = type(x => x)
-#let _content_type = type([])
+#let _array-type = type(())
+#let _dict-type = type((a: 5))
+#let _bool-type = type(true)
+#let _str-type = type("")
+#let _color-type = type(red)
+#let _stroke-type = type(red + 5pt)
+#let _length-type = type(5pt)
+#let _rel-len-type = type(100% + 5pt)
+#let _ratio-type = type(100%)
+#let _int-type = type(5)
+#let _float-type = type(5.0)
+#let _fraction-type = type(5fr)
+#let _function-type = type(x => x)
+#let _content-type = type([])
 // note: since 0.8.0, alignment and 2d alignment are the same
 // but keep it like this for pre-0.8.0
-#let _align_type = type(left)
-#let _2d_align_type = type(top + left)
+#let _align-type = type(left)
+#let _2d-align-type = type(top + left)
 
 // If types aren't strings, this means we're using 0.8.0+.
-#let using-typst-v080-or-later = str(type(_str_type)) == "type"
+#let using-typst-v080-or-later = str(type(_str-type)) == "type"
 
 // This is true if types have fields in the current Typst version.
 // This means we can use stroke.thickness, length.em, and so on.
@@ -127,7 +127,7 @@
 
 // Is this a valid dict created by this library?
 #let is-tablex-dict(x) = (
-    type(x) == _dict_type
+    type(x) == _dict-type
         and "tablex-dict-type" in x
 )
 
@@ -143,11 +143,11 @@
 #let is-tablex-occupied(x) = is-tablex-dict-type(x, "occupied")
 
 #let table-item-convert(item, keep_empty: true) = {
-    if type(item) == _function_type {  // dynamic cell content
+    if type(item) == _function-type {  // dynamic cell content
         cellx(item)
     } else if keep_empty and item == () {
         item
-    } else if type(item) != _dict_type or "tablex-dict-type" not in item {
+    } else if type(item) != _dict-type or "tablex-dict-type" not in item {
         cellx[#item]
     } else {
         item
@@ -186,7 +186,7 @@
         .filter(c => c.y != auto)
         .fold(0, (acc, cell) => {
             if (is-tablex-cell(cell)
-                    and type(cell.y) in (_int_type, _float_type)
+                    and type(cell.y) in (_int-type, _float-type)
                     and cell.y > acc) {
                 cell.y
             } else {
@@ -198,7 +198,7 @@
         if is-tablex-cell(item) and item.x == auto and item.y == auto {
             // cell occupies (colspan * rowspan) spaces
             len += item.colspan * item.rowspan
-        } else if type(item) == _content_type {
+        } else if type(item) == _content-type {
             len += 1
         }
     }
@@ -214,31 +214,31 @@
 
 // Check if this length is infinite.
 #let is-infinite-len(len) = {
-    type(len) in (_ratio_type, _fraction_type, _rel_len_type, _length_type) and "inf" in repr(len)
+    type(len) in (_ratio-type, _fraction-type, _rel-len-type, _length-type) and "inf" in repr(len)
 }
 
 // Check if this is a valid color (color, gradient or pattern).
 #let is-color(val) = {
-    type(val) == _color_type or str(type(val)) in ("gradient", "pattern")
+    type(val) == _color-type or str(type(val)) in ("gradient", "pattern")
 }
 
 #let validate-cols-rows(columns, rows, items: ()) = {
-    if type(columns) == _int_type {
+    if type(columns) == _int-type {
         assert(columns >= 0, message: "Error: Cannot have a negative amount of columns.")
 
         columns = (auto,) * columns
     }
 
-    if type(rows) == _int_type {
+    if type(rows) == _int-type {
         assert(rows >= 0, message: "Error: Cannot have a negative amount of rows.")
         rows = (auto,) * rows
     }
 
-    if type(columns) != _array_type {
+    if type(columns) != _array-type {
         columns = (columns,)
     }
 
-    if type(rows) != _array_type {
+    if type(rows) != _array-type {
         rows = (rows,)
     }
 
@@ -254,7 +254,7 @@
 
     let col_row_is_valid(col_row) = (
         (not is-infinite-len(col_row)) and (col_row == auto or type(col_row) in (
-            _fraction_type, _length_type, _rel_len_type, _ratio_type
+            _fraction-type, _length-type, _rel-len-type, _ratio-type
             ))
     )
 
@@ -365,7 +365,7 @@
 
 // Backwards-compatible enumerate
 #let enumerate(arr) = {
-    if type(arr) != _array_type {
+    if type(arr) != _array-type {
         return arr
     }
 
@@ -399,9 +399,9 @@
 // regex alternation to match either of those.
 #let NUMBER-REGEX-STRING = "(?:−|-)?\\d*\\.?\\d+"
 
-// Check if the given length has type '_length_type' and no 'em' component.
+// Check if the given length has type '_length-type' and no 'em' component.
 #let is-purely-pt-len(len) = {
-    type(len) == _length_type and "em" not in repr(len)
+    type(len) == _length-type and "em" not in repr(len)
 }
 
 // Measure a length in pt by drawing a line and using the measure() function.
@@ -558,8 +558,8 @@
     }
 
     // The length part is the pt part + em part.
-    // Note: we cannot use `len - ratio-part` as that returns a `_rel_len_type` value,
-    // not a `_length_type` value.
+    // Note: we cannot use `len - ratio-part` as that returns a `_rel-len-type` value,
+    // not a `_length-type` value.
     let length-part-pt = convert-length-type-to-pt(pt-part + em-part, styles: styles)
 
     ratio-part-pt + length-part-pt
@@ -579,13 +579,13 @@
 
     if is-infinite-len(len) {
         0pt  // avoid the destruction of the universe
-    } else if type(len) == _length_type {
+    } else if type(len) == _length-type {
         convert-length-type-to-pt(len, styles: styles)
-    } else if type(len) == _ratio_type {
+    } else if type(len) == _ratio-type {
         convert-ratio-type-to-pt(len, page-size)
-    } else if type(len) == _fraction_type {
+    } else if type(len) == _fraction-type {
         convert-fraction-type-to-pt(len, frac-amount, frac-total)
-    } else if type(len) == _rel_len_type {
+    } else if type(len) == _rel-len-type {
         convert-relative-type-to-pt(len, styles, page-size: page-size)
     } else {
         panic("Cannot convert '" + type(len) + "' to length.")
@@ -596,13 +596,13 @@
 #let stroke-len(stroke, stroke-auto: 1pt, styles: none) = {
     let no-ratio-error = "Tablex error: Stroke cannot be a ratio or relative length (i.e. have a percentage like '53%'). Try using the layout() function (or similar) to convert the percentage to 'pt' instead."
     let stroke = default-if-auto(stroke, stroke-auto)
-    if type(stroke) == _length_type {
+    if type(stroke) == _length-type {
         convert-length-to-pt(stroke, styles: styles)
-    } else if type(stroke) in (_rel_len_type, _ratio_type) {
+    } else if type(stroke) in (_rel-len-type, _ratio-type) {
         panic(no-ratio-error)
     } else if is-color(stroke) {
         1pt
-    } else if type(stroke) == _stroke_type {
+    } else if type(stroke) == _stroke-type {
         if typst-fields-supported {
             // No need for any repr() parsing, just use the thickness field.
             let thickness = default-if-auto(stroke.thickness, 1pt)
@@ -632,19 +632,19 @@
             1pt  // okay it's probably just a color then
         } else {
             let len = eval(s)
-            if type(len) == _length_type {
+            if type(len) == _length-type {
                 convert-length-to-pt(len, styles: styles)
-            } else if type(len) in (_rel_len_type, _ratio_type) {
+            } else if type(len) in (_rel-len-type, _ratio-type) {
                 panic(no-ratio-error)
             } else {
                 1pt  // should be unreachable
             }
         }
-    } else if type(stroke) == _dict_type and "thickness" in stroke {
+    } else if type(stroke) == _dict-type and "thickness" in stroke {
         let thickness = stroke.thickness
-        if type(thickness) == _length_type {
+        if type(thickness) == _length-type {
             convert-length-to-pt(thickness, styles: styles)
-        } else if type(thickness) in (_rel_len_type, _ratio_type) {
+        } else if type(thickness) in (_rel-len-type, _ratio-type) {
             panic(no-ratio-error)
         } else {
             1pt
@@ -812,7 +812,7 @@
         let item = items.at(i)
 
         // allow specifying () to change vline position
-        if type(item) == _array_type and item.len() == 0 {
+        if type(item) == _array-type and item.len() == 0 {
             if x == 0 and y == 0 {  // increment vline's secondary counter
                 prev_x += 1
             }
@@ -880,7 +880,7 @@
         cell.x = this_x
         cell.y = this_y
 
-        if type(map-cells) == _function_type {
+        if type(map-cells) == _function-type {
             cell = table-item-convert(map-cells(cell))
         }
 
@@ -891,7 +891,7 @@
         }
 
         let content = cell.content
-        let content = if type(content) == _function_type {
+        let content = if type(content) == _function-type {
             let res = content(this_x, this_y)
             if is-tablex-cell(res) {
                 cell = res
@@ -909,7 +909,7 @@
             panic("Error: Cell with function as content returned another cell with 'none' as x or y!")
         }
 
-        if type(this_x) != _int_type or type(this_y) != _int_type {
+        if type(this_x) != _int-type or type(this_y) != _int-type {
             panic("Error: Cell coordinates must be integers. Invalid pair: " + repr((this_x, this_y)))
         }
 
@@ -1019,13 +1019,13 @@
         align_default: left,
         fill_default: none) = {
 
-    let align_default = if type(align_default) == _function_type {
+    let align_default = if type(align_default) == _function-type {
         align_default(cell.x, cell.y)  // column, row
     } else {
         align_default
     }
 
-    let fill_default = if type(fill_default) == _function_type {
+    let fill_default = if type(fill_default) == _function-type {
         fill_default(cell.x, cell.y)  // row, column
     } else {
         fill_default
@@ -1043,7 +1043,7 @@
     // same here for fill
     let cell_fill = default-if-auto(cell.fill, fill_default)
 
-    if type(cell_fill) == _array_type {
+    if type(cell_fill) == _array-type {
         let fill_len = cell_fill.len()
 
         if fill_len == 0 {
@@ -1067,7 +1067,7 @@
         panic("Tablex error: Invalid fill specified (must be either a function (column, row) -> fill, a color, an array of valid fill values, or 'none').")
     }
 
-    if type(cell_align) == _array_type {
+    if type(cell_align) == _array-type {
         let align_len = cell_align.len()
 
         if align_len == 0 {
@@ -1087,7 +1087,7 @@
         }
     }
 
-    if cell_align != auto and type(cell_align) not in (_align_type, _2d_align_type) {
+    if cell_align != auto and type(cell_align) not in (_align-type, _2d-align-type) {
         panic("Tablex error: Invalid alignment specified (must be either a function (column, row) -> alignment, an alignment value - such as 'left' or 'center + top' -, an array of alignment values (one for each column), or 'auto').")
     }
 
@@ -1114,7 +1114,7 @@
 // (auto, 1fr, ...) is ignored.
 #let sum-fixed-size-tracks(tracks) = {
     tracks.fold(0pt, (acc, el) => {
-        if type(el) == _length_type {
+        if type(el) == _length-type {
             acc + el
         } else {
             acc
@@ -1125,11 +1125,11 @@
 // Calculate the size of fraction tracks (cols/rows) (1fr, 2fr, ...),
 // based on the remaining sizes (after fixed-size and auto columns)
 #let determine-frac-tracks(tracks, remaining: 0pt, gutter: none) = {
-    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction_type)
+    let frac-tracks = enumerate(tracks).filter(t => type(t.at(1)) == _fraction-type)
 
     let amount-frac = frac-tracks.fold(0, (acc, el) => acc + (el.at(1) / 1fr))
 
-    if type(gutter) == _fraction_type {
+    if type(gutter) == _fraction-type {
         amount-frac += (gutter / 1fr) * (tracks.len() - 1)
     }
 
@@ -1139,7 +1139,7 @@
         0pt
     }
 
-    if type(gutter) == _fraction_type {
+    if type(gutter) == _fraction-type {
         gutter = frac-width * (gutter / 1fr)
     }
 
@@ -1201,7 +1201,7 @@
         let i = i_col.at(0)
         let col = i_col.at(1)
 
-        if type(col) == _length_type {
+        if type(col) == _length-type {
             size += col
         }
     }
@@ -1220,7 +1220,7 @@
         let i = i_row.at(0)
         let row = i_row.at(1)
 
-        if type(row) == _length_type {
+        if type(row) == _length-type {
             size += row
         }
     }
@@ -1365,7 +1365,7 @@
 
 #let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
     let columns = columns.map(c => {
-        if type(c) in (_length_type, _rel_len_type, _ratio_type) {
+        if type(c) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(c, styles: styles, page-size: page_width)
         } else if c == none {
             0pt
@@ -1376,7 +1376,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(col-gutter) == _length_type {
+    let fixed-size-gutter = if type(col-gutter) == _length-type {
         col-gutter
     } else {
         0pt
@@ -1415,7 +1415,7 @@
             }
 
             columns = columns.map(c => {
-                if type(c) == _fraction_type {
+                if type(c) == _fraction-type {
                     0pt  // no space left to be divided
                 } else {
                     c
@@ -1424,7 +1424,7 @@
         }
     } else {
         columns = columns.map(c => {
-            if c == auto or type(c) == _fraction_type {
+            if c == auto or type(c) == _fraction-type {
                 0pt  // no space remaining!
             } else {
                 c
@@ -1508,7 +1508,7 @@
 
 #let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
     let rows = rows.map(r => {
-        if type(r) in (_length_type, _rel_len_type, _ratio_type) {
+        if type(r) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(r, styles: styles, page-size: page_height)
         } else {
             r
@@ -1524,7 +1524,7 @@
 
     // what is the fixed size of the gutter?
     // (calculate it later if it's fractional)
-    let fixed-size-gutter = if type(row-gutter) == _length_type {
+    let fixed-size-gutter = if type(row-gutter) == _length-type {
         row-gutter
     } else {
         0pt
@@ -1541,7 +1541,7 @@
     } else {
         (
             rows: rows.map(r => {
-                if type(r) == _fraction_type {  // no space remaining in this page or box
+                if type(r) == _fraction-type {  // no space remaining in this page or box
                     0pt
                 } else {
                     r
@@ -1782,7 +1782,7 @@
 #let parse-stroke(stroke) = {
     if is-color(stroke) {
         stroke + 1pt
-    } else if type(stroke) in (_length_type, _rel_len_type, _ratio_type, _stroke_type, _dict_type) or stroke in (none, auto) {
+    } else if type(stroke) in (_length-type, _rel-len-type, _ratio-type, _stroke-type, _dict-type) or stroke in (none, auto) {
         stroke
     } else {
         panic("Invalid stroke '" + repr(stroke) + "'.")
@@ -1797,7 +1797,7 @@
     if line.expand in (none, (none, none), auto, (auto, auto)) {
         return (none, none)
     }
-    if type(line.expand) != _array_type {
+    if type(line.expand) != _array-type {
         line.expand = (line.expand, line.expand)
     }
 
@@ -2050,7 +2050,7 @@
             if page_turned and at_top and not is-header {
                 if repeat-header != false {
                     header-pages-state.update(l => l + (page,))
-                    if (repeat-header == true) or (type(repeat-header) == _int_type and rel_page <= repeat-header) or (type(repeat-header) == _array_type and rel_page in repeat-header) {
+                    if (repeat-header == true) or (type(repeat-header) == _int-type and rel_page <= repeat-header) or (type(repeat-header) == _array-type and rel_page in repeat-header) {
                         let measures = measure(first-row-group.content, styles)
                         place(top+left, first-row-group.content)  // add header
                         added_header_height = measures.height
@@ -2371,7 +2371,7 @@
     let parse-func(line, page-size: none) = {
         line.stroke-expand = line.stroke-expand == true
         line.expand = default-if-auto(line.expand, none)
-        if type(line.expand) != _array_type and line.expand != none {
+        if type(line.expand) != _array-type and line.expand != none {
             line.expand = (line.expand, line.expand)
         }
         line.expand = if line.expand == none {
@@ -2382,7 +2382,7 @@
                     e
                 } else {
                     e = default-if-auto(e, 0pt)
-                    if type(e) not in (_length_type, _rel_len_type, _ratio_type) {
+                    if type(e) not in (_length-type, _rel-len-type, _ratio-type) {
                         panic("'expand' argument to lines must be a pair (length, length).")
                     }
 
@@ -2430,11 +2430,11 @@
     col-gutter = default-if-auto(col-gutter, 0pt)
     row-gutter = default-if-auto(row-gutter, 0pt)
 
-    if type(col-gutter) in (_length_type, _rel_len_type, _ratio_type) {
+    if type(col-gutter) in (_length-type, _rel-len-type, _ratio-type) {
         col-gutter = convert-length-to-pt(col-gutter, styles: styles, page-size: page-width)
     }
 
-    if type(row-gutter) in (_length_type, _rel_len_type, _ratio_type) {
+    if type(row-gutter) in (_length-type, _rel-len-type, _ratio-type) {
         row-gutter = convert-length-to-pt(row-gutter, styles: styles, page-size: page-width)
     }
 
@@ -2443,7 +2443,7 @@
 
 // Accepts a map-X param, and verifies whether it's a function or none/auto.
 #let validate-map-func(map-func) = {
-    if map-func not in (none, auto) and type(map-func) != _function_type {
+    if map-func not in (none, auto) and type(map-func) != _function-type {
         panic("Tablex error: Map parameters, if specified (not 'none'), must be functions.")
     }
 
@@ -2459,7 +2459,7 @@
     map-rows: none,
     map-cols: none,
 ) = {
-    if type(map-vlines) == _function_type {
+    if type(map-vlines) == _function-type {
         vlines = vlines.map(vline => {
             let vline = map-vlines(vline)
             if not is-tablex-vline(vline) {
@@ -2469,7 +2469,7 @@
         })
     }
 
-    if type(map-hlines) == _function_type {
+    if type(map-hlines) == _function-type {
         hlines = hlines.map(hline => {
             let hline = map-hlines(hline)
             if not is-tablex-hline(hline) {
@@ -2479,8 +2479,8 @@
         })
     }
 
-    let should-map-rows = type(map-rows) == _function_type
-    let should-map-cols = type(map-cols) == _function_type
+    let should-map-rows = type(map-rows) == _function-type
+    let should-map-cols = type(map-cols) == _function-type
 
     if not should-map-rows and not should-map-cols {
         return (grid: grid, hlines: hlines, vlines: vlines)
@@ -2498,7 +2498,7 @@
                 if is-tablex-occupied(c) { none } else { c }
             }))
 
-            if type(cells) != _array_type {
+            if type(cells) != _array-type {
                 panic("Tablex error: 'map-rows' returned something that isn't an array.")
             }
 
@@ -2520,7 +2520,7 @@
                 let x = cell.x
                 let y = cell.y
 
-                if type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col-len or y >= row-len {
+                if type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len {
                     panic("Tablex error: 'map-rows' returned a cell with invalid coordinates.")
                 }
 
@@ -2547,7 +2547,7 @@
                 if is-tablex-occupied(c) { none } else { c }
             }))
 
-            if type(cells) != _array_type {
+            if type(cells) != _array-type {
                 panic("Tablex error: 'map-cols' returned something that isn't an array.")
             }
 
@@ -2569,7 +2569,7 @@
                 let x = cell.x
                 let y = cell.y
 
-                if type(x) != _int_type or type(y) != _int_type or x < 0 or y < 0 or x >= col-len or y >= row-len {
+                if type(x) != _int-type or type(y) != _int-type or x < 0 or y < 0 or x >= col-len or y >= row-len {
                     panic("Tablex error: 'map-cols' returned a cell with invalid coordinates.")
                 }
                 if x != column {
@@ -2591,7 +2591,7 @@
 #let validate-header-rows(header-rows) = {
     header-rows = default-if-auto(default-if-none(header-rows, 0), 1)
 
-    if type(header-rows) != _int_type or header-rows < 0 {
+    if type(header-rows) != _int-type or header-rows < 0 {
         panic("Tablex error: 'header-rows' must be a (positive) integer.")
     }
 
@@ -2605,9 +2605,9 @@
 
     repeat-header = default-if-auto(default-if-none(repeat-header, false), false)
 
-    if type(repeat-header) not in (_bool_type, _int_type, _array_type) {
+    if type(repeat-header) not in (_bool-type, _int-type, _array-type) {
         panic("Tablex error: 'repeat-header' must be a boolean (true - always repeat the header, false - never), an integer (amount of pages for which to repeat the header), or an array of integers (relative pages in which the header should repeat).")
-    } else if type(repeat-header) == _array_type and repeat-header.any(i => type(i) != _int_type) {
+    } else if type(repeat-header) == _array-type and repeat-header.any(i => type(i) != _int-type) {
         panic("Tablex error: 'repeat-header' cannot be an array of anything other than integers!")
     }
 
@@ -2619,7 +2619,7 @@
 ) = {
     header-hlines-have-priority = default-if-auto(default-if-none(header-hlines-have-priority, true), true)
 
-    if type(header-hlines-have-priority) != _bool_type {
+    if type(header-hlines-have-priority) != _bool-type {
         panic("Tablex error: 'header-hlines-have-priority' option must be a boolean.")
     }
 
