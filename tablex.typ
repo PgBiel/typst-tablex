@@ -8,24 +8,6 @@
 
 // -- compat --
 
-#let calc-mod(a, b) = {
-  calc.floor(a) - calc.floor(b * calc.floor(a / b))
-}
-
-// Returns the sign of the operand.
-// -1 for negative, 1 for positive or zero.
-#let calc-sign(x) = {
-  // For positive: true - false = 1 - 0 = 1
-  // For zero: true - false = 1 - 0 = 1
-  // For negative: false - true = 0 - 1 = -1
-  int(0 <= x) - int(x < 0)
-}
-
-// Polyfill for array sum (.sum() is Typst 0.3.0+).
-#let array-sum(arr, zero: 0) = {
-  arr.fold(zero, (a, x) => a + x)
-}
-
 // get the types of things so we can compare with them
 // (0.2.0-0.7.0: they're strings; 0.8.0+: they're proper types)
 #let _array-type = type(())
@@ -50,9 +32,37 @@
 // If types aren't strings, this means we're using 0.8.0+.
 #let using-typst-v080-or-later = str(type(_str-type)) == "type"
 
+// Attachments use "t" and "b" instead of "top" and "bottom" since v0.3.0.
+#let using-typst-v030-or-later = using-typst-v080-or-later or $a^b$.body.has("t")
+
 // This is true if types have fields in the current Typst version.
 // This means we can use stroke.thickness, length.em, and so on.
 #let typst-fields-supported = using-typst-v080-or-later
+
+// This is true if calc.rem exists in the current Typst version.
+// Otherwise, we use a polyfill.
+#let typst-calc-rem-supported = using-typst-v030-or-later
+
+// Remainder operation.
+#let calc-mod = if typst-calc-rem-supported {
+  calc.rem
+} else {
+  (a, b) => calc.floor(a) - calc.floor(b * calc.floor(a / b))
+}
+
+// Returns the sign of the operand.
+// -1 for negative, 1 for positive or zero.
+#let calc-sign(x) = {
+  // For positive: true - false = 1 - 0 = 1
+  // For zero: true - false = 1 - 0 = 1
+  // For negative: false - true = 0 - 1 = -1
+  int(0 <= x) - int(x < 0)
+}
+
+// Polyfill for array sum (.sum() is Typst 0.3.0+).
+#let array-sum(arr, zero: 0) = {
+  arr.fold(zero, (a, x) => a + x)
+}
 
 // ------------
 
