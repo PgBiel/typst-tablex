@@ -115,7 +115,7 @@
 // ignore the size of rowspans.
 // This setting is mostly useful when you have a colspan or a rowspan spanning
 // tracks with fractional (1fr, 2fr, ...) size, which can cause the fractional
-// track to have less or even zero width, compromising all other cells in it.
+// track to have less or even zero size, compromising all other cells in it.
 // If you're facing this problem, you may want experiment with setting this
 // option to '(x: true)' (if this is affecting columns) or 'true' (for rows
 // too, same as '(x: true, y: true)').
