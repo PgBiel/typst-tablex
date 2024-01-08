@@ -1350,3 +1350,36 @@ _For issue \#56_
         [A], [BC], [D],
         [A], [BC], [D]
     )
+
+
+#set page(height: auto, width: auto)
+
+Ensure the heuristic doesn't apply on auto width pages.
+Second table should have a longer second column.
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    colspanx(3)[Hello world! Hello!],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
+
+#tablex(
+    columns: (auto, auto, 1fr),
+    fit-spans: (x: true),
+    colspanx(3)[Hello world! Hello!],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D],
+    [A], [BC], [D]
+)
