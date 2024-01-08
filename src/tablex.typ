@@ -117,8 +117,8 @@
 // tracks with fractional (1fr, 2fr, ...) size, which can cause the fractional
 // track to have less or even zero width, compromising all other cells in it.
 // If you're facing this problem, you may want experiment with setting this
-// option to '(y: true)' (if this is affecting columns) or 'true' (for rows
-// too).
+// option to '(x: true)' (if this is affecting columns) or 'true' (for rows
+// too, same as '(x: true, y: true)').
 // Note that this option can also be set in a per-cell basis through cellx().
 // See its reference for more information.
 //
