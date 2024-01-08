@@ -147,7 +147,7 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate-grid(items, x-limit: 0, y-limit: 0, map-cells: none) = {
+#let generate-grid(items, x-limit: 0, y-limit: 0, map-cells: none, fit-spans: none) = {
     // init grid as a matrix
     // y-limit  x   x-limit
     let grid = create-grid(x-limit, y-limit)
@@ -285,6 +285,16 @@
         }
 
         cell.content = content
+
+        // resolve 'fit-spans' option for this cell
+        if "fit-spans" in cell {
+            if cell.fit-spans in (none, auto) {
+                // remove fit-spans when it should be inherited
+                let _ = cell.remove("fit-spans")
+            } else {
+                cell.fit-spans = validate-fit-spans(cell.fit-spans, default: fit-spans, error-prefix: "At cell (" + str(this-x) + ", " + str(this-y) + "):")
+            }
+        }
 
         // up to which 'y' does this cell go
         let max-x = this-x + cell.colspan - 1

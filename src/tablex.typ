@@ -183,7 +183,8 @@
     let grid-info = generate-grid(
         items,
         x-limit: col-len, y-limit: row-len,
-        map-cells: map-cells
+        map-cells: map-cells,
+        fit-spans: fit-spans
     )
 
     let table-grid = grid-info.grid
