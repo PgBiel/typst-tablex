@@ -259,7 +259,8 @@
             styles: styles,
             columns: columns, rows: rows,
             inset: inset, align: align,
-            gutter: gutter
+            gutter: gutter,
+            fit-spans: fit-spans
         )
 
         let columns = updated-cols-rows.columns
