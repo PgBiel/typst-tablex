@@ -1167,14 +1167,128 @@ Combining em and pt (with a stroke object):
   [lorem_ipsum_dolor_sit_amet], [lorem], [lorem_ipsum_dolor_sit_amet_consectetur_adipisici], [lorem],
 )
 
-*Rowspans with 1fr and auto using 'fit-spans' (Issues \#56 and \#78)*
+*Rowspans spanning 1fr and auto with 'fit-spans'*
 
-#[
 #let unbreakable-tablex(..args) = block(breakable: false, tablex(..args))
+
+- Normal sizes:
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr, 1fr),
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E]
+    )
+
+- With colspan over auto and 1fr (but not all fractional columns):
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr, 1fr),
+        colspanx(3)[Hello world! Hello!], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E]
+    )
+
+- Using `fit-spans`, column sizes should be identical to the first table (in all three below):
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr, 1fr),
+        fit-spans: (x: true),
+        colspanx(3)[Hello world! Hello!], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr, 1fr),
+        fit-spans: true,
+        colspanx(3)[Hello world! Hello!], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr, 1fr),
+        colspanx(3, fit-spans: (x: true))[Hello world! Hello!], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E],
+        [A], [BC], [D], [E]
+    )
+
+*Other `fit-spans` tests*
+
+1. Columns
+
+    #unbreakable-tablex(
+        columns: 4,
+        [A], [B], [C], [D],
+    )
+
+    #unbreakable-tablex(
+        columns: 4,
+        colspanx(4, lorem(20)),
+        [A], [B], [C], [D],
+    )
+
+    #unbreakable-tablex(
+        columns: 4,
+        fit-spans: (x: true),
+        colspanx(4, lorem(20)),
+        [A], [B], [C], [D],
+    )
+
+    #unbreakable-tablex(
+        columns: 4,
+        fit-spans: true,
+        colspanx(4, lorem(20)),
+        [A], [B], [C], [D],
+    )
+
+2. Rows
+
+    #unbreakable-tablex(
+        columns: (auto, 4em),
+        [A], [B],
+        [C], [B],
+        [D], [E]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, 4em),
+        [A], rowspanx(2, line(start: (0pt, 0pt), end: (0pt, 6em))),
+        [C], (),
+        [D], [E]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, 4em),
+        fit-spans: (y: true),
+        [A], rowspanx(2, line(start: (0pt, 0pt), end: (0pt, 6em))),
+        [C], (),
+        [D], [E #v(2em)]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, 4em),
+        fit-spans: true,
+        [A], rowspanx(2, line(start: (0pt, 0pt), end: (0pt, 6em))),
+        [C], (),
+        [D], [E #v(2em)]
+    )
+
+*Rowspans spanning all fractional columns and auto (Issues \#56 and \#78)*
 
 _For issue \#78_
 
-- Table is normal:
+- Columns should have the same size in all samples below:
 
     #unbreakable-tablex(
         columns: (1fr, 1fr, auto, auto, auto),
@@ -1184,8 +1298,6 @@ _For issue \#78_
         cellx(colspan: 2)[#lorem(10)], none, none, none,
         [a], [b], [c], [d], [e],
     )
-
-- Table has overlap:
 
     #unbreakable-tablex(
         columns: (1fr, 1fr, auto, auto, auto),
@@ -1196,8 +1308,6 @@ _For issue \#78_
         [a], [b], [c], [d], [e],
         cellx(colspan: 3)[#lorem(15)], none, none,
     )
-
-- Table no longer has overlap:
 
     #unbreakable-tablex(
         columns: (1fr, 1fr, auto, auto, auto),
@@ -1212,7 +1322,7 @@ _For issue \#78_
 
 _For issue \#56_
 
-- Table is normal:
+- Columns should have the same size in all samples below:
 
     #unbreakable-tablex(
         columns: (auto, auto, 1fr),
@@ -1221,8 +1331,6 @@ _For issue \#56_
         [A], [BC], [D],
         [A], [BC], [D]
     )
-
-- Second column too large:
 
     #unbreakable-tablex(
         columns: (auto, auto, 1fr),
@@ -1232,8 +1340,6 @@ _For issue \#56_
         [A], [BC], [D],
         [A], [BC], [D]
     )
-
-- Second column is now normal:
 
     #unbreakable-tablex(
         columns: (auto, auto, 1fr),
@@ -1244,23 +1350,3 @@ _For issue \#56_
         [A], [BC], [D],
         [A], [BC], [D]
     )
-
-    #unbreakable-tablex(
-        columns: (auto, auto, 1fr),
-        fit-spans: true,
-        colspanx(3)[Hello world! Hello!],
-        [A], [BC], [D],
-        [A], [BC], [D],
-        [A], [BC], [D],
-        [A], [BC], [D]
-    )
-
-    #unbreakable-tablex(
-        columns: (auto, auto, 1fr),
-        colspanx(3, fit-spans: (x: true))[Hello world! Hello!],
-        [A], [BC], [D],
-        [A], [BC], [D],
-        [A], [BC], [D],
-        [A], [BC], [D]
-    )
-]
