@@ -287,13 +287,10 @@
         cell.content = content
 
         // resolve 'fit-spans' option for this cell
-        if "fit-spans" in cell {
-            if cell.fit-spans in (none, auto) {
-                // remove fit-spans when it should be inherited
-                let _ = cell.remove("fit-spans")
-            } else {
-                cell.fit-spans = validate-fit-spans(cell.fit-spans, default: fit-spans, error-prefix: "At cell (" + str(this-x) + ", " + str(this-y) + "):")
-            }
+        if "fit-spans" not in cell {
+            cell.fit-spans = auto
+        } else if cell.fit-spans != auto {
+            cell.fit-spans = validate-fit-spans(cell.fit-spans, default: fit-spans, error-prefix: "At cell (" + str(this-x) + ", " + str(this-y) + "):")
         }
 
         // up to which 'y' does this cell go
