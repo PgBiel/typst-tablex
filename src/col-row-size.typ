@@ -215,7 +215,7 @@
 }
 
 // calculate the size of auto columns (based on the max width of their cells)
-#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto) = {
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto, fit-spans: none) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
     let total-auto-size = 0pt
     let auto-sizes = ()
@@ -233,10 +233,20 @@
                     let pcell = get-parent-cell(cell, grid: grid)  // in case this is a colspan
                     let last-auto-col = get-colspan-last-auto-col(pcell, columns: columns)
 
+                    let fit-this-span = if "fit-spans" in pcell and pcell.fit-spans != auto {
+                        pcell.fit-spans.x
+                    } else {
+                        fit-spans.x
+                    }
+                    let this-cell-can-expand-columns = pcell.colspan == 1 or not fit-this-span
+
                     // only expand the last auto column of a colspan,
                     // and only the amount necessary that isn't already
                     // covered by fixed size columns.
-                    if last-auto-col == i {
+                    // However, ignore this cell if it is a colspan with
+                    // `fit-spans.x == true` (it requests to not expand
+                    // columns).
+                    if last-auto-col == i and this-cell-can-expand-columns {
                         // take extra inset as extra width or height on 'auto'
                         let cell-inset = default-if-auto(pcell.inset, inset)
 
@@ -347,7 +357,7 @@
     columns
 }
 
-#let determine-column-sizes(grid: (), page-width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
+#let determine-column-sizes(grid: (), page-width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none, fit-spans: none) = {
     let columns = columns.map(c => {
         if type(c) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(c, styles: styles, page-size: page-width)
@@ -373,7 +383,7 @@
     // page-width == 0pt => page width is 'auto'
     // so we don't have to restrict our table's size
     if available-size >= 0pt or page-width == 0pt {
-        let auto-cols-result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align)
+        let auto-cols-result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align, fit-spans: fit-spans)
         let total-auto-size = auto-cols-result.total
         let auto-sizes = auto-cols-result.sizes
         columns = auto-cols-result.columns
@@ -427,7 +437,7 @@
 }
 
 // calculate the size of auto rows (based on the max height of their cells)
-#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none) = {
+#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none, fit-spans: none) = {
     assert(styles != none, message: "Cannot measure auto rows without styles")
     let total-auto-size = 0pt
     let auto-sizes = ()
@@ -445,10 +455,20 @@
                     let pcell = get-parent-cell(cell, grid: grid)  // in case this is a rowspan
                     let last-auto-row = get-rowspan-last-auto-row(pcell, rows: rows)
 
+                    let fit-this-span = if "fit-spans" in pcell and pcell.fit-spans != auto {
+                        pcell.fit-spans.y
+                    } else {
+                        fit-spans.y
+                    }
+                    let this-cell-can-expand-rows = pcell.rowspan == 1 or not fit-this-span
+
                     // only expand the last auto row of a rowspan,
                     // and only the amount necessary that isn't already
                     // covered by fixed size rows.
-                    if last-auto-row == i {
+                    // However, ignore this cell if it is a rowspan with
+                    // `fit-spans.y == true` (it requests to not expand
+                    // rows).
+                    if last-auto-row == i and this-cell-can-expand-rows {
                         let width = get-colspan-fixed-size-covered(pcell, columns: columns)
 
                         // take extra inset as extra width or height on 'auto'
@@ -487,7 +507,7 @@
     (total: total-auto-size, sizes: auto-sizes, rows: new-rows)
 }
 
-#let determine-row-sizes(grid: (), page-height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
+#let determine-row-sizes(grid: (), page-height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none, fit-spans: none) = {
     let rows = rows.map(r => {
         if type(r) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(r, styles: styles, page-size: page-height)
@@ -497,7 +517,7 @@
     })
 
     let auto-rows-res = determine-auto-rows(
-        grid: grid, columns: columns, rows: rows, styles: styles, align: align, inset: inset
+        grid: grid, columns: columns, rows: rows, styles: styles, align: align, inset: inset, fit-spans: fit-spans
     )
 
     let auto-size = auto-rows-res.total
@@ -545,13 +565,15 @@
     columns: none, rows: none,
     inset: none, gutter: none,
     align: auto,
+    fit-spans: none,
 ) = {
     let columns-res = determine-column-sizes(
         grid: grid,
         page-width: page-width, styles: styles, columns: columns,
         inset: inset,
         align: align,
-        col-gutter: gutter.col
+        col-gutter: gutter.col,
+        fit-spans: fit-spans
     )
     columns = columns-res.columns
     gutter.col = columns-res.gutter
@@ -563,7 +585,8 @@
         rows: rows,
         inset: inset,
         align: align,
-        row-gutter: gutter.row
+        row-gutter: gutter.row,
+        fit-spans: fit-spans
     )
     rows = rows-res.rows
     gutter.row = rows-res.gutter

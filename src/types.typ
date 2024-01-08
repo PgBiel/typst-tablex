@@ -49,6 +49,7 @@
     rowspan: 1, colspan: 1,
     fill: auto, align: auto,
     inset: auto,
+    fit-spans: auto,
     render: none,
 ) = (
     tablex-dict-type: "cell",
@@ -58,6 +59,7 @@
     align: align,
     fill: fill,
     inset: inset,
+    fit-spans: fit-spans,
     render: render,
     x: x,
     y: y,

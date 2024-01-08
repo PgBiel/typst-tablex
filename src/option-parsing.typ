@@ -272,6 +272,8 @@
     header-hlines-have-priority
 }
 
+// 'validate-fit-spans' is needed by grid, and is thus in common.typ
+
 #let validate-renderer(renderer) = {
     assert(renderer in ("old", "cetz"), message: "Tablex error: 'renderer' option must be either \"old\" or \"cetz\".")
 
