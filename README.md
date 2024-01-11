@@ -1,4 +1,4 @@
-# typst-tablex (v0.0.7)
+# typst-tablex (v0.0.8)
 **More powerful and customizable tables in Typst.**
 
 **NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
@@ -29,7 +29,7 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.8](#v008)
     * [v0.0.7](#v007)
     * [v0.0.6](#v006)
     * [v0.0.5](#v005)
@@ -42,7 +42,7 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
 
 ## Usage
 
-To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.7": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
+To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.8": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
@@ -55,7 +55,7 @@ Here's an example of what `tablex` can do:
 
 Here's the code for that table:
 ```typ
-#import "@preview/tablex:0.0.7": tablex, rowspanx, colspanx
+#import "@preview/tablex:0.0.8": tablex, rowspanx, colspanx
 
 #tablex(
   columns: 4,
@@ -107,7 +107,7 @@ Here's the code for that table:
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex
+#import "@preview/tablex:0.0.8": tablex
 
 #tablex(
   columns: (auto, 1em, 1fr, 1fr),  // 4 columns
@@ -134,7 +134,7 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -165,7 +165,7 @@ Also, note that, by default, the horizontal lines below the header are transport
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
 #v(80%)
@@ -212,7 +212,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -256,7 +256,7 @@ Here's some sample usage:
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -288,7 +288,7 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 For example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, cellx, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, cellx, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -320,7 +320,7 @@ To customize multiple cells at once, you have a few options:
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -650,7 +650,7 @@ Another example (summing columns):
 
 ## Changelog
 
-### Unreleased
+### v0.0.8
 
 - Added `fit-spans` option to `tablex` and `cellx` (https://github.com/PgBiel/typst-tablex/pull/111)
   - Accepts `(x: bool, y: bool)`. When set to `(x: true)`, colspans won't affect the sizes of `auto` columns. When set to `(y: true)`, rowspans won't affect the sizes of `auto` rows.
