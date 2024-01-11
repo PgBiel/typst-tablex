@@ -1257,12 +1257,13 @@
 }
 
 // calculate the size of auto columns (based on the max width of their cells)
-#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto, fit-spans: none) = {
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto, fit-spans: none, page-width: 0pt) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
     let new_columns = columns
 
+    let all-frac-columns = columns.enumerate().filter(i-col => type(i-col.at(1)) == _fraction-type).map(i-col => i-col.at(0))
     for (i, col) in columns.enumerate() {
         if col == auto {
             // max cell width
@@ -1289,6 +1290,23 @@
                     // `fit-spans.x == true` (it requests to not expand
                     // columns).
                     if last-auto-col == i and this-cell-can-expand-columns {
+                        let cell-spans-all-frac-columns = pcell.colspan > 1 and all-frac-columns.len() > 0 and all-frac-columns.all(i => pcell.x <= i and i < (pcell.x + pcell.colspan))
+                        if cell-spans-all-frac-columns and page-width != 0pt and not is-infinite-len(page-width) {
+                            // HEURISTIC (only effective when the page width isn't 'auto' / infinite):
+                            // If this cell can expand auto cols, but it already
+                            // spans all fractional columns, then don't expand
+                            // this auto column, as the cell would already have
+                            // all remaining available space for itself anyway
+                            // through the fractional columns spanned.
+                            // Effectively, ignore this colspan - it will already
+                            // have the max space possible, since, eventually,
+                            // auto columns will be reduced to fit in the available
+                            // size.
+                            // For 'auto'-width pages, fractional columns will
+                            // always have 0pt width, so this doesn't apply.
+                            return max
+                        }
+
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
@@ -1425,7 +1443,7 @@
     // page_width == 0pt => page width is 'auto'
     // so we don't have to restrict our table's size
     if available_size >= 0pt or page_width == 0pt {
-        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align, fit-spans: fit-spans)
+        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align, fit-spans: fit-spans, page-width: page_width)
         let total_auto_size = auto_cols_result.total
         let auto_sizes = auto_cols_result.sizes
         columns = auto_cols_result.columns
