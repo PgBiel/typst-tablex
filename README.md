@@ -29,6 +29,7 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [Unreleased](#unreleased)
     * [v0.0.7](#v007)
     * [v0.0.6](#v006)
     * [v0.0.5](#v005)
@@ -639,6 +640,24 @@ Another example (summing columns):
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
 ## Changelog
+
+### Unreleased
+
+- Added `fit-spans` option to `tablex` and `cellx` (https://github.com/PgBiel/typst-tablex/pull/111)
+  - Accepts `(x: bool, y: bool)`. When set to `(x: true)`, colspans won't affect the size of `auto` columns. When set to `(y: true)`, rowspans won't affect the size of `auto` rows.
+  - Defaults to `false`, equivalent to `(x: false, y: false)`, that is, colspans and rowspans affect the sizes of `auto` tracks (columns and rows) by default (expanding the last spanned track if the colspan/rowspan is too large).
+  - Useful when you want merged cells (or a specific merged cell) to "fit" within their spanned columns and rows. May help when adding a colspan or rowspan causes a track to inadvertently expand.
+- `auto` column sizing received multiple improvements and bug fixes. Tables should now have more natural column widths.
+  - Tablex now uses native tables' algorithm for fitting `auto` columns within the page width (https://github.com/PgBiel/typst-tablex/pull/109).
+    - Fixes some problems with overflowing cells (https://github.com/PgBiel/typst-tablex/issues/48, https://github.com/PgBiel/typst-tablex/issues/75)
+  - Colspans spanning all fractional columns will no longer cause `auto` columns to expand (https://github.com/PgBiel/typst-tablex/pull/116)
+    - Fixes `auto` columns being needlessly expanded in some cases (https://github.com/PgBiel/typst-tablex/issues/56, https://github.com/PgBiel/typst-tablex/issues/78)
+    - For similar problems not fixed by this, please use the new `fit-spans` option as you see fit, or use fixed-size columns instead.
+- Several performance optimizations and small improvements were made (https://github.com/PgBiel/typst-tablex/pull/113, https://github.com/PgBiel/typst-tablex/pull/114, https://github.com/PgBiel/typst-tablex/pull/115).
+  - Documents with lots of `tablex` tables might now become **up to 20% faster** to cold compile. Give it a shot!
+- Fixed extra fixed height rows appearing to have `auto` height (https://github.com/PgBiel/typst-tablex/pull/108).
+- Fixed rows without any visible cells being drawn with zero height (https://github.com/PgBiel/typst-tablex/pull/107)
+  - Fixes some rowspans causing cells to overlap (https://github.com/PgBiel/typst-tablex/issues/82, https://github.com/PgBiel/typst-tablex/issues/105).
 
 ### v0.0.7
 
