@@ -660,7 +660,7 @@ Another example (summing columns):
   - Fixes some problems with overflowing cells (https://github.com/PgBiel/typst-tablex/issues/48, https://github.com/PgBiel/typst-tablex/issues/75)
   - Fixes `auto` columns being needlessly expanded in some cases (https://github.com/PgBiel/typst-tablex/issues/56, https://github.com/PgBiel/typst-tablex/issues/78)
     - For similar problems not fixed by this, please use the new `fit-spans` option as needed, or use fixed-size columns instead.
-- Several performance optimizations and small improvements were made (https://github.com/PgBiel/typst-tablex/pull/113, https://github.com/PgBiel/typst-tablex/pull/114, https://github.com/PgBiel/typst-tablex/pull/115).
+- Several performance optimizations and other internal code improvements were made (https://github.com/PgBiel/typst-tablex/pull/113, https://github.com/PgBiel/typst-tablex/pull/114, https://github.com/PgBiel/typst-tablex/pull/115).
   - Documents with lots of `tablex` tables might now become **up to 20% faster** to cold compile. Give it a shot!
 - Fixed extra fixed-height rows appearing to have `auto` height (https://github.com/PgBiel/typst-tablex/pull/108).
 - Fixed rows without any visible cells being drawn with zero height (https://github.com/PgBiel/typst-tablex/pull/107).
