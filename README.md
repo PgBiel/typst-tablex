@@ -150,6 +150,8 @@ Note that the empty parentheses there are just for organization, and are ignored
 
 Use `colspanx(2)(rowspanx(2)[d])` to colspan and rowspan at the same time. Be careful not to attempt to overwrite other cells' spans, as you will get a nasty error.
 
+**Note (since tablex v0.0.8):** By default, colspans and rowspans can cause spanned `auto` columns and rows to expand to fit their contents (only the last spanned track - column or row -  can expand). If you'd like colspans to not affect column sizes at all (and thus "fit" within their spanned columns), you may specify `fit-spans: (x: true)` to the table. Similarly, you can specify `fit-spans: (y: true)` to have rowspans not affect row sizes at all. To apply both effects, use either `fit-spans: true` or `fit-spans: (x: true, y: true)`. You can also apply this to a single colspan (for example) with `colspanx(2, fit-spans: (x: true))[a]`, as this option is available not only for the whole table but also for each cell. See the reference section for more information.
+
 ### Repeat header rows
 
 You can now ensure the first row (or, rather, the rows covered by the first rowspan) in your table repeats across pages. Just use `repeat-header: true` (default is `false`).
@@ -419,7 +421,8 @@ Another example (summing columns):
       x: auto, y: auto,
       rowspan: 1, colspan: 1,
       fill: auto, align: auto,
-      inset: auto
+      inset: auto,
+      fit-spans: auto
     ) = (
       tablex-dict-type: "cell",
       content: content,
@@ -428,6 +431,7 @@ Another example (summing columns):
       align: align,
       fill: fill,
       inset: inset,
+      fit-spans: fit-spans,
       x: x,
       y: y,
     )
@@ -441,6 +445,7 @@ Another example (summing columns):
     - `align` is this cell's align override, such as "center" (default `auto` to follow the rest of the table)
     - `fill` is this cell's fill override, such as "blue" (default `auto` to follow the rest of the table)
     - `inset` is this cell's inset override, such as `5pt` (default `auto` to follow the rest of the table)
+    - `fit-spans` allows overriding the table-wide `fit-spans` setting for this specific cell (e.g. if this cell has a `colspan` greater than 1, `fit-spans: (x: true)` will cause it to not affect the sizes of `auto` columns).
     - `x` is the cell's column index (0..len-1) - `auto` indicates it wasn't assigned yet
     - `y` is the cell's row index (0..len-1) - `auto` indicates it wasn't assigned yet
 
@@ -639,14 +644,18 @@ Another example (summing columns):
     the modified `cell_array`. Note that, with your function, they
     cannot be sent to another column. Also, please preserve the order of the cells. This is especially important given that cells may be `none` if they're actually a position taken by another cell with colspan/rowspan. Make sure the `none` values are in the same indexes when the array is returned.
 
+    - `fit-spans`: either a dictionary `(x: bool, y: bool)` or just `bool` (e.g. just `true` is converted to `(x: true, y: true)`). When given `(x: true)`, colspans won't affect the sizes of `auto` columns. When given `(y: true)`, rowspans won't affect the sizes of `auto` rows. By default, this is equal to `(x: false, y: false)` (equivalent to just `false`), which means that colspans will cause the last spanned `auto` column to expand (depending on the contents of the cell) and rowspans will cause the last spanned `auto` row to expand similarly.
+      - This is usually used as `(x: true)` to prevent unexpected expansion of `auto` columns after using a colspan, which can happen when a colspan spans both a fractional-size column (e.g. `1fr`) and an `auto`-sized column. Can be applied to rows too through `(y: true)` or `(x: true, y: true)`, if needed, however.
+      - The point of this option is to have colspans and rowspans not affect the size of the table at all, and just "fit" within the columns and rows they span. Therefore, this option does not have any effect upon colspans and rowspans which don't span columns or rows with automatic size.
+
 ## Changelog
 
 ### Unreleased
 
 - Added `fit-spans` option to `tablex` and `cellx` (https://github.com/PgBiel/typst-tablex/pull/111)
-  - Accepts `(x: bool, y: bool)`. When set to `(x: true)`, colspans won't affect the size of `auto` columns. When set to `(y: true)`, rowspans won't affect the size of `auto` rows.
+  - Accepts `(x: bool, y: bool)`. When set to `(x: true)`, colspans won't affect the sizes of `auto` columns. When set to `(y: true)`, rowspans won't affect the sizes of `auto` rows.
   - Defaults to `false`, equivalent to `(x: false, y: false)`, that is, colspans and rowspans affect the sizes of `auto` tracks (columns and rows) by default (expanding the last spanned track if the colspan/rowspan is too large).
-  - Useful when you want merged cells (or a specific merged cell) to "fit" within their spanned columns and rows. May help when adding a colspan or rowspan causes a track to inadvertently expand.
+  - Useful when you want merged cells (or a specific merged cell) to "fit" within their spanned columns and rows. May help when adding a colspan or rowspan causes an `auto`-sized track to inadvertently expand.
 - `auto` column sizing received multiple improvements and bug fixes. Tables should now have more natural column widths.
   - Tablex now uses native tables' algorithm for fitting `auto` columns within the page width (https://github.com/PgBiel/typst-tablex/pull/109).
     - Fixes some problems with overflowing cells (https://github.com/PgBiel/typst-tablex/issues/48, https://github.com/PgBiel/typst-tablex/issues/75)
