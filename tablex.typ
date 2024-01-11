@@ -64,6 +64,35 @@
   arr.fold(zero, (a, x) => a + x)
 }
 
+// -- common validators --
+
+// Converts the 'fit-spans' argument to a (x: bool, y: bool) dictionary.
+// Optionally use a default dictionary to fill missing arguments with.
+// This is in the common section as it is needed by the grid section as well.
+#let validate-fit-spans(fit-spans, default: (x: false, y: false), error-prefix: none) = {
+  if type(error-prefix) == _str-type {
+    error-prefix = " " + error-prefix
+  } else {
+    error-prefix = ""
+  }
+  if type(fit-spans) == _bool-type {
+    fit-spans = (x: fit-spans, y: fit-spans)
+  }
+  if type(fit-spans) == _dict-type {
+    assert(fit-spans.len() > 0, message: "Tablex error:" + error-prefix + " 'fit-spans', if a dictionary, must not be empty.")
+    assert(fit-spans.keys().all(k => k in ("x", "y")), message: "Tablex error:" + error-prefix + " 'fit-spans', if a dictionary, must only have the keys x and y.")
+    assert(fit-spans.values().all(v => type(v) == _bool-type), message: "Tablex error:" + error-prefix + " keys 'x' and 'y' in the 'fit-spans' dictionary must be booleans (true/false).")
+    for key in ("x", "y") {
+      if key in default and key not in fit-spans {
+        fit-spans.insert(key, default.at(key))
+      }
+    }
+  } else {
+    panic("Tablex error:" + error-prefix + " Expected 'fit-spans' to be either a boolean or dictionary, found '" + str(type(fit-spans)) + "'")
+  }
+  fit-spans
+}
+
 // ------------
 
 // -- types --
@@ -110,7 +139,8 @@
     x: auto, y: auto,
     rowspan: 1, colspan: 1,
     fill: auto, align: auto,
-    inset: auto
+    inset: auto,
+    fit-spans: auto
 ) = (
     tablex-dict-type: "cell",
     content: content,
@@ -119,6 +149,7 @@
     align: align,
     fill: fill,
     inset: inset,
+    fit-spans: fit-spans,
     x: x,
     y: y,
 )
@@ -785,7 +816,7 @@
 
 // Organize cells in a grid from the given items,
 // and also get all given lines
-#let generate-grid(items, x_limit: 0, y_limit: 0, map-cells: none) = {
+#let generate-grid(items, x_limit: 0, y_limit: 0, map-cells: none, fit-spans: none) = {
     // init grid as a matrix
     // y_limit  x   x_limit
     let grid = create-grid(x_limit, y_limit)
@@ -923,6 +954,13 @@
         }
 
         cell.content = content
+
+        // resolve 'fit-spans' option for this cell
+        if "fit-spans" not in cell {
+            cell.fit-spans = auto
+        } else if cell.fit-spans != auto {
+            cell.fit-spans = validate-fit-spans(cell.fit-spans, default: fit-spans, error-prefix: "At cell (" + str(this_x) + ", " + str(this_y) + "):")
+        }
 
         // up to which 'y' does this cell go
         let max_x = this_x + cell.colspan - 1
@@ -1219,7 +1257,7 @@
 }
 
 // calculate the size of auto columns (based on the max width of their cells)
-#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto) = {
+#let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto, fit-spans: none) = {
     assert(styles != none, message: "Cannot measure auto columns without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -1235,12 +1273,22 @@
                     }
 
                     let pcell = get-parent-cell(cell, grid: grid)  // in case this is a colspan
-                    let last_auto_col = get-colspan-last-auto-col(pcell, columns: columns)
+                    let last-auto-col = get-colspan-last-auto-col(pcell, columns: columns)
+
+                    let fit-this-span = if "fit-spans" in pcell and pcell.fit-spans != auto {
+                        pcell.fit-spans.x
+                    } else {
+                        fit-spans.x
+                    }
+                    let this-cell-can-expand-columns = pcell.colspan == 1 or not fit-this-span
 
                     // only expand the last auto column of a colspan,
                     // and only the amount necessary that isn't already
                     // covered by fixed size columns.
-                    if last_auto_col == i {
+                    // However, ignore this cell if it is a colspan with
+                    // `fit-spans.x == true` (it requests to not expand
+                    // columns).
+                    if last-auto-col == i and this-cell-can-expand-columns {
                         // take extra inset as extra width or height on 'auto'
                         let cell_inset = default-if-auto(pcell.inset, inset)
 
@@ -1351,7 +1399,7 @@
     columns
 }
 
-#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none) = {
+#let determine-column-sizes(grid: (), page_width: 0pt, styles: none, columns: none, inset: none, align: auto, col-gutter: none, fit-spans: none) = {
     let columns = columns.map(c => {
         if type(c) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(c, styles: styles, page-size: page_width)
@@ -1377,7 +1425,7 @@
     // page_width == 0pt => page width is 'auto'
     // so we don't have to restrict our table's size
     if available_size >= 0pt or page_width == 0pt {
-        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align)
+        let auto_cols_result = determine-auto-columns(grid: grid, styles: styles, columns: columns, inset: inset, align: align, fit-spans: fit-spans)
         let total_auto_size = auto_cols_result.total
         let auto_sizes = auto_cols_result.sizes
         columns = auto_cols_result.columns
@@ -1431,7 +1479,7 @@
 }
 
 // calculate the size of auto rows (based on the max height of their cells)
-#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none) = {
+#let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none, fit-spans: none) = {
     assert(styles != none, message: "Cannot measure auto rows without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
@@ -1447,12 +1495,22 @@
                     }
 
                     let pcell = get-parent-cell(cell, grid: grid)  // in case this is a rowspan
-                    let last_auto_row = get-rowspan-last-auto-row(pcell, rows: rows)
+                    let last-auto-row = get-rowspan-last-auto-row(pcell, rows: rows)
+
+                    let fit-this-span = if "fit-spans" in pcell and pcell.fit-spans != auto {
+                        pcell.fit-spans.y
+                    } else {
+                        fit-spans.y
+                    }
+                    let this-cell-can-expand-rows = pcell.rowspan == 1 or not fit-this-span
 
                     // only expand the last auto row of a rowspan,
                     // and only the amount necessary that isn't already
                     // covered by fixed size rows.
-                    if last_auto_row == i {
+                    // However, ignore this cell if it is a rowspan with
+                    // `fit-spans.y == true` (it requests to not expand
+                    // rows).
+                    if last-auto-row == i and this-cell-can-expand-rows {
                         let width = get-colspan-fixed-size-covered(pcell, columns: columns)
 
                         // take extra inset as extra width or height on 'auto'
@@ -1491,7 +1549,7 @@
     (total: total_auto_size, sizes: auto_sizes, rows: new_rows)
 }
 
-#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none) = {
+#let determine-row-sizes(grid: (), page_height: 0pt, styles: none, columns: none, rows: none, align: auto, inset: none, row-gutter: none, fit-spans: none) = {
     let rows = rows.map(r => {
         if type(r) in (_length-type, _rel-len-type, _ratio-type) {
             convert-length-to-pt(r, styles: styles, page-size: page_height)
@@ -1501,7 +1559,7 @@
     })
 
     let auto_rows_res = determine-auto-rows(
-        grid: grid, columns: columns, rows: rows, styles: styles, align: align, inset: inset
+        grid: grid, columns: columns, rows: rows, styles: styles, align: align, inset: inset, fit-spans: fit-spans
     )
 
     let auto_size = auto_rows_res.total
@@ -1549,13 +1607,15 @@
     columns: none, rows: none,
     inset: none, gutter: none,
     align: auto,
+    fit-spans: none,
 ) = {
     let columns_res = determine-column-sizes(
         grid: grid,
         page_width: page_width, styles: styles, columns: columns,
         inset: inset,
         align: align,
-        col-gutter: gutter.col
+        col-gutter: gutter.col,
+        fit-spans: fit-spans
     )
     columns = columns_res.columns
     gutter.col = columns_res.gutter
@@ -1567,7 +1627,8 @@
         rows: rows,
         inset: inset,
         align: align,
-        row-gutter: gutter.row
+        row-gutter: gutter.row,
+        fit-spans: fit-spans
     )
     rows = rows_res.rows
     gutter.row = rows_res.gutter
@@ -2609,6 +2670,8 @@
     header-hlines-have-priority
 }
 
+// 'validate-fit-spans' is needed by grid, and is thus in the common section
+
 // -- end: option parsing
 
 // Creates a table.
@@ -2696,6 +2759,30 @@
 // cannot be sent to another row. Also, cells may be
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
+//
+// fit-spans: Determine if rowspans and colspans should fit within their
+// spanned 'auto'-sized tracks (columns and rows) instead of causing them to
+// expand based on the rowspan/colspan cell's size. (Most users of tablex
+// shouldn't have to change this option.)
+// Must either be a dictionary '(x: true/false, y: true/false)' or a boolean
+// true/false (which is converted to the (x: value, y: value) format with both
+// 'x' and 'y' being set to the same value; for instance, 'true' becomes
+// '(x: true, y: true)').
+// Setting 'x' to 'false' (the default) means that colspans will cause the last
+// (rightmost) auto column they span to expand if the cell's contents are too
+// long; setting 'x' to 'true' negates this, and auto columns will ignore the
+// size of colspans. Similarly, setting 'y' to 'false' (the default) means that
+// rowspans will cause the last (bottommost) auto row they span to expand if
+// the cell's contents are too tall; setting 'y' to 'true' causes auto rows to
+// ignore the size of rowspans.
+// This setting is mostly useful when you have a colspan or a rowspan spanning
+// tracks with fractional (1fr, 2fr, ...) size, which can cause the fractional
+// track to have less or even zero size, compromising all other cells in it.
+// If you're facing this problem, you may want experiment with setting this
+// option to '(x: true)' (if this is affecting columns) or 'true' (for rows
+// too, same as '(x: true, y: true)').
+// Note that this option can also be set in a per-cell basis through cellx().
+// See its reference for more information.
 #let tablex(
     columns: auto, rows: auto,
     inset: 5pt,
@@ -2716,6 +2803,7 @@
     map-vlines: none,
     map-rows: none,
     map-cols: none,
+    fit-spans: false,
     ..items
 ) = {
     _tablex-table-counter.step()
@@ -2730,6 +2818,7 @@
     let map-vlines = validate-map-func(map-vlines)
     let map-rows = validate-map-func(map-rows)
     let map-cols = validate-map-func(map-cols)
+    let fit-spans = validate-fit-spans(fit-spans, default: (x: false, y: false))
 
     layout(size => locate(t_loc => style(styles => {
         let table_id = _tablex-table-counter.at(t_loc)
@@ -2767,7 +2856,8 @@
         let grid_info = generate-grid(
             items,
             x_limit: col_len, y_limit: row_len,
-            map-cells: map-cells
+            map-cells: map-cells,
+            fit-spans: fit-spans
         )
 
         let table_grid = grid_info.grid
@@ -2827,7 +2917,8 @@
             styles: styles,
             columns: columns, rows: rows,
             inset: inset, align: align,
-            gutter: gutter
+            gutter: gutter,
+            fit-spans: fit-spans
         )
 
         let columns = updated_cols_rows.columns

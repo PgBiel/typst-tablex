@@ -1164,3 +1164,101 @@ Combining em and pt (with a stroke object):
 #tablex(columns: (auto, auto, auto, auto),
   [lorem_ipsum_dolor_sit_amet], [lorem], [lorem_ipsum_dolor_sit_amet_consectetur_adipisici], [lorem],
 )
+
+*Rowspans with 1fr and auto using 'fit-spans' (Issues \#56 and \#78)*
+
+#[
+#let unbreakable-tablex(..args) = block(breakable: false, tablex(..args))
+
+_For issue \#78_
+
+- Table is normal:
+
+    #unbreakable-tablex(
+        columns: (1fr, 1fr, auto, auto, auto),
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 5)[#lorem(5)],
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 2)[#lorem(10)], none, none, none,
+        [a], [b], [c], [d], [e],
+    )
+
+- Table has overlap:
+
+    #unbreakable-tablex(
+        columns: (1fr, 1fr, auto, auto, auto),
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 5)[#lorem(5)],
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 2)[#lorem(10)], none, none, none,
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 3)[#lorem(15)], none, none,
+    )
+
+- Table no longer has overlap:
+
+    #unbreakable-tablex(
+        columns: (1fr, 1fr, auto, auto, auto),
+        fit-spans: (x: true),
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 5)[#lorem(5)],
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 2)[#lorem(10)], none, none, none,
+        [a], [b], [c], [d], [e],
+        cellx(colspan: 3)[#lorem(15)], none, none,
+    )
+
+_For issue \#56_
+
+- Table is normal:
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr),
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D]
+    )
+
+- Second column too large:
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr),
+        colspanx(3)[Hello world! Hello!],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D]
+    )
+
+- Second column is now normal:
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr),
+        fit-spans: (x: true),
+        colspanx(3)[Hello world! Hello!],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr),
+        fit-spans: true,
+        colspanx(3)[Hello world! Hello!],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D]
+    )
+
+    #unbreakable-tablex(
+        columns: (auto, auto, 1fr),
+        colspanx(3, fit-spans: (x: true))[Hello world! Hello!],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D],
+        [A], [BC], [D]
+    )
+]
