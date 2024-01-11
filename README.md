@@ -160,7 +160,7 @@ Note that you may wish to customize this. Use `repeat-header: 6` to repeat for 6
 
 Also, note that, by default, the horizontal lines below the header are transported to other pages, which may be an annoyance if you customize lines too much (see below). Use `header-hlines-have-priority: false` to ensure that the first row in each page will dictate the appearance of the horizontal lines above it (and not the header).
 
-**Note:** Please open a GitHub issue if you have any issues with this feature. Note that the table must be contained within pages of same dimensions and (top) margins for this to work properly (or, really, for most things in `tablex` to work properly).
+**Note:** Depending on the size of your document, repeatable headers might not behave properly due to certain limitations in Typst's introspection system (as observed in https://github.com/PgBiel/typst-tablex/issues/43).
 
 Example:
 
@@ -393,9 +393,9 @@ Another example (summing columns):
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
-- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
+- Repeatable table headers might not behave properly depending on the size of your document or other factors (https://github.com/PgBiel/typst-tablex/issues/43).
 
-- By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
+- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
 
 - Rotation (via Typst's `#rotate`) of text only affects the visual appearance of the text on the page, but does not change its dimensions as they factor into the layout.
   This leads to certain visual issues, such as rotated text potentially overflowing the cell height without being hyphenated or, inversely, being hyphenated even though there is enough space vertically (https://github.com/PgBiel/typst-tablex/issues/59).
