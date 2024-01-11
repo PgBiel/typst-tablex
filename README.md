@@ -1,7 +1,7 @@
 # typst-tablex (v0.0.8)
 **More powerful and customizable tables in Typst.**
 
-**NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
+**NOTE: Please open an issue if you find a bug with tablex** and I'll get to it as soon as I can. **(PRs are also welcome!)**
 
 ## Sponsors ❤️
 
