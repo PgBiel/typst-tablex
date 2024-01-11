@@ -47,7 +47,7 @@ To use this library through the Typst package manager **(for Typst v0.6.0+)**, w
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
 This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0, v0.8.0, v0.9.0 and v0.10.0.
-**Using the latest Typst version is recommended (v0.6.0+)**, as it fixes certain bugs which made it almost impossible to use references and citations from within tablex tables (and also brings the package manager, making using tablex even easier!).
+**Using the latest Typst version is always recommended** in order to make use of the latest optimizations and features available.
 
 Here's an example of what `tablex` can do:
 
