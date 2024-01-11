@@ -395,6 +395,8 @@ Another example (summing columns):
 
 - Repeatable table headers might not behave properly depending on the size of your document or other factors (https://github.com/PgBiel/typst-tablex/issues/43).
 
+- Using tablex (especially when using repeatable header rows) may cause a warning, "layout did not converge within 5 attempts", to appear on recent Typst versions (https://github.com/PgBiel/typst-tablex/issues/38). This warning is due to how tablex works internally **and is not your fault** (in principle), so don't worry too much about it (unless you're sure it's not tablex that is causing this).
+
 - Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
 
 - Rotation (via Typst's `#rotate`) of text only affects the visual appearance of the text on the page, but does not change its dimensions as they factor into the layout.
