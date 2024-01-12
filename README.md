@@ -1,7 +1,7 @@
-# typst-tablex (v0.0.7)
+# typst-tablex (v0.0.8)
 **More powerful and customizable tables in Typst.**
 
-**NOTE:** This library still has a few bugs, but most of them shouldn't be noticeable. **Please open an issue if you find a bug** and I'll get to it as soon as I can. **(Do not be afraid to open issues!! Also, PRs are welcome!)**
+**NOTE: Please open an issue if you find a bug with tablex** and I'll get to it as soon as I can. **(PRs are also welcome!)**
 
 ## Sponsors ❤️
 
@@ -29,7 +29,7 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
-    * [Unreleased](#unreleased)
+    * [v0.0.8](#v008)
     * [v0.0.7](#v007)
     * [v0.0.6](#v006)
     * [v0.0.5](#v005)
@@ -42,12 +42,12 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
 
 ## Usage
 
-To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.7": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
+To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.8": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
 This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0, v0.8.0, v0.9.0 and v0.10.0.
-**Using the latest Typst version is recommended (v0.6.0+)**, as it fixes certain bugs which made it almost impossible to use references and citations from within tablex tables (and also brings the package manager, making using tablex even easier!).
+**Using the latest Typst version is always recommended** in order to make use of the latest optimizations and features available.
 
 Here's an example of what `tablex` can do:
 
@@ -55,7 +55,7 @@ Here's an example of what `tablex` can do:
 
 Here's the code for that table:
 ```typ
-#import "@preview/tablex:0.0.7": tablex, rowspanx, colspanx
+#import "@preview/tablex:0.0.8": tablex, rowspanx, colspanx
 
 #tablex(
   columns: 4,
@@ -107,7 +107,7 @@ Here's the code for that table:
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex
+#import "@preview/tablex:0.0.8": tablex
 
 #tablex(
   columns: (auto, 1em, 1fr, 1fr),  // 4 columns
@@ -134,7 +134,7 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -148,7 +148,7 @@ Your cells can now span more than one column and/or row at once, with `colspanx`
 
 Note that the empty parentheses there are just for organization, and are ignored (unless they come before the first cell - more on that later). They're useful to help us keep track of which cell positions are being used up by the spans, because, if we try to add an actual cell at these spots, it will just push the others forward, which might seem unexpected.
 
-Use `colspanx(2)(rowspanx(2)[d])` to colspan and rowspan at the same time. Be careful not to attempt to overwrite other cells' spans, as you will get a nasty error.
+Use `colspanx(2, rowspanx(2)[d])` to colspan and rowspan at the same time. Be careful not to attempt to overwrite other cells' spans, as you will get a nasty error.
 
 **Note (since tablex v0.0.8):** By default, colspans and rowspans can cause spanned `auto` columns and rows to expand to fit their contents (only the last spanned track - column or row -  can expand). If you'd like colspans to not affect column sizes at all (and thus "fit" within their spanned columns), you may specify `fit-spans: (x: true)` to the table. Similarly, you can specify `fit-spans: (y: true)` to have rowspans not affect row sizes at all. To apply both effects, use either `fit-spans: true` or `fit-spans: (x: true, y: true)`. You can also apply this to a single colspan (for example) with `colspanx(2, fit-spans: (x: true))[a]`, as this option is available not only for the whole table but also for each cell. See the reference section for more information.
 
@@ -160,12 +160,12 @@ Note that you may wish to customize this. Use `repeat-header: 6` to repeat for 6
 
 Also, note that, by default, the horizontal lines below the header are transported to other pages, which may be an annoyance if you customize lines too much (see below). Use `header-hlines-have-priority: false` to ensure that the first row in each page will dictate the appearance of the horizontal lines above it (and not the header).
 
-**Note:** Please open a GitHub issue if you have any issues with this feature. Note that the table must be contained within pages of same dimensions and (top) margins for this to work properly (or, really, for most things in `tablex` to work properly).
+**Note:** Depending on the size of your document, repeatable headers might not behave properly due to certain limitations in Typst's introspection system (as observed in https://github.com/PgBiel/typst-tablex/issues/43).
 
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
 #v(80%)
@@ -212,7 +212,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -256,7 +256,7 @@ Here's some sample usage:
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -288,7 +288,7 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 For example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, cellx, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, cellx, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -320,7 +320,7 @@ To customize multiple cells at once, you have a few options:
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.7": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -393,9 +393,11 @@ Another example (summing columns):
 
 - Table lines don't play very well with column and row gutter when a colspan or rowspan is used. They may be missing or be cut off by gutters.
 
-- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
+- Repeatable table headers might not behave properly depending on the size of your document or other factors (https://github.com/PgBiel/typst-tablex/issues/43).
 
-- By default, the table assumes that all pages containing it have the same width and height (dimensions). This is used for auto-sizing of columns/rows and for repeatable headers to work properly. It would be potentially costly to re-calculate page sizes on every page, so this was postponed.
+- Using tablex (especially when using repeatable header rows) may cause a warning, "layout did not converge within 5 attempts", to appear on recent Typst versions (https://github.com/PgBiel/typst-tablex/issues/38). This warning is due to how tablex works internally **and is not your fault** (in principle), so don't worry too much about it (unless you're sure it's not tablex that is causing this).
+
+- Rows with fractional height (such as `2fr`) have zero height if the table spans more than one page. This is because fractional row heights are calculated on the available height of the first page of the table, which is something that the default `#table` can circumvent using internal code. This won't be fixed for now. (Columns with fractional width work fine, provided all pages the table is in have the same width, **and the page width isn't `auto`** (which forces fractional columns to be 0pt, even in the default `#table`).)
 
 - Rotation (via Typst's `#rotate`) of text only affects the visual appearance of the text on the page, but does not change its dimensions as they factor into the layout.
   This leads to certain visual issues, such as rotated text potentially overflowing the cell height without being hyphenated or, inversely, being hyphenated even though there is enough space vertically (https://github.com/PgBiel/typst-tablex/issues/59).
@@ -650,7 +652,7 @@ Another example (summing columns):
 
 ## Changelog
 
-### Unreleased
+### v0.0.8
 
 - Added `fit-spans` option to `tablex` and `cellx` (https://github.com/PgBiel/typst-tablex/pull/111)
   - Accepts `(x: bool, y: bool)`. When set to `(x: true)`, colspans won't affect the sizes of `auto` columns. When set to `(y: true)`, rowspans won't affect the sizes of `auto` rows.
