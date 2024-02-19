@@ -98,6 +98,10 @@
 // 'none' if they're a position taken by a cell in a
 // colspan/rowspan.
 //
+// map-order: The order in which the map-rows and map-cols
+// functions are called. Must be either "rows-first" or
+// "cols-first". Defaults to "rows-first".
+//
 // fit-spans: Determine if rowspans and colspans should fit within their
 // spanned 'auto'-sized tracks (columns and rows) instead of causing them to
 // expand based on the rowspan/colspan cell's size. (Most users of tablex
@@ -150,6 +154,7 @@
     map-vlines: none,
     map-rows: none,
     map-cols: none,
+    map-order: "rows-first",
     fit-spans: false,
     renderer: "old",
     renderer-args: (:),
@@ -163,6 +168,7 @@
     let map-vlines = validate-map-func(map-vlines)
     let map-rows = validate-map-func(map-rows)
     let map-cols = validate-map-func(map-cols)
+    let map-order = validate-map-order(map-order)
     let fit-spans = validate-fit-spans(fit-spans, default: (x: false, y: false))
     let renderer = validate-renderer(renderer)
     let renderer-args = validate-renderer-args(renderer-args, renderer: renderer)
@@ -240,7 +246,8 @@
             map-hlines: map-hlines,
             map-vlines: map-vlines,
             map-rows: map-rows,
-            map-cols: map-cols
+            map-cols: map-cols,
+            map-order: map-order
         )
 
         let table-grid = mapped-grid.grid
