@@ -1383,3 +1383,59 @@ Second table should have a longer second column.
     [A], [BC], [D],
     [A], [BC], [D]
 )
+
+_For issue \#123_
+- Check if map order of map-rows and map-cols is correct
+- The number should not be bold, as the map-rows (formatting) is applied first
+#tablex(
+    columns: 1,
+    // Bold values higher then 5
+    map-rows: (row-index, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            if int(cell.content.text) > 5 {
+                return (..cell, content: strong(cell.content))
+            }
+            cell
+        })
+    },
+
+    map-cols: (col-index, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            if cell.content.has("text") {
+                return (..cell, content: str(int(cell.content.text) + 1))
+            }
+            (..cell, content: str(int(cell.content.body.text) + 1))
+        })
+    },
+    map-order: "rows-first",
+    [5]
+)
+
+- This time the number should be bold, as the map-cols is applied first and the number is increased before the map-rows is applied
+#tablex(
+    columns: 1,
+    // Bold values larger than 5
+    map-rows: (row-index, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            if int(cell.content.text) > 5 {
+                return (..cell, content: strong(cell.content))
+            }
+            cell
+        })
+    },
+
+    map-cols: (col-index, cells) => {
+        cells.map(cell => {
+            if cell == none { return none }
+            if cell.content.has("text") {
+                return (..cell, content: str(int(cell.content.text) + 1))
+            }
+            (..cell, content: str(int(cell.content.body.text) + 1))
+        })
+    },
+    map-order: "cols-first",
+    [5]
+)
