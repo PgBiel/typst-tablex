@@ -15,6 +15,33 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
 <!-- sponsors -->
 <!-- sponsors -->
 
+## Important note regarding Typst 0.11.0 and Tablex
+
+A large amount of tablex's features have successfully been upstreamed by this package's author to Typst's built-in `table` and `grid` elements (see the new Tables Guide, at https://typst.app/docs/guides/table-guide/, and the `table` element's reference, at https://typst.app/docs/reference/model/table/, for more information).
+
+This means that, starting with Typst 0.11.0, **many advanced table features can now be used with Typst grids and tables without tablex!** This includes:
+
+- Per-cell customization (through `table.cell(inset: ..., align: ..., fill: ...)[body]`, and `#show table.cell: it => ...` instead of `map-cells`);
+- Merging cells (colspans and rowspans, through `table.cell(colspan: 2, rowspan: 2)[body]`);
+- Line customization (you can control the `stroke` parameter of `table.cell` to control the lines around it, and you can use `table.hline` and `table.vline` which work similarly to their tablex counterparts - the equivalent of `map-hlines` and `map-vlines` is `table(stroke: (x, y) => (left: ..., right: ..., top: ..., bottom: ...))`);
+- Repeatable table headers (through `table.header(... cells ...)`);
+- The features above are available within `grid` as well by replacing `table` with `grid` where applicable (e.g. `grid.cell` instead of `table.cell`).
+
+Additionally, built-in Typst tables have support for features which weren't previously available within tablex, such as **repeatable table footers** (through `table.footer` and `grid.footer`).
+
+Therefore, **for the vast majority of use cases, you will no longer need to use this library.** However:
+
+1. **Tablex will still receive updates over time** with extra features. In the next version (tablex 0.1.0), there will be **support for CeTZ integration**, which will allow you to easily annotate your tables using CeTZ (e.g. draw arrows between cells). If you're interested in such features, then tablex might still be useful for you!
+2. **Not _all_ tablex features are present in built-in tables, at least yet.** Therefore, you might still have to use tablex depending on your use case. It is expected, however, that built-in tables will eventually have support for most of the missing features in future Typst releases. Here's a non-exhaustive list of them:
+   1. Built-in tables do not yet have the ability to expand table lines by some arbitrary length.
+   2. The tablex `fit-spans` option, through which colspans and rowspans don't cause `auto`-sized columns and/or rows to expand, is not yet supported in built-in tables.
+   3. Built-in repeatable table headers currently always repeat in all pages, whereas you can define in which pages a tablex header should be repeated.
+3. **Regarding sponsorships:** The tablex author, [@PgBiel](https://github.com/PgBiel), has also been responsible for upstreaming the various tablex features to built-in tables. Therefore, any future sponsorships will go not only towards extended maintenance of tablex, but also towards future work on built-in tables and other general contributions to the Typst ecosystem! More information here: https://github.com/sponsors/PgBiel/
+
+If there any questions, feel free to open a thread in the `Discussions` page of this repository, or ping the author on Discord. Thanks to everyone who supported me throughout tablex's development and the upstreaming process. I hope you enjoy the new update, and have fun with tables! 😄
+
+And make sure to keep an eye for future tablex updates. 😉
+
 ## Table of Contents
 
 * [Usage](#usage)
@@ -103,6 +130,8 @@ Here's the code for that table:
 ## Features
 
 ### _Almost_ drop-in replacement for `#table`
+
+(**Update:** tablex's syntax was designed to be compatible with Typst tables created **up to Typst v0.10.0**. The new table features introduced in Typst v0.11.0 use syntax which isn't compatible with tablex, so it won't be a drop-in replacement in that case. However, tablex does have its own syntax for those features, as will be explained below!)
 
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
