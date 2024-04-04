@@ -11,6 +11,9 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
 <p align="center">
 <a href="https://github.com/felipeacsi"><img src="https://github.com/felipeacsi.png" width="50px" alt="felipeacsi" /></a>
 </p>
+<p align="center">
+<a href="https://github.com/Fabioni"><img src="https://github.com/Fabioni.png" width="50px" alt="Fabioni" /></a>
+</p>
 <!-- manual -->
 <!-- sponsors -->
 <!-- sponsors -->
