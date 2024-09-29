@@ -244,7 +244,7 @@
         }
     }
 
-    let rows(len) = calc.ceil(len / col_len)
+    let rows(len) = int(calc.ceil(len / col_len))
 
     while rows(len) < max_explicit_y {
         len += col_len
@@ -311,13 +311,15 @@
 
     let grid_len = get-expected-grid-len(items, col_len: col_len)
 
-    let expected_rows = calc.ceil(grid_len / col_len)
+    let expected_rows = int(calc.ceil(grid_len / col_len))
 
     // more cells than expected => add rows
     if rows.len() < expected_rows {
         let missing_rows = expected_rows - rows.len()
 
-        rows += (rows.last(),) * missing_rows
+        for n in range(0, missing_rows) {
+          rows += (rows.last(),)
+        }
     }
 
     (columns: columns, rows: rows, items: ())
@@ -693,7 +695,7 @@
 // Gets the index of (x, y) in a grid's array.
 #let grid-index-at(x, y, grid: none, width: none) = {
     width = default-if-none(grid, (width: width)).width
-    width = calc.floor(width)
+    width = int(calc.floor(width))
     (y * width) + calc-mod(x, width)
 }
 
@@ -718,12 +720,12 @@
 
 // How many rows are in this grid? (Given its width)
 #let grid-count-rows(grid) = (
-    calc.floor(grid.items.len() / grid.width)
+    int(calc.floor(grid.items.len() / grid.width))
 )
 
 // Converts a grid array index to (x, y)
 #let grid-index-to-pos(grid, index) = (
-    (calc-mod(index, grid.width), calc.floor(index / grid.width))
+    (calc-mod(index, grid.width), int(calc.floor(index / grid.width)))
 )
 
 // Fetches an entire row of cells (all positions with the given y).
