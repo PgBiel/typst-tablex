@@ -1,5 +1,7 @@
 #import "tablex.typ": *
 
+#let _style = if using-typst-v0110 { func => context(func(none)) } else { style }
+
 *Test*
 
 test
@@ -767,8 +769,8 @@ Combining em and pt (with a stroke object):
     columns: 2,
     [A #box(line(length: 50pt)) B], [A #line(length: 50pt) B],
     [C], [D],
-    style(styles => {
-        measure(line(length: 40pt), styles)
+    _style(styles => {
+        _measure(line(length: 40pt), styles)
     }),
     [E]
 )
@@ -776,8 +778,8 @@ Combining em and pt (with a stroke object):
     columns: 2,
     [A #box(line(length: 50pt)) B], [A #line(length: 50pt) B],
     [C], [D],
-    style(styles => {
-        measure(line(length: 40pt), styles)
+    _style(styles => {
+        _measure(line(length: 40pt), styles)
     }),
     [E]
 )
@@ -791,7 +793,7 @@ Combining em and pt (with a stroke object):
     frac-total: 10pt,
 ) = {
     set text(size: 1pt)  // Set 1em to 1pt
-    style(styles => {
+    _style(styles => {
         let actual = convert-length-to-pt(
             len,
             styles: styles,
@@ -864,7 +866,7 @@ Combining em and pt (with a stroke object):
     compare-repr: false,
 ) = {
     set text(size: 1pt)  // Set 1em to 1pt
-    style(styles => {
+    _style(styles => {
         let actual = stroke-len(
             value,
             styles: styles,
