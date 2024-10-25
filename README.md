@@ -1,7 +1,5 @@
-# typst-tablex (v0.0.8)
+# typst-tablex (v0.0.9)
 **More powerful and customizable tables in Typst.**
-
-**NOTE: Please open an issue if you find a bug with tablex** and I'll get to it as soon as I can. **(PRs are also welcome!)**
 
 ## Sponsors ❤️
 
@@ -16,9 +14,17 @@ If you'd like to appear here, [consider sponsoring the project!](https://github.
 <!-- sponsors -->
 <!-- sponsors -->
 
-## Important note regarding Typst 0.11.0 and Tablex
+## Important notice regarding Tablex usage
+
+**Summary: Please use built-in Typst tables instead of tablex.** Most of tablex's features were implemented in Typst 0.11.0, see the [docs](https://typst.app/docs/reference/model/table/).
+
+However, **keep an eye for future tablex updates** as there might be some interesting goodies ahead, including CeTZ support!
+
+**Details:**
 
 A large amount of tablex's features have successfully been upstreamed by this package's author to Typst's built-in `table` and `grid` elements (see the new Tables Guide, at https://typst.app/docs/guides/table-guide/, and the `table` element's reference, at https://typst.app/docs/reference/model/table/, for more information).
+
+This effort was tracked in the following Typst issue: https://github.com/typst/typst/issues/3001
 
 This means that, starting with Typst 0.11.0, **many advanced table features can now be used with Typst grids and tables without tablex!** This includes:
 
@@ -30,14 +36,16 @@ This means that, starting with Typst 0.11.0, **many advanced table features can 
 
 Additionally, built-in Typst tables have support for features which weren't previously available within tablex, such as **repeatable table footers** (through `table.footer` and `grid.footer`).
 
-Therefore, **for the vast majority of use cases, you will no longer need to use this library.** However:
+Therefore, **for the vast majority of use cases, you will no longer need to use this library.**
 
-1. **Tablex will still receive updates over time** with extra features. In the next version (tablex 0.1.0), there will be **support for CeTZ integration**, which will allow you to easily annotate your tables using CeTZ (e.g. draw arrows between cells). If you're interested in such features, then tablex might still be useful for you!
-2. **Not _all_ tablex features are present in built-in tables, at least yet.** Therefore, you might still have to use tablex depending on your use case. It is expected, however, that built-in tables will eventually have support for most of the missing features in future Typst releases. Here's a non-exhaustive list of them:
+There are a few observations:
+
+1. **Tablex will still receive updates over time** with extra features. In the next version (tablex 0.1.0), there will be **support for CeTZ integration**, which will allow you to easily **annotate your tables** using CeTZ (e.g. draw arrows between cells). If you're interested in such features, then tablex might still be useful for you in the future!
+2. **Not _all_ tablex features are present in built-in tables, at least yet.** Therefore, **if you happen to use the features listed below, you might still have to use tablex** depending on your use case. It is expected, however, that built-in tables will eventually have support for most of the missing features in future Typst releases. Here's a non-exhaustive list of them:
    1. Built-in tables do not yet have the ability to expand table lines by some arbitrary length.
    2. The tablex `fit-spans` option, through which colspans and rowspans don't cause `auto`-sized columns and/or rows to expand, is not yet supported in built-in tables.
    3. Built-in repeatable table headers currently always repeat in all pages, whereas you can define in which pages a tablex header should be repeated.
-3. **Regarding sponsorships:** The tablex author, [@PgBiel](https://github.com/PgBiel), has also been responsible for upstreaming the various tablex features to built-in tables. Therefore, any future sponsorships will go not only towards extended maintenance of tablex, but also towards future work on built-in tables and other general contributions to the Typst ecosystem! More information here: https://github.com/sponsors/PgBiel/
+3. **Regarding sponsorships:** Any future sponsorships to the tablex author, [@PgBiel](https://github.com/PgBiel), who was also responsible for upstreaming the various tablex features to built-in tables, will go not only towards extended maintenance of tablex, but also towards other general contributions to the Typst ecosystem and his other open-source contributions! More information here: https://github.com/sponsors/PgBiel/
 
 If there any questions, feel free to open a thread in the `Discussions` page of this repository, or ping the author on Discord. Thanks to everyone who supported me throughout tablex's development and the upstreaming process. I hope you enjoy the new update, and have fun with tables! 😄
 
@@ -57,6 +65,7 @@ And make sure to keep an eye for future tablex updates. 😉
     * [Basic types and functions](#basic-types-and-functions)
     * [Gridx and Tablex](#gridx-and-tablex)
 * [Changelog](#changelog)
+    * [v0.0.9](#v009)
     * [v0.0.8](#v008)
     * [v0.0.7](#v007)
     * [v0.0.6](#v006)
@@ -70,11 +79,13 @@ And make sure to keep an eye for future tablex updates. 😉
 
 ## Usage
 
-To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.8": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
+**NOTE: Please use built-in tables instead of this library** (see notice above). **The rest of the README is kept for reference purposes only.**
+
+To use this library through the Typst package manager **(for Typst v0.6.0+)**, write for example `#import "@preview/tablex:0.0.9": tablex, cellx` at the top of your Typst file (you may also add whichever other functions you use from the library to that import list!).
 
 For older Typst versions, download the file `tablex.typ` from the latest release (or directly from the main branch, for the 'bleeding edge') at the tablex repository (https://github.com/PgBiel/typst-tablex) and place it on the same folder as your own Typst file. Then, at the top of your file, write for example `#import "tablex.typ": tablex, cellx` (plus whichever other functions you use from the library).
 
-This library should be compatible with Typst v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.6.0, v0.7.0, v0.8.0, v0.9.0 and v0.10.0.
+This library should be compatible with Typst v0.2.0+.
 **Using the latest Typst version is always recommended** in order to make use of the latest optimizations and features available.
 
 Here's an example of what `tablex` can do:
@@ -83,7 +94,7 @@ Here's an example of what `tablex` can do:
 
 Here's the code for that table:
 ```typ
-#import "@preview/tablex:0.0.8": tablex, rowspanx, colspanx
+#import "@preview/tablex:0.0.9": tablex, rowspanx, colspanx
 
 #tablex(
   columns: 4,
@@ -137,7 +148,7 @@ Here's the code for that table:
 In most cases, you should be able to replace `#table` with `#tablex` and be good to go for a start - it should look _very_ similar (if not identical). Indeed, the syntax is very similar for the basics:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex
+#import "@preview/tablex:0.0.9": tablex
 
 #tablex(
   columns: (auto, 1em, 1fr, 1fr),  // 4 columns
@@ -164,7 +175,7 @@ This is mostly a word of caution in case anything I haven't anticipated happens,
 Your cells can now span more than one column and/or row at once, with `colspanx` / `rowspanx`:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -195,7 +206,7 @@ Also, note that, by default, the horizontal lines below the header are transport
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, hlinex, vlinex, colspanx, rowspanx
 
 #pagebreak()
 #v(80%)
@@ -242,7 +253,7 @@ Something similar occurs for `vlinex()`, which has `start`, `end` (first row and
 Here's some sample usage:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, gridx, hlinex, vlinex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -286,7 +297,7 @@ Here's some sample usage:
 You can also *bulk-customize lines* by specifying `map-hlines: h => new_hline` and `map-vlines: v => new_vline`. This includes any automatically generated lines. For example:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -318,7 +329,7 @@ Additionally, instead of specifying content to the cell, you can specify a funct
 For example:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, cellx, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, cellx, colspanx, rowspanx
 
 #tablex(
   columns: 3,
@@ -350,7 +361,7 @@ To customize multiple cells at once, you have a few options:
 Example:
 
 ```typ
-#import "@preview/tablex:0.0.8": tablex, colspanx, rowspanx
+#import "@preview/tablex:0.0.9": tablex, colspanx, rowspanx
 
 #tablex(
   columns: 4,
@@ -682,6 +693,15 @@ Another example (summing columns):
 
 ## Changelog
 
+### v0.0.9
+
+**NOTE:** Please use Typst's built-in tables instead of tablex (starting with Typst 0.11.0).
+Most of tablex's features were implemented in Typst's tables by the author of tablex.
+
+- Added compatibility with Typst v0.12.0
+- Added library usage notice to README
+- Tablex is now dual-licensed under MIT/Apache-2.0
+
 ### v0.0.8
 
 - Added `fit-spans` option to `tablex` and `cellx` (https://github.com/PgBiel/typst-tablex/pull/111)
@@ -855,4 +875,4 @@ Initial release.
 
 ## License
 
-MIT license (see the `LICENSE` file).
+Tablex is licensed under MIT or Apache-2.0, at your option (see the files `LICENSE-MIT` and `LICENSE-APACHE`).
