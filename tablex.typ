@@ -35,6 +35,21 @@
 // Attachments use "t" and "b" instead of "top" and "bottom" since v0.3.0.
 #let using-typst-v030-or-later = using-typst-v080-or-later or $a^b$.body.has("t")
 
+#let using-typst-v090 = using-typst-v080-or-later and str(-1).codepoints().first() == "\u{2212}"
+#let using-typst-v0110 = using-typst-v090 and sys.version >= version(0, 11, 0)
+
+// Polyfill for locate() when there is no context yet
+#let _locate = if using-typst-v0110 { func => context(func(here())) } else { locate }
+
+// Polyfill for locate() when there is already context
+#let _locate_inherit = if using-typst-v0110 { func => func(here()) } else { locate }
+
+// Polyfill for style() when there is already context
+#let _style_inherit = if using-typst-v0110 { func => func((:)) } else { style }
+
+// Polyfill for measure(_, styles)
+#let _measure = if using-typst-v0110 { (value, _) => measure(value) } else { measure }
+
 // This is true if types have fields in the current Typst version.
 // This means we can use stroke.thickness, length.em, and so on.
 #let typst-fields-supported = using-typst-v080-or-later
@@ -443,13 +458,13 @@
         let em = len.em
         // Measure with abs (and later multiply by the sign) so negative em works.
         // Otherwise it would return 0pt, and we would need to measure again with abs.
-        let measured-em = calc-sign(em) * measure(box(width: calc.abs(em) * 1em), styles).width
+        let measured-em = calc-sign(em) * _measure(box(width: calc.abs(em) * 1em), styles).width
 
         return pt + measured-em
     }
 
     // Fields not supported, so we have to measure twice when em can be negative.
-    let measured-pt = measure(box(width: len), styles).width
+    let measured-pt = _measure(box(width: len), styles).width
 
     // If the measured length is positive, `len` must have overall been positive.
     // There's nothing else to be done, so return the measured length.
@@ -462,7 +477,7 @@
     // Hence, `len` must either be `0pt` or negative.
     // We multiply `len` by -1 to get a positive length, draw a line and measure it, then negate
     // the measured length. This nicely handles the `0pt` case as well.
-    measured-pt = -measure(box(width: -len), styles).width
+    measured-pt = -_measure(box(width: -len), styles).width
     return measured-pt
 }
 
@@ -474,12 +489,6 @@
     if is-purely-pt-len(len) {
         // No need to do any conversion because it must already be in pt.
         return len
-    }
-
-    // At this point, we will need to draw a line for measurement,
-    // so we need the styles.
-    if styles == none {
-        panic("Cannot convert length to pt ('styles' not specified).")
     }
 
     return measure-pt(len, styles)
@@ -541,12 +550,6 @@
         // em repr changed in 0.11.0 => need to use fields here
         // or use fields if they're supported anyway
         return convert-ratio-type-to-pt(len.ratio, page-size) + convert-length-type-to-pt(len.length, styles: styles)
-    }
-
-    // We will need to draw a line for measurement later,
-    // so we need the styles.
-    if styles == none {
-        panic("Cannot convert relative length to pt ('styles' not specified).")
     }
 
     // Note on precision: the `repr` for em components is precise, unlike
@@ -1258,7 +1261,6 @@
 
 // calculate the size of auto columns (based on the max width of their cells)
 #let determine-auto-columns(grid: (), styles: none, columns: none, inset: none, align: auto, fit-spans: none, page-width: 0pt) = {
-    assert(styles != none, message: "Cannot measure auto columns without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
     let new_columns = columns
@@ -1319,7 +1321,7 @@
                             inset: cell_inset, align_default: auto
                         )
 
-                        let width = measure(cell-box, styles).width// + 2*cell_inset // the box already considers inset
+                        let width = _measure(cell-box, styles).width// + 2*cell_inset // the box already considers inset
 
                         // here, we are excluding from the width of this cell
                         // at this column all width that was already covered by
@@ -1498,7 +1500,6 @@
 
 // calculate the size of auto rows (based on the max height of their cells)
 #let determine-auto-rows(grid: (), styles: none, columns: none, rows: none, align: auto, inset: none, fit-spans: none) = {
-    assert(styles != none, message: "Cannot measure auto rows without styles")
     let total_auto_size = 0pt
     let auto_sizes = ()
     let new_rows = rows
@@ -1543,7 +1544,7 @@
                         // measure the cell's actual height,
                         // with its calculated width
                         // and with other constraints
-                        let height = measure(cell-box, styles).height// + 2*cell_inset (box already considers inset)
+                        let height = _measure(cell-box, styles).height// + 2*cell_inset (box already considers inset)
 
                         // here, we are excluding from the height of this cell
                         // at this row all height that was already covered by
@@ -2027,11 +2028,11 @@
 // NOTE: This function cannot differentiate between the actual page
 // and a possible box or block where the component using this function
 // could be contained in.
-#let get-page-dim-writer() = locate(w_loc => {
+#let get-page-dim-writer() = _locate(w_loc => {
     let table_id = _tablex-table-counter.at(w_loc)
     let page_dim_state = get-page-dim-state(table_id)
 
-    place(top + left, locate(loc => {
+    place(top + left, _locate(loc => {
         page_dim_state.update(s => {
             if s.top_left != none {
                 s
@@ -2044,7 +2045,7 @@
         })
     }))
 
-    place(bottom + right, locate(loc => {
+    place(bottom + right, _locate(loc => {
         page_dim_state.update(s => {
             if s.bottom_right != none {
                 s
@@ -2088,7 +2089,7 @@
     let vlines = row-group.vlines
     let (start-y, end-y) = row-group.y_span
 
-    locate(loc => {
+    _locate(loc => {
         // let old_page = latest-page-state.at(loc)
         // let this_page = loc.page()
 
@@ -2114,7 +2115,7 @@
                 if repeat-header != false {
                     header-pages-state.update(l => l + (page,))
                     if (repeat-header == true) or (type(repeat-header) == _int-type and rel_page <= repeat-header) or (type(repeat-header) == _array-type and rel_page in repeat-header) {
-                        let measures = measure(first-row-group.content, styles)
+                        let measures = _measure(first-row-group.content, styles)
                         place(top+left, first-row-group.content)  // add header
                         added_header_height = measures.height
                     }
@@ -2163,7 +2164,7 @@
                         dy: height-between(start: first_y, end: y) + added_header_height,
                         cell_box.box)
 
-                    // let box_h = measure(cell_box.box, styles).height
+                    // let box_h = _measure(cell_box.box, styles).height
                     // tallest_box_h = calc.max(tallest_box_h, box_h)
                 }
                 first_row = false
@@ -2838,10 +2839,10 @@
     let map-cols = validate-map-func(map-cols)
     let fit-spans = validate-fit-spans(fit-spans, default: (x: false, y: false))
 
-    layout(size => locate(t_loc => style(styles => {
+    layout(size => _locate_inherit(t_loc => _style_inherit(styles => {
         let table_id = _tablex-table-counter.at(t_loc)
         let page_dimensions = get-page-dim-state(table_id)
-        let page_dim_at = page_dimensions.final(t_loc)
+        let page_dim_at = if using-typst-v0110 { page_dimensions.final() } else { page_dimensions.final(t_loc) }
         let t_pos = t_loc.position()
 
         // Subtract the max width/height from current width/height to disregard margin/etc.
