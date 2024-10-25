@@ -1,6 +1,6 @@
 // Welcome to tablex!
 // Feel free to contribute with any features you think are missing.
-// Version: v0.0.8
+// Version: v0.0.9
 
 // -- table counter --
 
@@ -42,10 +42,10 @@
 #let _locate = if using-typst-v0110 { func => context(func(here())) } else { locate }
 
 // Polyfill for locate() when there is already context
-#let _locate_inherit = if using-typst-v0110 { func => func(here()) } else { locate }
+#let _locate-inherit = if using-typst-v0110 { func => func(here()) } else { locate }
 
 // Polyfill for style() when there is already context
-#let _style_inherit = if using-typst-v0110 { func => func((:)) } else { style }
+#let _style-inherit = if using-typst-v0110 { func => func((:)) } else { style }
 
 // Polyfill for measure(_, styles)
 #let _measure = if using-typst-v0110 { (value, _) => measure(value) } else { measure }
@@ -2839,7 +2839,7 @@
     let map-cols = validate-map-func(map-cols)
     let fit-spans = validate-fit-spans(fit-spans, default: (x: false, y: false))
 
-    layout(size => _locate_inherit(t_loc => _style_inherit(styles => {
+    layout(size => _locate-inherit(t_loc => _style-inherit(styles => {
         let table_id = _tablex-table-counter.at(t_loc)
         let page_dimensions = get-page-dim-state(table_id)
         let page_dim_at = if using-typst-v0110 { page_dimensions.final() } else { page_dimensions.final(t_loc) }
