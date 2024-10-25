@@ -698,9 +698,9 @@ Another example (summing columns):
 **NOTE:** Please use Typst's built-in tables instead of tablex (starting with Typst 0.11.0).
 Most of tablex's features were implemented in Typst's tables by the author of tablex.
 
-- Added compatibility with Typst v0.12.0
+- Added compatibility with Typst v0.12.0 (https://github.com/PgBiel/typst-tablex/issues/135)
 - Added library usage notice to README
-- Tablex is now dual-licensed under MIT/Apache-2.0
+- Tablex is now dual-licensed under MIT/Apache-2.0 (https://github.com/PgBiel/typst-tablex/issues/134)
 
 ### v0.0.8
 
